@@ -23,10 +23,6 @@ struct EmailStepFeature {
 
     @Dependency(\.authClient) var authClient
 
-    private func isValidEmail(_ email: String) -> Bool {
-        email.contains("@") && email.contains(".")
-    }
-
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
@@ -36,7 +32,7 @@ struct EmailStepFeature {
                 return .none
 
             case .nextTapped:
-                guard isValidEmail(state.email) else {
+                guard AuthValidation.isValidEmail(state.email) else {
                     state.validationError = "올바른 이메일 형식을 입력해주세요."
                     return .none
                 }
@@ -44,7 +40,7 @@ struct EmailStepFeature {
                 return .run { [email = state.email] send in
                     await send(.emailCheckResponse(
                         Result { try await authClient.checkEmailDuplicate(email) }
-                            .mapError { _ in AuthError.unknown }
+                            .mapError { ($0 as? AuthError) ?? .unknown }
                     ))
                 }
 

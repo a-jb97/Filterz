@@ -38,9 +38,9 @@ struct LoginFeature {
     @Dependency(\.kakaoAuthClient) var kakaoAuthClient
     @Dependency(\.appleAuthClient) var appleAuthClient
 
-    func makeErrorAlert(_ message: String?) -> AlertState<Action.Alert> {
+    func makeAlert(title: String, message: String?) -> AlertState<Action.Alert> {
         AlertState {
-            TextState("로그인 실패")
+            TextState(title)
         } actions: {
             ButtonState(role: .cancel) { TextState("확인") }
         } message: {
@@ -65,20 +65,18 @@ struct LoginFeature {
 
             case .loginButtonTapped:
                 guard !state.email.isEmpty, !state.password.isEmpty else {
-                    state.alert = AlertState {
-                        TextState("입력 오류")
-                    } actions: {
-                        ButtonState(role: .cancel) { TextState("확인") }
-                    } message: {
-                        TextState("이메일과 비밀번호를 입력해주세요.")
-                    }
+                    state.alert = makeAlert(title: "입력 오류", message: "이메일과 비밀번호를 입력해주세요.")
+                    return .none
+                }
+                guard AuthValidation.isValidEmail(state.email) else {
+                    state.alert = makeAlert(title: "입력 오류", message: "올바른 이메일 형식을 입력해주세요.")
                     return .none
                 }
                 state.isLoading = true
                 return .run { [email = state.email, password = state.password] send in
                     await send(.loginResponse(
                         Result { try await authClient.emailLogin(email, password) }
-                            .mapError { _ in AuthError.invalidCredentials }
+                            .mapError { ($0 as? AuthError) ?? .unknown }
                     ))
                 }
 
@@ -104,7 +102,7 @@ struct LoginFeature {
 
             case .loginResponse(.failure(let error)):
                 state.isLoading = false
-                state.alert = makeErrorAlert(error.errorDescription)
+                state.alert = makeAlert(title: "로그인 실패", message:error.errorDescription)
                 return .none
 
             case .kakaoLoginResponse(.success(let kakaoToken)):
@@ -117,7 +115,7 @@ struct LoginFeature {
 
             case .kakaoLoginResponse(.failure):
                 state.isLoading = false
-                state.alert = makeErrorAlert("카카오 로그인에 실패했습니다.")
+                state.alert = makeAlert(title: "로그인 실패", message:"카카오 로그인에 실패했습니다.")
                 return .none
 
             case .appleLoginResponse(.success(let cred)):
@@ -130,7 +128,7 @@ struct LoginFeature {
 
             case .appleLoginResponse(.failure):
                 state.isLoading = false
-                state.alert = makeErrorAlert("Apple 로그인에 실패했습니다.")
+                state.alert = makeAlert(title: "로그인 실패", message:"Apple 로그인에 실패했습니다.")
                 return .none
 
             case .navigateToSignUp, .delegate:

@@ -4,14 +4,8 @@ import ComposableArchitecture
 struct PasswordStepView: View {
     @Bindable var store: StoreOf<PasswordStepFeature>
 
-    private var passwordStrength: PasswordStrength {
-        if store.password.count < 8 { return .weak }
-        if store.password.count < 12 { return .medium }
-        return .strong
-    }
-
     private var isNextEnabled: Bool {
-        store.password.count >= 8 && store.password == store.confirmPassword
+        store.passwordRequirements.isValid && store.password == store.confirmPassword
     }
 
     var body: some View {
@@ -20,7 +14,7 @@ struct PasswordStepView: View {
                 Text("비밀번호를 설정해주세요")
                     .font(.filterzHeadline())
                     .foregroundColor(.filterzTextPrimary)
-                Text("8자 이상의 비밀번호를 입력해주세요")
+                Text("아래 조건을 모두 충족해야 합니다")
                     .font(.filterzBody())
                     .foregroundColor(.filterzTextSecondary)
             }
@@ -34,6 +28,10 @@ struct PasswordStepView: View {
                     icon: "lock"
                 )
 
+                if !store.password.isEmpty {
+                    PasswordRequirementsView(requirements: store.passwordRequirements)
+                }
+
                 FilterzSecureField(
                     placeholder: "비밀번호 확인",
                     text: $store.confirmPassword.sending(\.confirmPasswordChanged),
@@ -42,9 +40,6 @@ struct PasswordStepView: View {
                     icon: "lock",
                     error: store.validationError
                 )
-
-                PasswordStrengthBar(strength: passwordStrength)
-                    .opacity(store.password.isEmpty ? 0 : 1)
             }
 
             Spacer()
@@ -63,26 +58,28 @@ struct PasswordStepView: View {
     }
 }
 
-private struct PasswordStrengthBar: View {
-    let strength: PasswordStrength
+private struct PasswordRequirementsView: View {
+    let requirements: AuthValidation.PasswordRequirements
 
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(0..<3, id: \.self) { index in
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(color(for: index))
-                    .frame(height: 3)
-            }
+        VStack(alignment: .leading, spacing: 6) {
+            requirementRow("8자 이상", requirements.hasMinLength)
+            requirementRow("영문자 포함 (A-z)", requirements.hasLetter)
+            requirementRow("숫자 포함 (0-9)", requirements.hasNumber)
+            requirementRow("특수문자 포함 (@$!%*#?&)", requirements.hasSpecialChar)
         }
-        .animation(.easeInOut(duration: 0.2), value: strength)
+        .padding(.horizontal, 4)
     }
 
-    private func color(for index: Int) -> Color {
-        switch (strength, index) {
-        case (.weak, 0):       return .filterzError
-        case (.medium, 0...1): return Color(hex: "#F0A500")
-        case (.strong, _):     return .filterzAccent
-        default:               return .filterzBorder
+    private func requirementRow(_ label: String, _ isSatisfied: Bool) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: isSatisfied ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(isSatisfied ? .filterzAccent : .filterzTextSecondary)
+                .font(.system(size: 14))
+            Text(label)
+                .font(.filterzCaption())
+                .foregroundColor(isSatisfied ? .filterzTextPrimary : .filterzTextSecondary)
         }
+        .animation(.easeInOut(duration: 0.15), value: isSatisfied)
     }
 }

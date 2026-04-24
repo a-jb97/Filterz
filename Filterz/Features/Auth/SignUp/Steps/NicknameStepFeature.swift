@@ -40,6 +40,10 @@ struct NicknameStepFeature {
                     state.validationError = "닉네임은 2자 이상이어야 합니다."
                     return .none
                 }
+                guard AuthValidation.isValidNickname(state.nickname) else {
+                    state.validationError = "닉네임에 사용할 수 없는 문자가 포함되어 있습니다."
+                    return .none
+                }
                 state.isCheckingDuplicate = true
                 return .run { [nickname = state.nickname] send in
                     await send(.nicknameCheckResponse(

@@ -13,6 +13,13 @@ struct FilterzApp: App {
     let store = Store(initialState: AppFeature.State()) {
         AppFeature()
     }
+    
+    // 키체인 세션 초기화
+    init() {
+        KeychainHelper.delete(forKey: "accessToken")
+        KeychainHelper.delete(forKey: "refreshToken")
+        KeychainHelper.delete(forKey: "userId")
+    }
 
     var body: some Scene {
         WindowGroup {

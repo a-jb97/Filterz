@@ -1,9 +1,5 @@
 import ComposableArchitecture
 
-enum PasswordStrength: Equatable {
-    case weak, medium, strong
-}
-
 @Reducer
 struct PasswordStepFeature {
     @ObservableState
@@ -13,6 +9,12 @@ struct PasswordStepFeature {
         var passwordVisible: Bool = false
         var confirmPasswordVisible: Bool = false
         var validationError: String? = nil
+        var passwordRequirements: AuthValidation.PasswordRequirements = AuthValidation.PasswordRequirements(
+            hasMinLength: false,
+            hasLetter: false,
+            hasNumber: false,
+            hasSpecialChar: false
+        )
     }
 
     enum Action: Sendable {
@@ -35,6 +37,7 @@ struct PasswordStepFeature {
             case .passwordChanged(let text):
                 state.password = text
                 state.validationError = nil
+                state.passwordRequirements = AuthValidation.checkPasswordRequirements(text)
                 return .none
 
             case .confirmPasswordChanged(let text):
@@ -51,11 +54,11 @@ struct PasswordStepFeature {
                 return .none
 
             case .nextTapped:
-                if state.password.count < 8 {
-                    state.validationError = "비밀번호는 8자 이상이어야 합니다."
+                guard state.passwordRequirements.isValid else {
+                    state.validationError = "영문자, 숫자, 특수문자(@$!%*#?&)를 각각 1개 이상 포함하고 8자 이상이어야 합니다."
                     return .none
                 }
-                if state.password != state.confirmPassword {
+                guard state.password == state.confirmPassword else {
                     state.validationError = "비밀번호가 일치하지 않습니다."
                     return .none
                 }
