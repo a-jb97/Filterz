@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Response DTOs
 
-struct ChatRoomResponseDTO: Decodable {
+struct ChatRoomResponseDTO: Decodable, Sendable {
     let roomId: String
     let createdAt: String
     let updatedAt: String
@@ -17,7 +17,7 @@ struct ChatRoomResponseDTO: Decodable {
     }
 }
 
-struct ChatResponseDTO: Decodable {
+struct ChatResponseDTO: Decodable, Sendable {
     let chatId: String
     let roomId: String
     let content: String?
@@ -33,21 +33,21 @@ struct ChatResponseDTO: Decodable {
     }
 }
 
-struct ChatRoomListResponseDTO: Decodable {
+struct ChatRoomListResponseDTO: Decodable, Sendable {
     let data: [ChatRoomResponseDTO]
 }
 
-struct ChatListResponseDTO: Decodable {
+struct ChatListResponseDTO: Decodable, Sendable {
     let data: [ChatResponseDTO]
 }
 
-struct ChatFileResponseDTO: Decodable {
+struct ChatFileResponseDTO: Decodable, Sendable {
     let files: [String]
 }
 
 // MARK: - Request DTOs
 
-struct CreateChatRoomRequestDTO: Encodable {
+struct CreateChatRoomRequestDTO: Encodable, Sendable {
     let opponentId: String
 
     enum CodingKeys: String, CodingKey {
@@ -55,7 +55,7 @@ struct CreateChatRoomRequestDTO: Encodable {
     }
 }
 
-struct SendMessageRequestDTO: Encodable {
+struct SendMessageRequestDTO: Encodable, Sendable {
     let content: String?
     let files: [String]?
 }

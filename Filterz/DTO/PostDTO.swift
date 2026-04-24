@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Response DTOs
 
-struct PostResponseDTO: Decodable {
+struct PostResponseDTO: Decodable, Sendable {
     let postId: String
     let category: String
     let title: String
@@ -27,7 +27,7 @@ struct PostResponseDTO: Decodable {
     }
 }
 
-struct PostSummaryResponseDTO: Decodable {
+struct PostSummaryResponseDTO: Decodable, Sendable {
     let postId: String
     let category: String
     let title: String
@@ -49,7 +49,7 @@ struct PostSummaryResponseDTO: Decodable {
     }
 }
 
-struct PostCommentResponseDTO: Decodable {
+struct PostCommentResponseDTO: Decodable, Sendable {
     let commentId: String
     let content: String
     let createdAt: String
@@ -62,7 +62,7 @@ struct PostCommentResponseDTO: Decodable {
     }
 }
 
-struct PostLikeResponseDTO: Decodable {
+struct PostLikeResponseDTO: Decodable, Sendable {
     let likeStatus: Bool
 
     enum CodingKeys: String, CodingKey {
@@ -70,11 +70,11 @@ struct PostLikeResponseDTO: Decodable {
     }
 }
 
-struct PostSummaryListResponseDTO: Decodable {
+struct PostSummaryListResponseDTO: Decodable, Sendable {
     let data: [PostSummaryResponseDTO]
 }
 
-struct PostSummaryPaginationResponseDTO: Decodable {
+struct PostSummaryPaginationResponseDTO: Decodable, Sendable {
     let data: [PostSummaryResponseDTO]
     let nextCursor: String?
 
@@ -86,7 +86,7 @@ struct PostSummaryPaginationResponseDTO: Decodable {
 
 // MARK: - Request DTOs
 
-struct CreatePostRequestDTO: Encodable {
+struct CreatePostRequestDTO: Encodable, Sendable {
     let category: String
     let title: String
     let content: String
@@ -94,6 +94,6 @@ struct CreatePostRequestDTO: Encodable {
     let files: [String]?
 }
 
-struct PostFileResponseDTO: Decodable {
+struct PostFileResponseDTO: Decodable, Sendable {
     let files: [String]
 }

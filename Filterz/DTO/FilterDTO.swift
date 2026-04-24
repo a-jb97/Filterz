@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Response DTOs
 
-struct FilterResponseDTO: Decodable {
+struct FilterResponseDTO: Decodable, Sendable {
     let filterId: String
     let category: String
     let title: String
@@ -34,7 +34,7 @@ struct FilterResponseDTO: Decodable {
     }
 }
 
-struct FilterSummaryResponseDTO: Decodable {
+struct FilterSummaryResponseDTO: Decodable, Sendable {
     let filterId: String
     let category: String
     let title: String
@@ -57,7 +57,7 @@ struct FilterSummaryResponseDTO: Decodable {
     }
 }
 
-struct FilterSummaryResponseDTO_Order: Decodable {
+struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
     let id: String
     let category: String
     let title: String
@@ -76,7 +76,7 @@ struct FilterSummaryResponseDTO_Order: Decodable {
     }
 }
 
-struct FilterListResponseDTO: Decodable {
+struct FilterListResponseDTO: Decodable, Sendable {
     let data: [FilterSummaryResponseDTO]
     let nextCursor: String?
 
@@ -86,11 +86,11 @@ struct FilterListResponseDTO: Decodable {
     }
 }
 
-struct FilterSummaryListResponseDTO: Decodable {
+struct FilterSummaryListResponseDTO: Decodable, Sendable {
     let data: [FilterSummaryResponseDTO]
 }
 
-struct FilterSummaryPaginationListResponseDTO: Decodable {
+struct FilterSummaryPaginationListResponseDTO: Decodable, Sendable {
     let data: [FilterSummaryResponseDTO]
     let nextCursor: String?
 
@@ -100,11 +100,11 @@ struct FilterSummaryPaginationListResponseDTO: Decodable {
     }
 }
 
-struct FilterGeoListResponseDTO: Decodable {
+struct FilterGeoListResponseDTO: Decodable, Sendable {
     let data: [FilterSummaryResponseDTO]
 }
 
-struct FilterLikeResponseDTO: Decodable {
+struct FilterLikeResponseDTO: Decodable, Sendable {
     let likeStatus: Bool
 
     enum CodingKeys: String, CodingKey {
@@ -112,7 +112,7 @@ struct FilterLikeResponseDTO: Decodable {
     }
 }
 
-struct FilterCommentResponseDTO: Decodable {
+struct FilterCommentResponseDTO: Decodable, Sendable {
     let commentId: String
     let content: String
     let createdAt: String
@@ -125,7 +125,7 @@ struct FilterCommentResponseDTO: Decodable {
     }
 }
 
-struct TodayFilterResponseDTO: Decodable {
+struct TodayFilterResponseDTO: Decodable, Sendable {
     let filterId: String
     let title: String
     let introduction: String
@@ -142,7 +142,7 @@ struct TodayFilterResponseDTO: Decodable {
 
 // MARK: - Nested DTOs
 
-struct PhotoMetadataDTO: Decodable {
+struct PhotoMetadataDTO: Decodable, Sendable {
     let camera: String?
     let lensInfo: String?
     let focalLength: Float?
@@ -172,7 +172,7 @@ struct PhotoMetadataDTO: Decodable {
     }
 }
 
-struct FilterValuesDTO: Decodable {
+struct FilterValuesDTO: Decodable, Sendable {
     let brightness: Float?
     let exposure: Float?
     let contrast: Float?
@@ -195,7 +195,7 @@ struct FilterValuesDTO: Decodable {
     }
 }
 
-struct CommentResponseDTO: Decodable {
+struct CommentResponseDTO: Decodable, Sendable {
     let commentId: String
     let content: String
     let createdAt: String

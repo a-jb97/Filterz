@@ -4,11 +4,11 @@ import Foundation
 
 // MARK: - Request DTOs
 
-struct EmailValidationRequestDTO: Encodable {
+struct EmailValidationRequestDTO: Encodable, Sendable {
     let email: String
 }
 
-struct JoinRequestDTO: Encodable {
+struct JoinRequestDTO: Encodable, Sendable {
     let email: String
     let password: String
     let nick: String
@@ -17,25 +17,25 @@ struct JoinRequestDTO: Encodable {
     let deviceToken: String?
 }
 
-struct LoginRequestDTO: Encodable {
+struct LoginRequestDTO: Encodable, Sendable {
     let email: String
     let password: String
     let deviceToken: String?
 }
 
-struct KakaoLoginRequestDTO: Encodable {
+struct KakaoLoginRequestDTO: Encodable, Sendable {
     let oauthToken: String
     let deviceToken: String?
 }
 
-struct AppleLoginRequestDTO: Encodable {
+struct AppleLoginRequestDTO: Encodable, Sendable {
     let idToken: String
     let deviceToken: String?
 }
 
 // MARK: - Response DTOs
 
-struct LoginResponseDTO: Decodable {
+struct LoginResponseDTO: Decodable, Sendable {
     let userID: String
     let email: String
     let nick: String
@@ -55,7 +55,7 @@ struct LoginResponseDTO: Decodable {
 
 typealias JoinResponseDTO = LoginResponseDTO
 
-struct MyInfoResponseDTO: Decodable {
+struct MyInfoResponseDTO: Decodable, Sendable {
     let userID: String
     let email: String
     let nick: String
@@ -77,7 +77,7 @@ struct MyInfoResponseDTO: Decodable {
     }
 }
 
-struct UserInfoResponseDTO: Decodable {
+struct UserInfoResponseDTO: Decodable, Sendable {
     let userID: String
     let nick: String
     let profileImage: String?
@@ -89,7 +89,7 @@ struct UserInfoResponseDTO: Decodable {
     }
 }
 
-struct WithdrawResponseDTO: Decodable {
+struct WithdrawResponseDTO: Decodable, Sendable {
     let userID: String
     let email: String
     let nick: String

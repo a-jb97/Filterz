@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Request DTOs
 
-struct RefreshTokenRequestDTO: Encodable {
+struct RefreshTokenRequestDTO: Encodable, Sendable {
     let refreshToken: String
 
     enum CodingKeys: String, CodingKey {
@@ -14,6 +14,6 @@ struct RefreshTokenRequestDTO: Encodable {
 
 // MARK: - Response DTOs
 
-struct RefreshTokenResponseDTO: Decodable {
+struct RefreshTokenResponseDTO: Decodable, Sendable {
     let accessToken: String
 }
