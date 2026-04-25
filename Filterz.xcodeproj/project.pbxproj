@@ -17,7 +17,6 @@
 		9E25C3D52F9BA75900B518B9 /* SCDream8.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */; };
 		9E25C3D62F9BA75900B518B9 /* SCDream7.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CB2F9BA75900B518B9 /* SCDream7.otf */; };
 		9E847F292F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */; };
-		9E847F2B2F9C9BA600FD86FA /* Lasthighteen Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E847F2A2F9C9BA600FD86FA /* Lasthighteen Bold.ttf */; };
 		9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9EB5967B2F98EE7000CA0337 /* .gitignore */; };
 		9EB5967F2F98F8C300CA0337 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */; };
 		9EB596832F98FB1C00CA0337 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB596822F98FB1C00CA0337 /* KakaoSDKAuth */; };
@@ -54,7 +53,6 @@
 		9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream8.otf; sourceTree = "<group>"; };
 		9E25C3CD2F9BA75900B518B9 /* SCDream9.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream9.otf; sourceTree = "<group>"; };
 		9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ClimateCrisisKR-1979.otf"; sourceTree = "<group>"; };
-		9E847F2A2F9C9BA600FD86FA /* Lasthighteen Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lasthighteen Bold.ttf"; sourceTree = "<group>"; };
 		9EB596512F98B56F00CA0337 /* Filterz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Filterz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB5965E2F98B57100CA0337 /* FilterzTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB596682F98B57100CA0337 /* FilterzUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -127,7 +125,6 @@
 				9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */,
 				9E25C3CD2F9BA75900B518B9 /* SCDream9.otf */,
 				9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */,
-				9E847F2A2F9C9BA600FD86FA /* Lasthighteen Bold.ttf */,
 			);
 			sourceTree = "<group>";
 		};
@@ -277,7 +274,6 @@
 				9E25C3D02F9BA75900B518B9 /* SCDream1.otf in Resources */,
 				9E25C3D12F9BA75900B518B9 /* SCDream2.otf in Resources */,
 				9E25C3D22F9BA75900B518B9 /* SCDream4.otf in Resources */,
-				9E847F2B2F9C9BA600FD86FA /* Lasthighteen Bold.ttf in Resources */,
 				9E25C3D32F9BA75900B518B9 /* SCDream9.otf in Resources */,
 				9E847F292F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf in Resources */,
 				9E25C3D42F9BA75900B518B9 /* SCDream6.otf in Resources */,
