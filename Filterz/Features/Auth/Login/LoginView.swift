@@ -53,7 +53,7 @@ struct LoginView: View {
                 + Text("Z")
                     .foregroundColor(.filterzAccent)
             )
-            .font(.system(size: 42, weight: .black))
+            .font(.custom("ClimateCrisisKR-1979", size: 42))
             Text("나만의 필터를 발견하세요")
                 .font(.filterzBody())
                 .foregroundColor(.filterzTextSecondary)

@@ -24,8 +24,10 @@ struct AppFeature {
             case .onAppear:
                 state.isCheckingSession = true
                 return .run { send in
-                    let isAuthenticated = await authClient.checkSession()
-                    await send(.sessionCheckResponse(isAuthenticated))
+                    async let isAuthenticated = authClient.checkSession()
+                    async let minimumDelay: Void = try Task.sleep(for: .milliseconds(1500))
+                    let (result, _) = try await (isAuthenticated, minimumDelay)
+                    await send(.sessionCheckResponse(result))
                 }
 
             case .sessionCheckResponse(true):

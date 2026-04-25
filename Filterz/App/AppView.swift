@@ -10,12 +10,8 @@ struct AppView: View {
                 splashView
             } else if let authStore = store.scope(state: \.auth, action: \.auth) {
                 AuthView(store: authStore)
-            } else if store.scope(state: \.main, action: \.main) != nil {
-                // MainView는 추후 구현
-                Text("메인 화면")
-                    .foregroundColor(.filterzTextPrimary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.filterzBackground)
+            } else if let mainStore = store.scope(state: \.main, action: \.main) {
+                MainView(store: mainStore)
             }
         }
         .onAppear { store.send(.onAppear) }
@@ -24,13 +20,13 @@ struct AppView: View {
     private var splashView: some View {
         ZStack {
             Color.filterzBackground.ignoresSafeArea()
-            VStack(spacing: 12) {
-                Text("FILTERZ")
-                    .font(.system(size: 42, weight: .black))
+            (
+                Text("FILTER")
                     .foregroundColor(.filterzTextPrimary)
-                ProgressView()
-                    .tint(.filterzAccent)
-            }
+                + Text("Z")
+                    .foregroundColor(.filterzAccent)
+            )
+            .font(.custom("ClimateCrisisKR-1979", size: 42))
         }
     }
 }
