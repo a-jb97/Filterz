@@ -6,12 +6,33 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
+import KakaoSDKCommon
+import KakaoSDKAuth
 
 @main
 struct FilterzApp: App {
+    let store = Store(initialState: AppFeature.State()) {
+        AppFeature()
+    }
+
+    init() {
+        let appKey = Bundle.main.object(forInfoDictionaryKey: "KAKAO_NATIVE_APP_KEY") as! String
+        KakaoSDK.initSDK(appKey: appKey)
+
+        KeychainHelper.delete(forKey: "accessToken")
+        KeychainHelper.delete(forKey: "refreshToken")
+        KeychainHelper.delete(forKey: "userId")
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppView(store: store)
+                .onOpenURL { url in
+                    if AuthApi.isKakaoTalkLoginUrl(url) {
+                        _ = AuthController.handleOpenUrl(url: url)
+                    }
+                }
         }
     }
 }
