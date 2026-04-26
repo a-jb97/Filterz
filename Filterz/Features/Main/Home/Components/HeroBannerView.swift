@@ -6,10 +6,22 @@ struct HeroBannerView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // 배경 이미지 placeholder
-            Color(hex: "#2A3A2A")
+            // 배경 이미지
+            if let urlString = store.todayFilterImageURLs.first,
+               let url = URL(string: urlString) {
+                AsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Color(hex: "#2A3A2A")
+                }
                 .frame(maxWidth: .infinity)
                 .frame(height: 555)
+                .clipped()
+            } else {
+                Color(hex: "#2A3A2A")
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 555)
+            }
 
             // 하단 그라디언트 오버레이
             LinearGradient(

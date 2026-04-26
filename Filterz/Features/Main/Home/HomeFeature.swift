@@ -38,9 +38,12 @@ struct ArtistItem: Equatable {
 struct HomeFeature {
     @ObservableState
     struct State: Equatable {
-        var todayFilterTitle: String = "새싹을 담은 필터"
-        var todayFilterSubtitle: String = "청록 새록"
-        var todayFilterDescription: String = "햇살 아래 돋아나는 새싹처럼,\n맑고 투명한 빛을 담은 자연 감성 필터입니다.\n너무 과하지 않게, 부드러운 색감으로 분위기를 살려줍니다.\n새로운 시작, 순수한 감정을 담고 싶을 때 이 필터를 사용해보세요."
+        var isLoading: Bool = false
+        var todayFilterId: String = ""
+        var todayFilterTitle: String = ""
+        var todayFilterSubtitle: String = ""
+        var todayFilterDescription: String = ""
+        var todayFilterImageURLs: [String] = []
         var todayBannerCurrentPage: Int = 1
         var todayBannerTotalPages: Int = 12
         var hotFilters: [HotFilterItem] = HotFilterItem.placeholders
@@ -50,11 +53,39 @@ struct HomeFeature {
     enum Action: Sendable {
         case onAppear
         case tryFilterTapped
+        case todayFilterResponse(Result<TodayFilterResponseDTO, any Error>)
     }
 
+    @Dependency(\.filterClient) var filterClient
+
     var body: some Reducer<State, Action> {
-        Reduce { _, action in
-            return .none
+        Reduce { state, action in
+            switch action {
+            case .onAppear:
+                guard !state.isLoading else { return .none }
+                state.isLoading = true
+                return .run { send in
+                    await send(.todayFilterResponse(
+                        Result { try await filterClient.getTodayFilter() }
+                    ))
+                }
+            case .todayFilterResponse(.success(let dto)):
+                state.isLoading = false
+                state.todayFilterId = dto.filterId
+                state.todayFilterTitle = dto.title
+                state.todayFilterSubtitle = dto.introduction
+                state.todayFilterDescription = dto.description
+                state.todayFilterImageURLs = dto.files
+                return .none
+            case .todayFilterResponse(.failure):
+                state.isLoading = false
+                state.todayFilterTitle = "새싹을 담은 필터"
+                state.todayFilterSubtitle = "청록 새록"
+                state.todayFilterDescription = "햇살 아래 돋아나는 새싹처럼,\n맑고 투명한 빛을 담은 자연 감성 필터입니다.\n너무 과하지 않게, 부드러운 색감으로 분위기를 살려줍니다.\n새로운 시작, 순수한 감정을 담고 싶을 때 이 필터를 사용해보세요."
+                return .none
+            case .tryFilterTapped:
+                return .none
+            }
         }
     }
 }
