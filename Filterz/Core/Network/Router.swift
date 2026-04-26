@@ -90,7 +90,7 @@ extension Router {
              .deleteFilter(let id):                         return "/filters/\(id)"
         case .likeFilter(let id):                           return "/filters/\(id)/like"
         case .getFilterGeo:                                 return "/filters/geo"
-        case .getTodayFilter:                               return "/filters/today"
+        case .getTodayFilter:                               return "/filters/today-filter"
         case .createFilterComment(let id):                  return "/filters/\(id)/comments"
         case .deleteFilterComment(let fId, let cId):        return "/filters/\(fId)/comments/\(cId)"
         // Post
