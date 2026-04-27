@@ -10,7 +10,10 @@ struct HomeView: View {
                 HeroBannerView(store: store)
                 CategoryBarView()
                 TodayBannerView(store: store)
-                HotTrendView(filters: store.hotFilters)
+                HotTrendView(
+                    filters: store.hotFilters,
+                    onFilterTapped: { id in store.send(.hotFilterTapped(id: id)) }
+                )
                 FeaturedArtistView(artist: store.featuredArtist)
                 Spacer().frame(height: 100)
             }

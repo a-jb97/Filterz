@@ -2,6 +2,11 @@ import SwiftUI
 
 struct HotTrendView: View {
     let filters: [HotFilterItem]
+    var onFilterTapped: (String) -> Void = { _ in }
+
+    @State private var focusedID: String?
+
+    private let cardWidth: CGFloat = 200
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -10,18 +15,32 @@ struct HotTrendView: View {
                 .foregroundColor(.filterzGray60)
                 .padding(.horizontal, 20)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(Array(filters.enumerated()), id: \.element.id) { index, filter in
-                        HotFilterCardView(
-                            item: filter,
-                            isCenter: index == 1
-                        )
+            GeometryReader { geo in
+                let sidePad = max(0, (geo.size.width - cardWidth) / 2)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(filters) { filter in
+                            HotFilterCardView(
+                                item: filter,
+                                isFocused: filter.id == focusedID,
+                                onTap: { onFilterTapped(filter.id) }
+                            )
+                            .id(filter.id)
+                        }
                     }
+                    .scrollTargetLayout()
                 }
-                .padding(.horizontal, 20)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $focusedID)
+                .contentMargins(.horizontal, sidePad, for: .scrollContent)
             }
+            .frame(height: 240)
         }
         .padding(.top, 20)
+        .onChange(of: filters) { _, newFilters in
+            guard focusedID == nil, let first = newFilters.first else { return }
+            focusedID = first.id
+        }
     }
 }

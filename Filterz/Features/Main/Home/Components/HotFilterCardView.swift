@@ -2,14 +2,15 @@ import SwiftUI
 
 struct HotFilterCardView: View {
     let item: HotFilterItem
-    var isCenter: Bool = true
+    var isFocused: Bool = true
+    var onTap: () -> Void = {}
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // 배경 이미지 placeholder
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(hex: "#2A2A3A"))
+            AuthenticatedImageView(path: item.imageURL)
                 .frame(width: 200, height: 240)
+                .background(Color(hex: "#2A2A3A"))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
             // 필터 이름 (좌상단)
             Text(item.name)
@@ -39,6 +40,7 @@ struct HotFilterCardView: View {
             }
         }
         .frame(width: 200, height: 240)
-        .opacity(isCenter ? 1.0 : 0.3)
+        .opacity(isFocused ? 1.0 : 0.3)
+        .onTapGesture { onTap() }
     }
 }
