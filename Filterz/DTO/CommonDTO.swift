@@ -11,18 +11,19 @@ struct Geolocation: Codable, Sendable {
 
 // MARK: - Banner
 
-struct BannerDTO: Decodable, Sendable {
+struct BannerDTO: Decodable, Sendable, Equatable {
     let name: String
     let imageUrl: String
-    let payload: String?
-
-    enum CodingKeys: String, CodingKey {
-        case name, imageUrl, payload
-    }
+    let payload: BannerPayload?
 }
 
 struct BannerListResponseDTO: Decodable, Sendable {
     let data: [BannerDTO]
+}
+
+struct BannerPayload: Decodable, Equatable {
+    let type: String
+    let value: String
 }
 
 // MARK: - Log
