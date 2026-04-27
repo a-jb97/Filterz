@@ -1,4 +1,4 @@
-// AuthModel.swift
+// AuthDTO.swift
 
 import Foundation
 

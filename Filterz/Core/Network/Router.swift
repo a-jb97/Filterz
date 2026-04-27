@@ -117,7 +117,7 @@ extension Router {
         case .likeVideo(let id, _):                         return "/videos/\(id)/like"
         // Common
         case .uploadFile:                                   return "/files"
-        case .getBanners:                                   return "/banners"
+        case .getBanners:                                   return "/banners/main"
         case .getLogs:                                      return "/logs"
         case .sendPushNotification:                         return "/notifications"
         }

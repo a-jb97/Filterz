@@ -1,4 +1,4 @@
-// UserModel.swift
+// UserDTO.swift
 
 import Foundation
 

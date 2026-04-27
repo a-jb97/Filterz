@@ -1,22 +1,21 @@
 import SwiftUI
+import UIKit
 import ComposableArchitecture
 
 struct HeroBannerView: View {
     let store: StoreOf<HomeFeature>
+    @State private var heroImage: UIImage? = nil
 
     var body: some View {
         ZStack(alignment: .bottom) {
             // 배경 이미지
-            if let urlString = store.todayFilterImageURLs.first,
-               let url = URL(string: urlString) {
-                AsyncImage(url: url) { image in
-                    image.resizable().scaledToFill()
-                } placeholder: {
-                    Color(hex: "#2A3A2A")
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 555)
-                .clipped()
+            if let heroImage {
+                Image(uiImage: heroImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 555)
+                    .clipped()
             } else {
                 Color(hex: "#2A3A2A")
                     .frame(maxWidth: .infinity)
@@ -85,8 +84,22 @@ struct HeroBannerView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
-            .padding(.bottom, 96)
+            .padding(.bottom, 32)
         }
         .frame(height: 555)
+        .task(id: store.todayFilterImageURLs.first) {
+            await loadHeroImage()
+        }
+    }
+
+    private func loadHeroImage() async {
+        guard let urlString = store.todayFilterImageURLs.first,
+              let url = URL(string: APIKey.baseURL + urlString) else { return }
+        var request = URLRequest(url: url)
+        request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
+        request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
+        guard let (data, _) = try? await URLSession.shared.data(for: request),
+              let image = UIImage(data: data) else { return }
+        heroImage = image
     }
 }
