@@ -14,7 +14,10 @@ struct HomeView: View {
                     filters: store.hotFilters,
                     onFilterTapped: { id in store.send(.hotFilterTapped(id: id)) }
                 )
-                FeaturedArtistView(artist: store.featuredArtist)
+                FeaturedArtistView(
+                    artist: store.featuredArtist,
+                    onFilterTapped: { id in store.send(.todayAuthorFilterTapped(filterId: id)) }
+                )
                 Spacer().frame(height: 100)
             }
         }

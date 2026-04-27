@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FeaturedArtistView: View {
     let artist: ArtistItem
+    let onFilterTapped: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -12,10 +13,11 @@ struct FeaturedArtistView: View {
 
             // 작가 프로필
             HStack(spacing: 16) {
-                Circle()
-                    .fill(Color.filterzTranslucent)
-                    .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
+                AuthenticatedImageView(path: artist.profileImagePath)
                     .frame(width: 72, height: 72)
+                    .background(Color.filterzTranslucent)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(artist.name)
@@ -30,10 +32,12 @@ struct FeaturedArtistView: View {
             // 작품 가로 스크롤
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(0..<artist.workCount, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color(hex: "#2A2A3A"))
+                    ForEach(artist.filterWorks) { work in
+                        AuthenticatedImageView(path: work.imageURL)
                             .frame(width: 120, height: 80)
+                            .background(Color(hex: "#2A2A3A"))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .onTapGesture { onFilterTapped(work.id) }
                     }
                 }
             }
