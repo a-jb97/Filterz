@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import ComposableArchitecture
 
 struct TodayBannerView: View {
@@ -20,7 +19,11 @@ struct TodayBannerView: View {
                     set: { store.send(.bannerPageChanged($0)) }
                 )) {
                     ForEach(Array(banners.enumerated()), id: \.offset) { index, banner in
-                        BannerImageView(imageUrl: banner.imageUrl)
+                        AuthenticatedImageView(path: banner.imageUrl)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                            .background(Color(hex: "#1A2A3A"))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
                             .tag(index)
                             .onTapGesture { store.send(.bannerTapped(banner)) }
                     }
@@ -56,33 +59,3 @@ struct TodayBannerView: View {
     }
 }
 
-private struct BannerImageView: View {
-    let imageUrl: String
-    @State private var image: UIImage? = nil
-
-    var body: some View {
-        Group {
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Color(hex: "#1A2A3A")
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 100)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .task(id: imageUrl) { await loadImage() }
-    }
-
-    private func loadImage() async {
-        guard let url = URL(string: APIKey.baseURL + imageUrl) else { return }
-        var request = URLRequest(url: url)
-        request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
-        request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
-        guard let (data, _) = try? await URLSession.shared.data(for: request),
-              let loaded = UIImage(data: data) else { return }
-        image = loaded
-    }
-}
