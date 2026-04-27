@@ -7,12 +7,16 @@ struct HotFilterItem: Identifiable, Equatable {
     let id: String
     let name: String
     let likeCount: Int
+    let imageURL: String?
+}
 
-    static let placeholders: [HotFilterItem] = [
-        .init(id: "1", name: "강철", likeCount: 30),
-        .init(id: "2", name: "소낙새", likeCount: 121),
-        .init(id: "3", name: "화양연화", likeCount: 226)
-    ]
+extension HotFilterItem {
+    init(dto: FilterSummaryResponseDTO) {
+        id = dto.filterId
+        name = dto.title
+        likeCount = dto.likeCount
+        imageURL = dto.files.first
+    }
 }
 
 struct ArtistItem: Equatable {
@@ -48,7 +52,7 @@ struct HomeFeature {
         var banners: [BannerDTO] = []
         var currentBannerPage: Int = 0
         var bannerWebURL: URL? = nil
-        var hotFilters: [HotFilterItem] = HotFilterItem.placeholders
+        var hotFilters: [HotFilterItem] = []
         var featuredArtist: ArtistItem = .placeholder
     }
 
@@ -61,6 +65,8 @@ struct HomeFeature {
         case bannerPageChanged(Int)
         case bannerTapped(BannerDTO)
         case bannerWebViewDismissed
+        case hotTrendFiltersResponse(Result<FilterSummaryListResponseDTO, any Error>)
+        case hotFilterTapped(id: String)
     }
 
     @Dependency(\.filterClient) var filterClient
@@ -78,7 +84,12 @@ struct HomeFeature {
                             Result { try await filterClient.getTodayFilter() }
                         ))
                     },
-                    .send(.fetchBanners)
+                    .send(.fetchBanners),
+                    .run { send in
+                        await send(.hotTrendFiltersResponse(
+                            Result { try await filterClient.getHotTrendFilters() }
+                        ))
+                    }
                 )
 
             case .todayFilterResponse(.success(let dto)):
@@ -127,6 +138,16 @@ struct HomeFeature {
 
             case .bannerWebViewDismissed:
                 state.bannerWebURL = nil
+                return .none
+
+            case .hotTrendFiltersResponse(.success(let dto)):
+                state.hotFilters = dto.data.map { HotFilterItem(dto: $0) }
+                return .none
+
+            case .hotTrendFiltersResponse(.failure):
+                return .none
+
+            case .hotFilterTapped:
                 return .none
 
             case .tryFilterTapped:
