@@ -15,6 +15,7 @@ enum Router: URLRequestConvertible {
     case logout
     case myInfo
     case withdraw
+    case getTodayAuthor
 
     // MARK: - Filter
     case getFilters
@@ -85,6 +86,7 @@ extension Router {
         case .logout:                                       return "/users/logout"
         case .myInfo:                                       return "/users/me"
         case .withdraw:                                     return "/users/withdraw"
+        case .getTodayAuthor:                               return "/users/today-author"
         // Filter
         case .getFilters, .createFilter:                    return "/filters"
         case .getFilter(let id), .editFilter(let id),
@@ -127,7 +129,7 @@ extension Router {
 
     private var method: HTTPMethod {
         switch self {
-        case .myInfo, .getFilters, .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
+        case .myInfo, .getTodayAuthor, .getFilters, .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
              .getPosts, .getPost,
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,
