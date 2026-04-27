@@ -125,6 +125,16 @@ struct FilterCommentResponseDTO: Decodable, Sendable {
     }
 }
 
+struct TodayAuthorFilterDTO: Decodable, Sendable {
+    let filterId: String
+    let files: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case filterId = "filter_id"
+        case files
+    }
+}
+
 struct TodayFilterResponseDTO: Decodable, Sendable {
     let filterId: String
     let title: String

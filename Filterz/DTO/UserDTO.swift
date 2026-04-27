@@ -89,6 +89,30 @@ struct UserInfoResponseDTO: Decodable, Sendable {
     }
 }
 
+struct TodayAuthorUserDTO: Decodable, Sendable {
+    let userID: String
+    let nick: String
+    let name: String?
+    let profileImage: String?
+    let introduction: String?
+    let description: String?
+    let hashTags: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case userID = "user_id"
+        case nick, name, profileImage, introduction, description, hashTags
+    }
+}
+
+struct TodayAuthorResponseDTO: Decodable, Sendable {
+    let author: TodayAuthorUserDTO
+    let filters: [TodayAuthorFilterDTO]?
+
+    enum CodingKeys: String, CodingKey {
+        case author, filters
+    }
+}
+
 struct WithdrawResponseDTO: Decodable, Sendable {
     let userID: String
     let email: String
