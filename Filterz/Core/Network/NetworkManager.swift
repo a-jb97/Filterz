@@ -80,6 +80,19 @@ final class NetworkManager: @unchecked Sendable {
         }
     }
 
+    func requestRaw(_ router: Router) async throws -> Data {
+        let response = await session
+            .request(router)
+            .validate(statusCode: 200..<300)
+            .serializingData()
+            .response
+
+        switch response.result {
+        case .success(let data): return data
+        case .failure(let error): throw mapError(error, statusCode: response.response?.statusCode)
+        }
+    }
+
     func requestVoid(_ router: Router) async throws {
         let response = await session
             .request(router)
