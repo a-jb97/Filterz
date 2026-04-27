@@ -19,22 +19,42 @@ extension HotFilterItem {
     }
 }
 
+struct ArtistFilterWork: Identifiable, Equatable {
+    let id: String
+    let imageURL: String?
+}
+
 struct ArtistItem: Equatable {
     let name: String
     let nameEn: String
+    let profileImagePath: String?
     let quote: String
     let bio: String
     let tags: [String]
-    let workCount: Int
+    let filterWorks: [ArtistFilterWork]
 
     static let placeholder = ArtistItem(
         name: "윤새싹",
         nameEn: "SESAC YOON",
+        profileImagePath: nil,
         quote: "\"자연의 섬세함을 담아내는 감성 사진작가\"",
         bio: "윤새싹은 자연의 섬세한 아름다움을 포착하는 데 탁월한 감각을 지닌 사진작가입니다. 그녀의 작품은 일상 속에서 쉽게 지나칠 수 있는 순간들을 특별하게 담아내며, 관람객들에게 새로운 시각을 선사합니다.",
         tags: ["섬세함", "자연", "미니멀"],
-        workCount: 3
+        filterWorks: []
     )
+}
+
+extension ArtistItem {
+    init(dto: TodayAuthorResponseDTO) {
+        let user = dto.author
+        name = user.nick
+        nameEn = user.name ?? ""
+        profileImagePath = user.profileImage
+        quote = user.introduction ?? ""
+        bio = user.description ?? ""
+        tags = (user.hashTags ?? []).map { $0.hasPrefix("#") ? String($0.dropFirst()) : $0 }
+        filterWorks = (dto.filters ?? []).map { ArtistFilterWork(id: $0.filterId, imageURL: $0.files.first) }
+    }
 }
 
 // MARK: - HomeFeature
@@ -67,10 +87,13 @@ struct HomeFeature {
         case bannerWebViewDismissed
         case hotTrendFiltersResponse(Result<FilterSummaryListResponseDTO, any Error>)
         case hotFilterTapped(id: String)
+        case todayAuthorResponse(Result<TodayAuthorResponseDTO, any Error>)
+        case todayAuthorFilterTapped(filterId: String)
     }
 
     @Dependency(\.filterClient) var filterClient
     @Dependency(\.bannerClient) var bannerClient
+    @Dependency(\.userClient) var userClient
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
@@ -88,6 +111,11 @@ struct HomeFeature {
                     .run { send in
                         await send(.hotTrendFiltersResponse(
                             Result { try await filterClient.getHotTrendFilters() }
+                        ))
+                    },
+                    .run { send in
+                        await send(.todayAuthorResponse(
+                            Result { try await userClient.getTodayAuthor() }
                         ))
                     }
                 )
@@ -148,6 +176,16 @@ struct HomeFeature {
                 return .none
 
             case .hotFilterTapped:
+                return .none
+
+            case .todayAuthorResponse(.success(let dto)):
+                state.featuredArtist = ArtistItem(dto: dto)
+                return .none
+
+            case .todayAuthorResponse(.failure):
+                return .none
+
+            case .todayAuthorFilterTapped:
                 return .none
 
             case .tryFilterTapped:
