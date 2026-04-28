@@ -35,11 +35,11 @@ struct EXIFSection: View {
             Spacer()
             Text("EXIF")
                 .font(.pretendard(11, weight: .bold))
-                .foregroundColor(.filterzGray75)
+                .foregroundColor(.black)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
-                    Capsule().fill(Color.filterzGray90)
+                    Capsule().fill(Color.filterzAccent)
                 )
         }
         .padding(.horizontal, 12)
