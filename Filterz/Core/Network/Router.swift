@@ -23,7 +23,7 @@ enum Router: URLRequestConvertible {
     case getFilter(id: String)
     case editFilter(id: String)
     case deleteFilter(id: String)
-    case likeFilter(id: String)
+    case likeFilter(id: String, query: FilterLikeRequestDTO)
     case getFilterGeo
     case getTodayFilter
     case getHotTrendFilters
@@ -91,7 +91,7 @@ extension Router {
         case .getFilters, .createFilter:                    return "/filters"
         case .getFilter(let id), .editFilter(let id),
              .deleteFilter(let id):                         return "/filters/\(id)"
-        case .likeFilter(let id):                           return "/filters/\(id)/like"
+        case .likeFilter(let id, _):                        return "/filters/\(id)/like"
         case .getFilterGeo:                                 return "/filters/geo"
         case .getTodayFilter:                               return "/filters/today-filter"
         case .getHotTrendFilters:                           return "/filters/hot-trend"
@@ -186,6 +186,8 @@ extension Router {
         case .sendMessage(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .validatePayment(let query):
+            return try JSONParameterEncoder.default.encode(query, into: request)
+        case .likeFilter(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .likeVideo(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
