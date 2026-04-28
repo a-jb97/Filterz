@@ -38,11 +38,17 @@ private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
                 do {
                     let dto = try JSONDecoder().decode(RefreshTokenResponseDTO.self, from: data)
                     APIKey.accessToken = dto.accessToken
+                    KeychainHelper.save(dto.accessToken, forKey: "accessToken")
                     completion(.retry)
                 } catch {
                     completion(.doNotRetryWithError(NetworkError.unauthorized))
                 }
             case .failure:
+                KeychainHelper.delete(forKey: "accessToken")
+                KeychainHelper.delete(forKey: "refreshToken")
+                KeychainHelper.delete(forKey: "userId")
+                APIKey.accessToken = ""
+                APIKey.refreshToken = ""
                 completion(.doNotRetryWithError(NetworkError.unauthorized))
             }
         }

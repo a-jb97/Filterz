@@ -36,6 +36,7 @@ struct AuthClient: Sendable {
     var checkNicknameDuplicate: @Sendable (String) async throws -> Bool
     var socialLogin: @Sendable (SocialProvider, String) async throws -> AuthToken
     var checkSession: @Sendable () async -> Bool
+    var refreshToken: @Sendable () async throws -> AuthToken
     var logout: @Sendable () async throws -> Void
 }
 
@@ -130,6 +131,15 @@ extension AuthClient: DependencyKey {
                 APIKey.refreshToken = refresh
                 return true
             },
+            refreshToken: {
+                let dto: RefreshTokenResponseDTO = try await manager.request(
+                    .refreshToken(query: RefreshTokenRequestDTO(refreshToken: APIKey.refreshToken))
+                )
+                APIKey.accessToken = dto.accessToken
+                KeychainHelper.save(dto.accessToken, forKey: "accessToken")
+                let userId = KeychainHelper.load(forKey: "userId") ?? ""
+                return AuthToken(accessToken: dto.accessToken, refreshToken: APIKey.refreshToken, userId: userId)
+            },
             logout: {
                 try await manager.requestVoid(.logout)
                 APIKey.accessToken = ""
@@ -155,6 +165,9 @@ extension AuthClient: DependencyKey {
                 AuthToken(accessToken: "test-access", refreshToken: "test-refresh", userId: "test-user")
             },
             checkSession: { false },
+            refreshToken: {
+                AuthToken(accessToken: "test-access", refreshToken: "test-refresh", userId: "test-user")
+            },
             logout: { }
         )
     }
