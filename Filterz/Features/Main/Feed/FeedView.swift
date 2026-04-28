@@ -61,6 +61,26 @@ struct FeedView: View {
                 .font(.pretendard(16, weight: .bold))
                 .foregroundColor(.filterzGray60)
 
+            if let category = store.selectedCategory {
+                HStack(spacing: 4) {
+                    Text(category.title)
+                        .font(.pretendard(12, weight: .semibold))
+                        .foregroundColor(.filterzBrightTurquoise)
+                    Button {
+                        store.send(.categorySelected(nil))
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.filterzBrightTurquoise)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule().fill(Color.filterzBlackTurquoise)
+                )
+            }
+
             Spacer()
 
             Button {
