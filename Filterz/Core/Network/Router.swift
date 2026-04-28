@@ -15,6 +15,7 @@ enum Router: URLRequestConvertible {
     case logout
     case myInfo
     case withdraw
+    case getTodayAuthor
 
     // MARK: - Filter
     case getFilters
@@ -25,6 +26,7 @@ enum Router: URLRequestConvertible {
     case likeFilter(id: String)
     case getFilterGeo
     case getTodayFilter
+    case getHotTrendFilters
     case createFilterComment(filterId: String)
     case deleteFilterComment(filterId: String, commentId: String)
 
@@ -84,13 +86,15 @@ extension Router {
         case .logout:                                       return "/users/logout"
         case .myInfo:                                       return "/users/me"
         case .withdraw:                                     return "/users/withdraw"
+        case .getTodayAuthor:                               return "/users/today-author"
         // Filter
         case .getFilters, .createFilter:                    return "/filters"
         case .getFilter(let id), .editFilter(let id),
              .deleteFilter(let id):                         return "/filters/\(id)"
         case .likeFilter(let id):                           return "/filters/\(id)/like"
         case .getFilterGeo:                                 return "/filters/geo"
-        case .getTodayFilter:                               return "/filters/today"
+        case .getTodayFilter:                               return "/filters/today-filter"
+        case .getHotTrendFilters:                           return "/filters/hot-trend"
         case .createFilterComment(let id):                  return "/filters/\(id)/comments"
         case .deleteFilterComment(let fId, let cId):        return "/filters/\(fId)/comments/\(cId)"
         // Post
@@ -117,7 +121,7 @@ extension Router {
         case .likeVideo(let id, _):                         return "/videos/\(id)/like"
         // Common
         case .uploadFile:                                   return "/files"
-        case .getBanners:                                   return "/banners"
+        case .getBanners:                                   return "/banners/main"
         case .getLogs:                                      return "/logs"
         case .sendPushNotification:                         return "/notifications"
         }
@@ -125,7 +129,7 @@ extension Router {
 
     private var method: HTTPMethod {
         switch self {
-        case .myInfo, .getFilters, .getFilter, .getFilterGeo, .getTodayFilter,
+        case .myInfo, .getTodayAuthor, .getFilters, .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
              .getPosts, .getPost,
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,

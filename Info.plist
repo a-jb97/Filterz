@@ -46,6 +46,19 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>ClimateCrisisKR-1979.otf</string>
+		<string>SCDream1.otf</string>
+		<string>SCDream2.otf</string>
+		<string>SCDream3.otf</string>
+		<string>SCDream4.otf</string>
+		<string>SCDream5.otf</string>
+		<string>SCDream6.otf</string>
+		<string>SCDream7.otf</string>
+		<string>SCDream8.otf</string>
+		<string>SCDream9.otf</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -55,6 +68,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UILaunchScreen</key>

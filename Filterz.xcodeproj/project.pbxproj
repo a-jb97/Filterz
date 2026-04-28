@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9E25C3C42F9BA73A00B518B9 /* Lasthighteen Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C32F9BA73A00B518B9 /* Lasthighteen Bold.ttf */; };
 		9E25C3CE2F9BA75900B518B9 /* SCDream5.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C92F9BA75900B518B9 /* SCDream5.otf */; };
 		9E25C3CF2F9BA75900B518B9 /* SCDream3.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C72F9BA75900B518B9 /* SCDream3.otf */; };
 		9E25C3D02F9BA75900B518B9 /* SCDream1.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C52F9BA75900B518B9 /* SCDream1.otf */; };
@@ -17,6 +16,10 @@
 		9E25C3D42F9BA75900B518B9 /* SCDream6.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CA2F9BA75900B518B9 /* SCDream6.otf */; };
 		9E25C3D52F9BA75900B518B9 /* SCDream8.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */; };
 		9E25C3D62F9BA75900B518B9 /* SCDream7.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CB2F9BA75900B518B9 /* SCDream7.otf */; };
+		9E2A0ABB2FA07D630005F318 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */; };
+		9E2A0ABE2FA07E880005F318 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */; };
+		9E2A0AC02FA07E880005F318 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */; };
+		9E847F292F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */; };
 		9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9EB5967B2F98EE7000CA0337 /* .gitignore */; };
 		9EB5967F2F98F8C300CA0337 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */; };
 		9EB596832F98FB1C00CA0337 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB596822F98FB1C00CA0337 /* KakaoSDKAuth */; };
@@ -43,7 +46,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9E25C3C32F9BA73A00B518B9 /* Lasthighteen Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lasthighteen Bold.ttf"; sourceTree = "<group>"; };
 		9E25C3C52F9BA75900B518B9 /* SCDream1.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream1.otf; sourceTree = "<group>"; };
 		9E25C3C62F9BA75900B518B9 /* SCDream2.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream2.otf; sourceTree = "<group>"; };
 		9E25C3C72F9BA75900B518B9 /* SCDream3.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream3.otf; sourceTree = "<group>"; };
@@ -53,6 +55,8 @@
 		9E25C3CB2F9BA75900B518B9 /* SCDream7.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream7.otf; sourceTree = "<group>"; };
 		9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream8.otf; sourceTree = "<group>"; };
 		9E25C3CD2F9BA75900B518B9 /* SCDream9.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream9.otf; sourceTree = "<group>"; };
+		9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ClimateCrisisKR-1979.otf"; sourceTree = "<group>"; };
 		9EB596512F98B56F00CA0337 /* Filterz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Filterz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB5965E2F98B57100CA0337 /* FilterzTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB596682F98B57100CA0337 /* FilterzUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -84,6 +88,8 @@
 			files = (
 				9EE1A6BA2F9A70B000996D54 /* Alamofire in Frameworks */,
 				9EB596872F98FB1C00CA0337 /* KakaoSDKUser in Frameworks */,
+				9E2A0AC02FA07E880005F318 /* FirebaseMessaging in Frameworks */,
+				9E2A0ABE2FA07E880005F318 /* FirebaseAnalytics in Frameworks */,
 				9EB5967F2F98F8C300CA0337 /* ComposableArchitecture in Frameworks */,
 				9EB596852F98FB1C00CA0337 /* KakaoSDKCommon in Frameworks */,
 				9EB596832F98FB1C00CA0337 /* KakaoSDKAuth in Frameworks */,
@@ -115,7 +121,6 @@
 				9EB596612F98B57100CA0337 /* FilterzTests */,
 				9EB5966B2F98B57100CA0337 /* FilterzUITests */,
 				9EB596522F98B56F00CA0337 /* Products */,
-				9E25C3C32F9BA73A00B518B9 /* Lasthighteen Bold.ttf */,
 				9E25C3C52F9BA75900B518B9 /* SCDream1.otf */,
 				9E25C3C62F9BA75900B518B9 /* SCDream2.otf */,
 				9E25C3C72F9BA75900B518B9 /* SCDream3.otf */,
@@ -125,6 +130,8 @@
 				9E25C3CB2F9BA75900B518B9 /* SCDream7.otf */,
 				9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */,
 				9E25C3CD2F9BA75900B518B9 /* SCDream9.otf */,
+				9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */,
+				9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -163,6 +170,8 @@
 				9EB596842F98FB1C00CA0337 /* KakaoSDKCommon */,
 				9EB596862F98FB1C00CA0337 /* KakaoSDKUser */,
 				9EE1A6B92F9A70B000996D54 /* Alamofire */,
+				9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */,
+				9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */,
 			);
 			productName = Filterz;
 			productReference = 9EB596512F98B56F00CA0337 /* Filterz.app */;
@@ -250,6 +259,7 @@
 				9EB5967D2F98F8C300CA0337 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				9EB596812F98FB1C00CA0337 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 				9EE1A6B82F9A70B000996D54 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EB596522F98B56F00CA0337 /* Products */;
@@ -268,7 +278,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9E25C3C42F9BA73A00B518B9 /* Lasthighteen Bold.ttf in Resources */,
+				9E2A0ABB2FA07D630005F318 /* GoogleService-Info.plist in Resources */,
 				9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */,
 				9E25C3CE2F9BA75900B518B9 /* SCDream5.otf in Resources */,
 				9E25C3CF2F9BA75900B518B9 /* SCDream3.otf in Resources */,
@@ -276,6 +286,7 @@
 				9E25C3D12F9BA75900B518B9 /* SCDream2.otf in Resources */,
 				9E25C3D22F9BA75900B518B9 /* SCDream4.otf in Resources */,
 				9E25C3D32F9BA75900B518B9 /* SCDream9.otf in Resources */,
+				9E847F292F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf in Resources */,
 				9E25C3D42F9BA75900B518B9 /* SCDream6.otf in Resources */,
 				9E25C3D52F9BA75900B518B9 /* SCDream8.otf in Resources */,
 				9E25C3D62F9BA75900B518B9 /* SCDream7.otf in Resources */,
@@ -667,6 +678,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.12.1;
+			};
+		};
 		9EB5967D2F98F8C300CA0337 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
@@ -696,6 +715,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
 		9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9EB5967D2F98F8C300CA0337 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;

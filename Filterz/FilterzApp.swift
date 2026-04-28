@@ -9,9 +9,21 @@ import SwiftUI
 import ComposableArchitecture
 import KakaoSDKCommon
 import KakaoSDKAuth
+import FirebaseCore
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    FirebaseApp.configure()
+
+    return true
+  }
+}
 
 @main
 struct FilterzApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
     let store = Store(initialState: AppFeature.State()) {
         AppFeature()
     }

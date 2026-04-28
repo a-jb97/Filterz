@@ -2,18 +2,30 @@ import SwiftUI
 
 extension Font {
     static func filterzDisplay(_ size: CGFloat) -> Font {
-        .system(size: size, weight: .bold)
+        .custom("ClimateCrisisKR-1979", size: size)
     }
 
     static func filterzHeadline() -> Font {
-        .system(size: 28, weight: .bold)
+        .custom("S-CoreDream-2ExtraLight", size: 28)
     }
 
     static func filterzBody() -> Font {
-        .system(size: 16, weight: .regular)
+        .custom("S-CoreDream-2ExtraLight", size: 16)
     }
 
     static func filterzCaption() -> Font {
-        .system(size: 13, weight: .regular)
+        .custom("S-CoreDream-2ExtraLight", size: 13)
+    }
+
+    static func pretendard(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        .custom("S-CoreDream-2ExtraLight", size: size)
+    }
+
+    static func mulgyeolBold(_ size: CGFloat) -> Font {
+        .custom("S-CoreDream-2ExtraLight", size: size)
+    }
+
+    static func mulgyeolRegular(_ size: CGFloat) -> Font {
+        .custom("S-CoreDream-2ExtraLight", size: size)
     }
 }
