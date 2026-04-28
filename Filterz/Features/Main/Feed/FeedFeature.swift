@@ -70,7 +70,9 @@ struct FeedFeature {
         var sortMode: SortMode = .popular
         var viewMode: ViewMode = .block
         var topRankingItems: [FeedItem] = []
+        var allFeedItems: [FeedItem] = []
         var feedItems: [FeedItem] = []
+        var selectedCategory: FilterCategory? = nil
         var isLoading: Bool = false
     }
 
@@ -79,9 +81,10 @@ struct FeedFeature {
         case sortChanged(SortMode)
         case viewModeToggled
         case topRankingResponse(Result<FilterSummaryListResponseDTO, any Error>)
-        case feedResponse(Result<FilterSummaryListResponseDTO, any Error>)
+        case feedResponse(Result<[FilterSummaryResponseDTO], any Error>)
         case feedItemTapped(id: String)
         case topRankingItemTapped(id: String)
+        case categorySelected(FilterCategory?)
         case delegate(Delegate)
 
         @CasePathable
@@ -104,16 +107,12 @@ struct FeedFeature {
                             Result { try await filterClient.getHotTrendFilters() }
                         ))
                     },
-                    .run { send in
-                        await send(.feedResponse(
-                            Result { try await filterClient.getFilters() }
-                        ))
-                    }
+                    fetchFeedEffect(category: state.selectedCategory)
                 )
 
             case .sortChanged(let mode):
                 state.sortMode = mode
-                state.feedItems = state.feedItems.sorted(by: mode.comparator)
+                state.feedItems = state.allFeedItems.sorted(by: mode.comparator)
                 return .none
 
             case .viewModeToggled:
@@ -129,8 +128,9 @@ struct FeedFeature {
                 state.isLoading = false
                 return .none
 
-            case .feedResponse(.success(let dto)):
-                let items = dto.data.map { FeedItem(dto: $0) }
+            case .feedResponse(.success(let data)):
+                let items = data.map { FeedItem(dto: $0) }
+                state.allFeedItems = items
                 state.feedItems = items.sorted(by: state.sortMode.comparator)
                 return .none
 
@@ -140,8 +140,35 @@ struct FeedFeature {
             case .feedItemTapped(let id), .topRankingItemTapped(let id):
                 return .send(.delegate(.filterTapped(id: id)))
 
+            case .categorySelected(let category):
+                state.selectedCategory = category
+                state.allFeedItems = []
+                state.feedItems = []
+                return fetchFeedEffect(category: category)
+
             case .delegate:
                 return .none
+            }
+        }
+    }
+
+    private func fetchFeedEffect(category: FilterCategory?) -> Effect<Action> {
+        .run { [filterClient] send in
+            do {
+                var allData: [FilterSummaryResponseDTO] = []
+                var seenIds = Set<String>()
+                var cursor: String? = nil
+                repeat {
+                    let page = try await filterClient.getFilters(cursor, category?.categoryString)
+                    let newItems = page.data.filter { !seenIds.contains($0.filterId) }
+                    if newItems.isEmpty { break }
+                    newItems.forEach { seenIds.insert($0.filterId) }
+                    allData.append(contentsOf: newItems)
+                    cursor = page.nextCursor
+                } while cursor != nil && cursor != "0"
+                await send(.feedResponse(.success(allData)))
+            } catch {
+                await send(.feedResponse(.failure(error)))
             }
         }
     }
