@@ -21,7 +21,9 @@ struct MainView: View {
         switch store.selectedTab {
         case .home:
             HomeView(store: store.scope(state: \.home, action: \.home))
-        case .market, .explore, .search, .mypage:
+        case .market:
+            FeedView(store: store.scope(state: \.feed, action: \.feed))
+        case .explore, .search, .mypage:
             Color.filterzBlackBase.ignoresSafeArea()
         }
     }

@@ -11,11 +11,13 @@ struct MainFeature {
     struct State: Equatable {
         var selectedTab: Tab = .home
         var home: HomeFeature.State = .init()
+        var feed: FeedFeature.State = .init()
     }
 
     enum Action: Sendable {
         case tabSelected(Tab)
         case home(HomeFeature.Action)
+        case feed(FeedFeature.Action)
         case logoutTapped
         case delegate(Delegate)
 
@@ -29,12 +31,15 @@ struct MainFeature {
         Scope(state: \.home, action: \.home) {
             HomeFeature()
         }
+        Scope(state: \.feed, action: \.feed) {
+            FeedFeature()
+        }
         Reduce { state, action in
             switch action {
             case .tabSelected(let tab):
                 state.selectedTab = tab
                 return .none
-            case .home:
+            case .home, .feed:
                 return .none
             case .logoutTapped:
                 return .send(.delegate(.logoutCompleted))
