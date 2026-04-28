@@ -104,6 +104,14 @@ struct FilterGeoListResponseDTO: Decodable, Sendable {
     let data: [FilterSummaryResponseDTO]
 }
 
+struct FilterLikeRequestDTO: Encodable, Sendable {
+    let likeStatus: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case likeStatus = "like_status"
+    }
+}
+
 struct FilterLikeResponseDTO: Decodable, Sendable {
     let likeStatus: Bool
 

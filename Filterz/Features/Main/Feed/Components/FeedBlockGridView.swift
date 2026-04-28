@@ -4,11 +4,13 @@ import SwiftUI
 
 struct FeedListView: View {
     let items: [FeedItem]
+    var onItemTapped: (String) -> Void = { _ in }
 
     var body: some View {
         VStack(spacing: 0) {
             ForEach(items) { item in
                 FeedListRowView(item: item)
+                    .onTapGesture { onItemTapped(item.id) }
             }
         }
         .padding(.horizontal, 20)
@@ -75,6 +77,7 @@ private struct FeedListRowView: View {
 
 struct FeedBlockGridView: View {
     let items: [FeedItem]
+    var onItemTapped: (String) -> Void = { _ in }
 
     private var leftItems: [FeedItem] {
         items.enumerated().filter { $0.offset % 2 == 0 }.map(\.element)
@@ -89,6 +92,7 @@ struct FeedBlockGridView: View {
             VStack(spacing: 8) {
                 ForEach(leftItems) { item in
                     FeedMasonryCardView(item: item)
+                        .onTapGesture { onItemTapped(item.id) }
                 }
             }
             .frame(maxWidth: .infinity)
@@ -96,6 +100,7 @@ struct FeedBlockGridView: View {
             VStack(spacing: 8) {
                 ForEach(rightItems) { item in
                     FeedMasonryCardView(item: item)
+                        .onTapGesture { onItemTapped(item.id) }
                 }
             }
             .frame(maxWidth: .infinity)

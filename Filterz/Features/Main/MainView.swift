@@ -5,15 +5,24 @@ struct MainView: View {
     @Bindable var store: StoreOf<MainFeature>
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            tabContent
-            CustomTabBarView(
-                selectedTab: $store.selectedTab.sending(\.tabSelected)
-            )
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+        NavigationStackStore(store.scope(state: \.path, action: \.path)) {
+            ZStack(alignment: .bottom) {
+                tabContent
+                CustomTabBarView(
+                    selectedTab: $store.selectedTab.sending(\.tabSelected)
+                )
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+            }
+            .ignoresSafeArea(edges: .bottom)
+            .navigationBarHidden(true)
+        } destination: { pathStore in
+            switch pathStore.case {
+            case .filterDetail(let detailStore):
+                FilterDetailView(store: detailStore)
+                    .navigationBarHidden(true)
+            }
         }
-        .ignoresSafeArea(edges: .bottom)
     }
 
     @ViewBuilder

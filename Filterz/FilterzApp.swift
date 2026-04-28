@@ -12,12 +12,12 @@ import KakaoSDKAuth
 import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
-
-    return true
-  }
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        FirebaseApp.configure()
+        
+        return true
+    }
 }
 
 @main
@@ -27,16 +27,16 @@ struct FilterzApp: App {
     let store = Store(initialState: AppFeature.State()) {
         AppFeature()
     }
-
+    
     init() {
         let appKey = Bundle.main.object(forInfoDictionaryKey: "KAKAO_NATIVE_APP_KEY") as! String
         KakaoSDK.initSDK(appKey: appKey)
-
+        
         KeychainHelper.delete(forKey: "accessToken")
         KeychainHelper.delete(forKey: "refreshToken")
         KeychainHelper.delete(forKey: "userId")
     }
-
+    
     var body: some Scene {
         WindowGroup {
             AppView(store: store)

@@ -19,18 +19,24 @@ struct FeedView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         sectionHeader("Top Ranking")
 
-                        TopRankingCarouselView(items: store.topRankingItems)
-                            .padding(.top, 8)
+                        TopRankingCarouselView(items: store.topRankingItems) { id in
+                            store.send(.topRankingItemTapped(id: id))
+                        }
+                        .padding(.top, 8)
 
                         filterFeedHeader
 
                         switch store.viewMode {
                         case .block:
-                            FeedBlockGridView(items: store.feedItems)
-                                .padding(.top, 8)
+                            FeedBlockGridView(items: store.feedItems) { id in
+                                store.send(.feedItemTapped(id: id))
+                            }
+                            .padding(.top, 8)
                         case .list:
-                            FeedListView(items: store.feedItems)
-                                .padding(.top, 8)
+                            FeedListView(items: store.feedItems) { id in
+                                store.send(.feedItemTapped(id: id))
+                            }
+                            .padding(.top, 8)
                         }
                     }
                     .padding(.bottom, 100)
@@ -54,6 +60,26 @@ struct FeedView: View {
             Text("Filter Feed")
                 .font(.pretendard(16, weight: .bold))
                 .foregroundColor(.filterzGray60)
+
+            if let category = store.selectedCategory {
+                HStack(spacing: 4) {
+                    Text(category.title)
+                        .font(.pretendard(12, weight: .semibold))
+                        .foregroundColor(.filterzBrightTurquoise)
+                    Button {
+                        store.send(.categorySelected(nil))
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.filterzBrightTurquoise)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule().fill(Color.filterzBlackTurquoise)
+                )
+            }
 
             Spacer()
 

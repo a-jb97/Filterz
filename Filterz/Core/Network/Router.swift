@@ -18,12 +18,12 @@ enum Router: URLRequestConvertible {
     case getTodayAuthor
 
     // MARK: - Filter
-    case getFilters
+    case getFilters(next: String? = nil, category: String? = nil)
     case createFilter
     case getFilter(id: String)
     case editFilter(id: String)
     case deleteFilter(id: String)
-    case likeFilter(id: String)
+    case likeFilter(id: String, query: FilterLikeRequestDTO)
     case getFilterGeo
     case getTodayFilter
     case getHotTrendFilters
@@ -88,10 +88,10 @@ extension Router {
         case .withdraw:                                     return "/users/withdraw"
         case .getTodayAuthor:                               return "/users/today-author"
         // Filter
-        case .getFilters, .createFilter:                    return "/filters"
+        case .getFilters(_, _), .createFilter:                    return "/filters"
         case .getFilter(let id), .editFilter(let id),
              .deleteFilter(let id):                         return "/filters/\(id)"
-        case .likeFilter(let id):                           return "/filters/\(id)/like"
+        case .likeFilter(let id, _):                        return "/filters/\(id)/like"
         case .getFilterGeo:                                 return "/filters/geo"
         case .getTodayFilter:                               return "/filters/today-filter"
         case .getHotTrendFilters:                           return "/filters/hot-trend"
@@ -129,7 +129,7 @@ extension Router {
 
     private var method: HTTPMethod {
         switch self {
-        case .myInfo, .getTodayAuthor, .getFilters, .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
+        case .myInfo, .getTodayAuthor, .getFilters(_, _), .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
              .getPosts, .getPost,
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,
@@ -157,7 +157,14 @@ extension Router {
     }
 
     func asURLRequest() throws -> URLRequest {
-        let url = baseURL.appendingPathComponent(path)
+        var urlComponents = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        if case .getFilters(let next, let category) = self {
+            var items: [URLQueryItem] = []
+            if let next     { items.append(URLQueryItem(name: "next",     value: next)) }
+            if let category { items.append(URLQueryItem(name: "category", value: category)) }
+            if !items.isEmpty { urlComponents.queryItems = items }
+        }
+        let url = urlComponents.url!
         var request = URLRequest(url: url)
         request.method = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -186,6 +193,8 @@ extension Router {
         case .sendMessage(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .validatePayment(let query):
+            return try JSONParameterEncoder.default.encode(query, into: request)
+        case .likeFilter(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .likeVideo(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
