@@ -8,7 +8,7 @@ struct HomeView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
                 HeroBannerView(store: store)
-                CategoryBarView()
+                CategoryBarView(onCategoryTapped: { store.send(.categoryTapped($0)) })
                 TodayBannerView(store: store)
                 HotTrendView(
                     filters: store.hotFilters,

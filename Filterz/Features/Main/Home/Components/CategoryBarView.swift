@@ -1,6 +1,6 @@
 import SwiftUI
 
-private enum FilterCategory: CaseIterable {
+enum FilterCategory: CaseIterable, Equatable, Sendable {
     case food, person, landscape, night, star
 
     var title: String {
@@ -22,14 +22,27 @@ private enum FilterCategory: CaseIterable {
         case .star: return "sparkles"
         }
     }
+
+    var categoryString: String {
+        switch self {
+        case .food: return "푸드"
+        case .person: return "인물"
+        case .landscape: return "풍경"
+        case .night: return "야경"
+        case .star: return "천문"
+        }
+    }
 }
 
 struct CategoryBarView: View {
+    let onCategoryTapped: (FilterCategory) -> Void
+
     var body: some View {
         HStack(spacing: 0) {
             ForEach(FilterCategory.allCases, id: \.title) { category in
                 CategoryItemView(category: category)
                     .frame(maxWidth: .infinity)
+                    .onTapGesture { onCategoryTapped(category) }
             }
         }
         .padding(.horizontal, 20)

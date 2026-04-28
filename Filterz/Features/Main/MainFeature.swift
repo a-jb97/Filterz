@@ -51,6 +51,10 @@ struct MainFeature {
                 state.path.append(.filterDetail(.init(filterId: id)))
                 return .none
 
+            case .home(.delegate(.categoryTapped(let category))):
+                state.selectedTab = .market
+                return .send(.feed(.categorySelected(category)))
+
             case .feed(.delegate(.filterTapped(let id))):
                 state.path.append(.filterDetail(.init(filterId: id)))
                 return .none

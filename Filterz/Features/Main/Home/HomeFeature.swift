@@ -89,11 +89,13 @@ struct HomeFeature {
         case hotFilterTapped(id: String)
         case todayAuthorResponse(Result<TodayAuthorResponseDTO, any Error>)
         case todayAuthorFilterTapped(filterId: String)
+        case categoryTapped(FilterCategory)
         case delegate(Delegate)
 
         @CasePathable
         enum Delegate: Sendable {
             case filterTapped(id: String)
+            case categoryTapped(FilterCategory)
         }
     }
 
@@ -197,6 +199,9 @@ struct HomeFeature {
             case .tryFilterTapped:
                 guard !state.todayFilterId.isEmpty else { return .none }
                 return .send(.delegate(.filterTapped(id: state.todayFilterId)))
+
+            case .categoryTapped(let category):
+                return .send(.delegate(.categoryTapped(category)))
 
             case .delegate:
                 return .none
