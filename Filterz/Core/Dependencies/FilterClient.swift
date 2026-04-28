@@ -4,7 +4,7 @@ import Foundation
 struct FilterClient: Sendable {
     var getTodayFilter: @Sendable () async throws -> TodayFilterResponseDTO
     var getHotTrendFilters: @Sendable () async throws -> FilterSummaryListResponseDTO
-    var getFilters: @Sendable () async throws -> FilterSummaryListResponseDTO
+    var getFilters: @Sendable (_ next: String?, _ category: String?) async throws -> FilterSummaryPaginationListResponseDTO
     var getFilterDetail: @Sendable (_ id: String) async throws -> FilterResponseDTO
     var likeFilter: @Sendable (_ id: String, _ status: Bool) async throws -> Void
 }
@@ -18,8 +18,8 @@ extension FilterClient: DependencyKey {
             getHotTrendFilters: {
                 try await NetworkManager.shared.request(.getHotTrendFilters)
             },
-            getFilters: {
-                try await NetworkManager.shared.request(.getFilters)
+            getFilters: { next, category in
+                try await NetworkManager.shared.request(.getFilters(next: next, category: category))
             },
             getFilterDetail: { id in
                 try await NetworkManager.shared.request(.getFilter(id: id))
@@ -96,7 +96,7 @@ extension FilterClient: DependencyKey {
                 )
             },
             getHotTrendFilters: { mockFilters },
-            getFilters: { mockFilters },
+            getFilters: { _, _ in FilterSummaryPaginationListResponseDTO(data: mockFilters.data, nextCursor: nil) },
             getFilterDetail: { _ in mockDetail },
             likeFilter: { _, _ in }
         )
