@@ -19,18 +19,24 @@ struct FeedView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         sectionHeader("Top Ranking")
 
-                        TopRankingCarouselView(items: store.topRankingItems)
-                            .padding(.top, 8)
+                        TopRankingCarouselView(items: store.topRankingItems) { id in
+                            store.send(.topRankingItemTapped(id: id))
+                        }
+                        .padding(.top, 8)
 
                         filterFeedHeader
 
                         switch store.viewMode {
                         case .block:
-                            FeedBlockGridView(items: store.feedItems)
-                                .padding(.top, 8)
+                            FeedBlockGridView(items: store.feedItems) { id in
+                                store.send(.feedItemTapped(id: id))
+                            }
+                            .padding(.top, 8)
                         case .list:
-                            FeedListView(items: store.feedItems)
-                                .padding(.top, 8)
+                            FeedListView(items: store.feedItems) { id in
+                                store.send(.feedItemTapped(id: id))
+                            }
+                            .padding(.top, 8)
                         }
                     }
                     .padding(.bottom, 100)

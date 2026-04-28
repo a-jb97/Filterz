@@ -89,6 +89,12 @@ struct HomeFeature {
         case hotFilterTapped(id: String)
         case todayAuthorResponse(Result<TodayAuthorResponseDTO, any Error>)
         case todayAuthorFilterTapped(filterId: String)
+        case delegate(Delegate)
+
+        @CasePathable
+        enum Delegate: Sendable {
+            case filterTapped(id: String)
+        }
     }
 
     @Dependency(\.filterClient) var filterClient
@@ -175,8 +181,8 @@ struct HomeFeature {
             case .hotTrendFiltersResponse(.failure):
                 return .none
 
-            case .hotFilterTapped:
-                return .none
+            case .hotFilterTapped(let id):
+                return .send(.delegate(.filterTapped(id: id)))
 
             case .todayAuthorResponse(.success(let dto)):
                 state.featuredArtist = ArtistItem(dto: dto)
@@ -185,10 +191,14 @@ struct HomeFeature {
             case .todayAuthorResponse(.failure):
                 return .none
 
-            case .todayAuthorFilterTapped:
-                return .none
+            case .todayAuthorFilterTapped(let filterId):
+                return .send(.delegate(.filterTapped(id: filterId)))
 
             case .tryFilterTapped:
+                guard !state.todayFilterId.isEmpty else { return .none }
+                return .send(.delegate(.filterTapped(id: state.todayFilterId)))
+
+            case .delegate:
                 return .none
             }
         }

@@ -80,6 +80,14 @@ struct FeedFeature {
         case viewModeToggled
         case topRankingResponse(Result<FilterSummaryListResponseDTO, any Error>)
         case feedResponse(Result<FilterSummaryListResponseDTO, any Error>)
+        case feedItemTapped(id: String)
+        case topRankingItemTapped(id: String)
+        case delegate(Delegate)
+
+        @CasePathable
+        enum Delegate: Sendable {
+            case filterTapped(id: String)
+        }
     }
 
     @Dependency(\.filterClient) var filterClient
@@ -127,6 +135,12 @@ struct FeedFeature {
                 return .none
 
             case .feedResponse(.failure):
+                return .none
+
+            case .feedItemTapped(let id), .topRankingItemTapped(let id):
+                return .send(.delegate(.filterTapped(id: id)))
+
+            case .delegate:
                 return .none
             }
         }

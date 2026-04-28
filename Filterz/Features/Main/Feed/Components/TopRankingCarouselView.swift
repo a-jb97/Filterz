@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TopRankingCarouselView: View {
     let items: [FeedItem]
+    var onItemTapped: (String) -> Void = { _ in }
 
     @State private var focusedID: String?
 
@@ -21,6 +22,7 @@ struct TopRankingCarouselView: View {
                                 let lift = liftAmount * (1 - abs(phase.value))
                                 return content.offset(y: -lift)
                             }
+                            .onTapGesture { onItemTapped(pair.element.id) }
                     }
                 }
                 .scrollTargetLayout()

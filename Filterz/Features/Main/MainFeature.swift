@@ -7,17 +7,24 @@ struct MainFeature {
         case home, market, explore, search, mypage
     }
 
+    @Reducer(state: .equatable)
+    enum Path {
+        case filterDetail(FilterDetailFeature)
+    }
+
     @ObservableState
     struct State: Equatable {
         var selectedTab: Tab = .home
         var home: HomeFeature.State = .init()
         var feed: FeedFeature.State = .init()
+        var path: StackState<Path.State> = .init()
     }
 
     enum Action: Sendable {
         case tabSelected(Tab)
         case home(HomeFeature.Action)
         case feed(FeedFeature.Action)
+        case path(StackActionOf<Path>)
         case logoutTapped
         case delegate(Delegate)
 
@@ -39,13 +46,29 @@ struct MainFeature {
             case .tabSelected(let tab):
                 state.selectedTab = tab
                 return .none
-            case .home, .feed:
+
+            case .home(.delegate(.filterTapped(let id))):
+                state.path.append(.filterDetail(.init(filterId: id)))
                 return .none
+
+            case .feed(.delegate(.filterTapped(let id))):
+                state.path.append(.filterDetail(.init(filterId: id)))
+                return .none
+
+            case .path(.element(_, .filterDetail(.delegate(.backTapped)))):
+                state.path.removeLast()
+                return .none
+
+            case .home, .feed, .path:
+                return .none
+
             case .logoutTapped:
                 return .send(.delegate(.logoutCompleted))
+
             case .delegate:
                 return .none
             }
         }
+        .forEach(\.path, action: \.path)
     }
 }
