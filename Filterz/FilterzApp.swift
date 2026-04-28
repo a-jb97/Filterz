@@ -31,10 +31,6 @@ struct FilterzApp: App {
     init() {
         let appKey = Bundle.main.object(forInfoDictionaryKey: "KAKAO_NATIVE_APP_KEY") as! String
         KakaoSDK.initSDK(appKey: appKey)
-
-        KeychainHelper.delete(forKey: "accessToken")
-        KeychainHelper.delete(forKey: "refreshToken")
-        KeychainHelper.delete(forKey: "userId")
     }
 
     var body: some Scene {
