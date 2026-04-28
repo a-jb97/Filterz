@@ -15,8 +15,11 @@ extension Color {
     static let filterzGray45         = Color(hex: "#D8D6D7")   // GrayScale/45
     static let filterzGray60         = Color(hex: "#ABABAE")   // GrayScale/60 - 2차 텍스트
     static let filterzGray75         = Color(hex: "#6A6A6E")   // GrayScale/75 - 비활성
-    static let filterzBlackTurquoise = Color(hex: "#1F2527")   // 태그 배경
-    static let filterzTranslucent    = Color(hex: "#6A6A6E").opacity(0.5)
+    static let filterzBlackTurquoise  = Color(hex: "#1F2527")   // 태그 배경 / BlackSprout
+    static let filterzDeepSprout      = Color(hex: "#293235")   // 랭킹 카드 border
+    static let filterzBrightTurquoise = Color(hex: "#315C6B")   // 선택된 정렬 버튼 배경
+    static let filterzGray90          = Color(hex: "#434347")   // 비활성 작가명 텍스트
+    static let filterzTranslucent     = Color(hex: "#6A6A6E").opacity(0.5)
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

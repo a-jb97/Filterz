@@ -2,7 +2,7 @@ import SwiftUI
 
 extension Font {
     static func filterzDisplay(_ size: CGFloat) -> Font {
-        .custom("S-CoreDream-2ExtraLight", size: size)
+        .custom("ClimateCrisisKR-1979", size: size)
     }
 
     static func filterzHeadline() -> Font {

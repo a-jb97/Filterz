@@ -4,6 +4,7 @@ private let imageCache = NSCache<NSString, UIImage>()
 
 struct AuthenticatedImageView: View {
     let path: String?
+    var contentMode: ContentMode = .fill
     @State private var image: UIImage? = nil
 
     var body: some View {
@@ -11,7 +12,7 @@ struct AuthenticatedImageView: View {
             if let image {
                 Image(uiImage: image)
                     .resizable()
-                    .scaledToFill()
+                    .aspectRatio(contentMode: contentMode)
             } else {
                 Color.clear
             }
