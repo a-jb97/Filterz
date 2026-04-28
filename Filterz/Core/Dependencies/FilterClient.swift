@@ -4,6 +4,7 @@ import Foundation
 struct FilterClient: Sendable {
     var getTodayFilter: @Sendable () async throws -> TodayFilterResponseDTO
     var getHotTrendFilters: @Sendable () async throws -> FilterSummaryListResponseDTO
+    var getFilters: @Sendable () async throws -> FilterSummaryListResponseDTO
 }
 
 extension FilterClient: DependencyKey {
@@ -14,6 +15,9 @@ extension FilterClient: DependencyKey {
             },
             getHotTrendFilters: {
                 try await NetworkManager.shared.request(.getHotTrendFilters)
+            },
+            getFilters: {
+                try await NetworkManager.shared.request(.getFilters)
             }
         )
     }
@@ -37,7 +41,8 @@ extension FilterClient: DependencyKey {
                     updatedAt: ""
                 )
             },
-            getHotTrendFilters: { mockFilters }
+            getHotTrendFilters: { mockFilters },
+            getFilters: { mockFilters }
         )
     }
 }
