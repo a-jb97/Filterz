@@ -10,71 +10,62 @@ struct FilterPreviewView: View {
         GeometryReader { geo in
             let revealX = geo.size.width * sliderOffset
 
-            ZStack(alignment: .leading) {
-                AuthenticatedImageView(path: afterImageURL)
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .clipped()
+            VStack(spacing: 12) {
+                ZStack(alignment: .leading) {
+                    AuthenticatedImageView(path: afterImageURL)
+                        .frame(width: geo.size.width, height: 400)
+                        .clipped()
 
-                AuthenticatedImageView(path: beforeImageURL ?? afterImageURL)
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .clipped()
-                    .mask(alignment: .leading) {
-                        Rectangle()
-                            .frame(width: max(0, revealX), height: geo.size.height)
-                    }
+                    AuthenticatedImageView(path: beforeImageURL ?? afterImageURL)
+                        .frame(width: geo.size.width, height: 400)
+                        .clipped()
+                        .mask(alignment: .leading) {
+                            Rectangle()
+                                .frame(width: max(0, revealX), height: 400)
+                        }
+                }
+                .frame(width: geo.size.width, height: 400)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
 
-                dragHandle
-                    .offset(x: max(0, revealX - 20))
+                AfterBeforeLabelRow()
+                    .offset(x: revealX - geo.size.width / 2)
                     .gesture(
-                        DragGesture()
+                        DragGesture(coordinateSpace: .named("preview"))
                             .onChanged { value in
-                                let newOffset = (revealX + value.translation.width) / geo.size.width
-                                onSliderChanged(newOffset)
+                                let newOffset = value.location.x / geo.size.width
+                                onSliderChanged(max(0, min(1, newOffset)))
                             }
                     )
             }
         }
-        .frame(height: 400)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private var dragHandle: some View {
-        ZStack {
-            Circle()
-                .fill(Color.filterzGray45.opacity(0.9))
-                .frame(width: 40, height: 40)
-            Image(systemName: "arrow.left.and.right")
-                .foregroundColor(Color.filterzBlackBase)
-                .font(.system(size: 13, weight: .bold))
-        }
-        .frame(width: 40, height: 40)
+        .frame(height: 444)
+        .coordinateSpace(name: "preview")
     }
 }
 
 // MARK: - After/Before Labels
 
 struct AfterBeforeLabelRow: View {
-    let sliderOffset: CGFloat
-
     var body: some View {
         HStack(spacing: 8) {
-            label("After", isActive: sliderOffset < 0.5)
+            label("After")
             Image(systemName: "arrow.up.circle.fill")
                 .foregroundColor(Color.filterzGray60)
                 .font(.system(size: 20))
-            label("Before", isActive: sliderOffset >= 0.5)
+            label("Before")
         }
     }
 
-    private func label(_ text: String, isActive: Bool) -> some View {
+    private func label(_ text: String) -> some View {
         Text(text)
-            .font(.pretendard(13, weight: isActive ? .bold : .medium))
-            .foregroundColor(isActive ? .filterzGray30 : .filterzGray75)
+            .font(.pretendard(13, weight: .bold))
+            .foregroundColor(.black)
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
+            .frame(minWidth: 80)
             .background(
                 Capsule()
-                    .fill(isActive ? Color.filterzBrightTurquoise : Color.filterzBlackTurquoise)
+                    .fill(Color.filterzAccent)
             )
     }
 }

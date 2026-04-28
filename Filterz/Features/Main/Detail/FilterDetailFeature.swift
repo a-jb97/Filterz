@@ -169,7 +169,7 @@ struct FilterDetailFeature {
         var detail: FilterDetail? = nil
         var isLoading: Bool = false
         var isLikeInProgress: Bool = false
-        var previewSliderOffset: CGFloat = 0
+        var previewSliderOffset: CGFloat = 0.5
         var isPurchaseLoading: Bool = false
         var errorMessage: String? = nil
     }

@@ -94,17 +94,13 @@ struct FilterDetailView: View {
     // MARK: - Sections
 
     private func previewSection(detail: FilterDetail) -> some View {
-        VStack(spacing: 12) {
-            FilterPreviewView(
-                afterImageURL: detail.imageURLs.first,
-                beforeImageURL: detail.imageURLs.dropFirst().first,
-                sliderOffset: store.previewSliderOffset,
-                onSliderChanged: { store.send(.previewSliderChanged($0)) }
-            )
-            .padding(.horizontal, 16)
-
-            AfterBeforeLabelRow(sliderOffset: store.previewSliderOffset)
-        }
+        FilterPreviewView(
+            afterImageURL: detail.imageURLs.first,
+            beforeImageURL: detail.imageURLs.dropFirst().first,
+            sliderOffset: store.previewSliderOffset,
+            onSliderChanged: { store.send(.previewSliderChanged($0)) }
+        )
+        .padding(.horizontal, 16)
     }
 
     private func priceSection(detail: FilterDetail) -> some View {
