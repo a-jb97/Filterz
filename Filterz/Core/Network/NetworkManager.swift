@@ -7,6 +7,9 @@ import Foundation
 
 private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
     private let refreshSession = Session()
+    private var isRefreshing = false
+    private var pendingCompletions: [(RetryResult) -> Void] = []
+    private let lock = NSLock()
 
     func retry(
         _ request: Request,
@@ -14,14 +17,25 @@ private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
         dueTo error: Error,
         completion: @escaping (RetryResult) -> Void
     ) {
+        let statusCode = (request.task?.response as? HTTPURLResponse)?.statusCode
+
         guard
-            let response = request.task?.response as? HTTPURLResponse,
-            response.statusCode == 401,
+            let statusCode,
+            (statusCode == 401 || statusCode == 418 || statusCode == 419),
             request.retryCount == 0
         else {
             completion(.doNotRetry)
             return
         }
+
+        lock.lock()
+        if isRefreshing {
+            pendingCompletions.append(completion)
+            lock.unlock()
+            return
+        }
+        isRefreshing = true
+        lock.unlock()
 
         Task {
             let router = Router.refreshToken(
@@ -33,15 +47,25 @@ private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
                 .serializingData()
                 .response
 
+            lock.lock()
+            let pending = pendingCompletions
+            pendingCompletions.removeAll()
+            isRefreshing = false
+            lock.unlock()
+
             switch result.result {
             case .success(let data):
                 do {
                     let dto = try JSONDecoder().decode(RefreshTokenResponseDTO.self, from: data)
                     APIKey.accessToken = dto.accessToken
+                    APIKey.refreshToken = dto.refreshToken
                     KeychainHelper.save(dto.accessToken, forKey: "accessToken")
+                    KeychainHelper.save(dto.refreshToken, forKey: "refreshToken")
                     completion(.retry)
+                    pending.forEach { $0(.retry) }
                 } catch {
                     completion(.doNotRetryWithError(NetworkError.unauthorized))
+                    pending.forEach { $0(.doNotRetryWithError(NetworkError.unauthorized)) }
                 }
             case .failure:
                 KeychainHelper.delete(forKey: "accessToken")
@@ -50,6 +74,7 @@ private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
                 APIKey.accessToken = ""
                 APIKey.refreshToken = ""
                 completion(.doNotRetryWithError(NetworkError.unauthorized))
+                pending.forEach { $0(.doNotRetryWithError(NetworkError.unauthorized)) }
             }
         }
     }
@@ -114,9 +139,9 @@ final class NetworkManager: @unchecked Sendable {
     private func mapError(_ error: AFError, statusCode: Int?) -> NetworkError {
         if let code = statusCode {
             switch code {
-            case 401: return .unauthorized
-            case 404: return .notFound
-            default:  return .serverError(code)
+            case 401, 418, 419: return .unauthorized
+            case 404:      return .notFound
+            default:       return .serverError(code)
             }
         }
         if case .sessionTaskFailed(let urlError as URLError) = error,
