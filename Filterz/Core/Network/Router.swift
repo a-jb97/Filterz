@@ -134,7 +134,8 @@ extension Router {
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,
              .getVideos, .getVideo, .getStreamURL,
-             .getBanners, .getLogs:
+             .getBanners, .getLogs,
+             .refreshToken:
             return .get
         case .editFilter, .editPost:
             return .put
@@ -149,7 +150,7 @@ extension Router {
 
     private var requiresAuth: Bool {
         switch self {
-        case .join, .login, .kakaoLogin, .appleLogin, .emailValidation, .refreshToken:
+        case .join, .login, .kakaoLogin, .appleLogin, .emailValidation:
             return false
         default:
             return true
@@ -185,7 +186,8 @@ extension Router {
         case .emailValidation(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .refreshToken(let query):
-            return try JSONParameterEncoder.default.encode(query, into: request)
+            request.setValue(query.refreshToken, forHTTPHeaderField: "RefreshToken")
+            return request
         case .createPost(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .createChatRoom(let query):
