@@ -136,9 +136,11 @@ extension AuthClient: DependencyKey {
                     .refreshToken(query: RefreshTokenRequestDTO(refreshToken: APIKey.refreshToken))
                 )
                 APIKey.accessToken = dto.accessToken
+                APIKey.refreshToken = dto.refreshToken
                 KeychainHelper.save(dto.accessToken, forKey: "accessToken")
+                KeychainHelper.save(dto.refreshToken, forKey: "refreshToken")
                 let userId = KeychainHelper.load(forKey: "userId") ?? ""
-                return AuthToken(accessToken: dto.accessToken, refreshToken: APIKey.refreshToken, userId: userId)
+                return AuthToken(accessToken: dto.accessToken, refreshToken: dto.refreshToken, userId: userId)
             },
             logout: {
                 try await manager.requestVoid(.logout)
