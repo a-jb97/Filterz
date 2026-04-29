@@ -120,7 +120,7 @@ extension Router {
         case .getStreamURL(let id):                         return "/videos/\(id)/stream"
         case .likeVideo(let id, _):                         return "/videos/\(id)/like"
         // Common
-        case .uploadFile:                                   return "/files"
+        case .uploadFile:                                   return "filters/files"
         case .getBanners:                                   return "/banners/main"
         case .getLogs:                                      return "/logs"
         case .sendPushNotification:                         return "/notifications"
