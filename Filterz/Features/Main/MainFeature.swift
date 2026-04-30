@@ -17,6 +17,7 @@ struct MainFeature {
         var selectedTab: Tab = .home
         var home: HomeFeature.State = .init()
         var feed: FeedFeature.State = .init()
+        var upload: UploadFilterFeature.State = .init()
         var path: StackState<Path.State> = .init()
     }
 
@@ -24,6 +25,7 @@ struct MainFeature {
         case tabSelected(Tab)
         case home(HomeFeature.Action)
         case feed(FeedFeature.Action)
+        case upload(UploadFilterFeature.Action)
         case path(StackActionOf<Path>)
         case logoutTapped
         case delegate(Delegate)
@@ -40,6 +42,9 @@ struct MainFeature {
         }
         Scope(state: \.feed, action: \.feed) {
             FeedFeature()
+        }
+        Scope(state: \.upload, action: \.upload) {
+            UploadFilterFeature()
         }
         Reduce { state, action in
             switch action {
@@ -63,7 +68,7 @@ struct MainFeature {
                 state.path.removeLast()
                 return .none
 
-            case .home, .feed, .path:
+            case .home, .feed, .upload, .path:
                 return .none
 
             case .logoutTapped:
