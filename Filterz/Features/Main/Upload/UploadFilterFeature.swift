@@ -52,6 +52,7 @@ struct UploadFilterFeature {
         case errorDismissed
         case successAlertDismissed
         case locationResolved(String)
+        case reset
     }
 
     @Dependency(\.filterClient) var filterClient
@@ -191,6 +192,10 @@ struct UploadFilterFeature {
 
             case .locationResolved(let address):
                 state.imageMetadata?.address = address
+                return .none
+
+            case .reset:
+                state = .init()
                 return .none
             }
         }

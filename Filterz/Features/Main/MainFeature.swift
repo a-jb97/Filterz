@@ -49,8 +49,9 @@ struct MainFeature {
         Reduce { state, action in
             switch action {
             case .tabSelected(let tab):
+                let returning = tab == .explore && state.selectedTab != .explore
                 state.selectedTab = tab
-                return .none
+                return returning ? .send(.upload(.reset)) : .none
 
             case .home(.delegate(.filterTapped(let id))):
                 state.path.append(.filterDetail(.init(filterId: id)))

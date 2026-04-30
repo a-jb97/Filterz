@@ -80,7 +80,7 @@ struct UploadFilterView: View {
             }
         }
         .onChange(of: store.displayThumbnail) { _, data in
-            guard let data else { displayImage = nil; return }
+            guard let data else { displayImage = nil; pickerItem = nil; return }
             Task.detached(priority: .userInitiated) {
                 let image = UIImage(data: data)
                 await MainActor.run { displayImage = image }
