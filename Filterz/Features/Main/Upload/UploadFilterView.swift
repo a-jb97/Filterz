@@ -121,11 +121,6 @@ struct UploadFilterView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
 
             HStack {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Color.filterzGray30)
-                    .frame(width: 44, height: 44)
-
                 Spacer()
 
                 Button { store.send(.saveTapped) } label: {
