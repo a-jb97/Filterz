@@ -101,13 +101,10 @@ final class NetworkManager: @unchecked Sendable {
 
         switch response.result {
         case .success(let data):
-            do {
-                return try decoder.decode(T.self, from: data)
-            } catch {
-                throw NetworkError.decodingFailed
-            }
+            do { return try decoder.decode(T.self, from: data) }
+            catch { throw NetworkError.decodingFailed }
         case .failure(let error):
-            throw mapError(error, statusCode: response.response?.statusCode)
+            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
         }
     }
 
@@ -120,7 +117,36 @@ final class NetworkManager: @unchecked Sendable {
 
         switch response.result {
         case .success(let data): return data
-        case .failure(let error): throw mapError(error, statusCode: response.response?.statusCode)
+        case .failure(let error):
+            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
+        }
+    }
+
+    func uploadFiles<T: Decodable>(_ router: Router, images: [Data]) async throws -> T {
+        var urlRequest = try router.asURLRequest()
+
+        let multipart = MultipartFormData()
+        for (i, data) in images.enumerated() {
+            multipart.append(data, withName: "files",
+                             fileName: "image\(i).jpg",
+                             mimeType: "image/jpeg")
+        }
+
+        let encoded = try multipart.encode()
+        urlRequest.setValue(multipart.contentType, forHTTPHeaderField: "Content-Type")
+
+        let response = await session
+            .upload(encoded, with: urlRequest)
+            .validate(statusCode: 200..<300)
+            .serializingData()
+            .response
+
+        switch response.result {
+        case .success(let data):
+            do { return try decoder.decode(T.self, from: data) }
+            catch { throw NetworkError.decodingFailed }
+        case .failure(let error):
+            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
         }
     }
 
@@ -132,16 +158,20 @@ final class NetworkManager: @unchecked Sendable {
             .response
 
         if let error = response.error {
-            throw mapError(error, statusCode: response.response?.statusCode)
+            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
         }
     }
 
-    private func mapError(_ error: AFError, statusCode: Int?) -> NetworkError {
+    private func mapError(_ error: AFError, statusCode: Int?, data: Data?) -> NetworkError {
+        if let data,
+           let body = try? decoder.decode(ServerErrorDTO.self, from: data) {
+            return .serverMessage(body.message)
+        }
         if let code = statusCode {
             switch code {
             case 401, 418, 419: return .unauthorized
-            case 404:      return .notFound
-            default:       return .serverError(code)
+            case 404:           return .notFound
+            default:            return .serverError(code)
             }
         }
         if case .sessionTaskFailed(let urlError as URLError) = error,
@@ -150,4 +180,8 @@ final class NetworkManager: @unchecked Sendable {
         }
         return .unknown(error)
     }
+}
+
+private struct ServerErrorDTO: Decodable {
+    let message: String
 }
