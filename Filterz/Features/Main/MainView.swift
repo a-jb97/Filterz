@@ -32,7 +32,9 @@ struct MainView: View {
             HomeView(store: store.scope(state: \.home, action: \.home))
         case .market:
             FeedView(store: store.scope(state: \.feed, action: \.feed))
-        case .explore, .search, .mypage:
+        case .explore:
+            UploadFilterView(store: store.scope(state: \.upload, action: \.upload))
+        case .search, .mypage:
             Color.filterzBlackBase.ignoresSafeArea()
         }
     }

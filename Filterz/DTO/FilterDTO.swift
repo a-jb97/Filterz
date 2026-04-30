@@ -160,7 +160,25 @@ struct TodayFilterResponseDTO: Decodable, Sendable {
 
 // MARK: - Nested DTOs
 
-struct PhotoMetadataDTO: Decodable, Sendable {
+// MARK: - Request DTOs
+
+struct CreateFilterRequestDTO: Encodable, Sendable {
+    let category: String
+    let title: String
+    let description: String
+    let files: [String]
+    let price: Int
+    let photoMetadata: PhotoMetadataDTO?
+    let filterValues: FilterValuesDTO?
+
+    enum CodingKeys: String, CodingKey {
+        case category, title, description, files, price
+        case photoMetadata = "photo_metadata"
+        case filterValues  = "filter_values"
+    }
+}
+
+struct PhotoMetadataDTO: Codable, Sendable {
     let camera: String?
     let lensInfo: String?
     let focalLength: Float?
@@ -190,7 +208,7 @@ struct PhotoMetadataDTO: Decodable, Sendable {
     }
 }
 
-struct FilterValuesDTO: Decodable, Sendable {
+struct FilterValuesDTO: Codable, Sendable {
     let brightness: Float?
     let exposure: Float?
     let contrast: Float?

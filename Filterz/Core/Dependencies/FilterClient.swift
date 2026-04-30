@@ -7,6 +7,8 @@ struct FilterClient: Sendable {
     var getFilters: @Sendable (_ next: String?, _ category: String?) async throws -> FilterSummaryPaginationListResponseDTO
     var getFilterDetail: @Sendable (_ id: String) async throws -> FilterResponseDTO
     var likeFilter: @Sendable (_ id: String, _ status: Bool) async throws -> Void
+    var uploadFile: @Sendable (_ images: [Data]) async throws -> FileResponseDTO
+    var createFilter: @Sendable (_ query: CreateFilterRequestDTO) async throws -> FilterResponseDTO
 }
 
 extension FilterClient: DependencyKey {
@@ -26,6 +28,12 @@ extension FilterClient: DependencyKey {
             },
             likeFilter: { id, status in
                 try await NetworkManager.shared.requestVoid(.likeFilter(id: id, query: FilterLikeRequestDTO(likeStatus: status)))
+            },
+            uploadFile: { images in
+                try await NetworkManager.shared.uploadFiles(.uploadFile, images: images)
+            },
+            createFilter: { query in
+                try await NetworkManager.shared.request(.createFilter(query: query))
             }
         )
     }
@@ -98,7 +106,9 @@ extension FilterClient: DependencyKey {
             getHotTrendFilters: { mockFilters },
             getFilters: { _, _ in FilterSummaryPaginationListResponseDTO(data: mockFilters.data, nextCursor: nil) },
             getFilterDetail: { _ in mockDetail },
-            likeFilter: { _, _ in }
+            likeFilter: { _, _ in },
+            uploadFile: { _ in FileResponseDTO(files: []) },
+            createFilter: { _ in mockDetail }
         )
     }
 }

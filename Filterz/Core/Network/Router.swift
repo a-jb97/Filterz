@@ -19,7 +19,7 @@ enum Router: URLRequestConvertible {
 
     // MARK: - Filter
     case getFilters(next: String? = nil, category: String? = nil)
-    case createFilter
+    case createFilter(query: CreateFilterRequestDTO)
     case getFilter(id: String)
     case editFilter(id: String)
     case deleteFilter(id: String)
@@ -88,7 +88,7 @@ extension Router {
         case .withdraw:                                     return "/users/withdraw"
         case .getTodayAuthor:                               return "/users/today-author"
         // Filter
-        case .getFilters(_, _), .createFilter:                    return "/filters"
+        case .getFilters(_, _), .createFilter:                  return "/filters"
         case .getFilter(let id), .editFilter(let id),
              .deleteFilter(let id):                         return "/filters/\(id)"
         case .likeFilter(let id, _):                        return "/filters/\(id)/like"
@@ -120,7 +120,7 @@ extension Router {
         case .getStreamURL(let id):                         return "/videos/\(id)/stream"
         case .likeVideo(let id, _):                         return "/videos/\(id)/like"
         // Common
-        case .uploadFile:                                   return "/files"
+        case .uploadFile:                                   return "/filters/files"
         case .getBanners:                                   return "/banners/main"
         case .getLogs:                                      return "/logs"
         case .sendPushNotification:                         return "/notifications"
@@ -188,6 +188,8 @@ extension Router {
         case .refreshToken(let query):
             request.setValue(query.refreshToken, forHTTPHeaderField: "RefreshToken")
             return request
+        case .createFilter(let query):
+            return try JSONParameterEncoder.default.encode(query, into: request)
         case .createPost(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .createChatRoom(let query):
