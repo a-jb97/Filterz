@@ -1,0 +1,37 @@
+import Foundation
+import SwiftData
+
+@Model
+final class ChatRoomEntity {
+    @Attribute(.unique) var roomId: String
+    var createdAt: Date
+    var updatedAt: Date
+    var opponentUserId: String
+    var opponentNick: String
+    var opponentProfilePath: String?
+    var lastMessageContent: String?
+    var lastMessageAt: Date?
+
+    @Relationship(deleteRule: .cascade, inverse: \ChatMessageEntity.room)
+    var messages: [ChatMessageEntity] = []
+
+    init(
+        roomId: String,
+        createdAt: Date,
+        updatedAt: Date,
+        opponentUserId: String,
+        opponentNick: String,
+        opponentProfilePath: String?,
+        lastMessageContent: String?,
+        lastMessageAt: Date?
+    ) {
+        self.roomId = roomId
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.opponentUserId = opponentUserId
+        self.opponentNick = opponentNick
+        self.opponentProfilePath = opponentProfilePath
+        self.lastMessageContent = lastMessageContent
+        self.lastMessageAt = lastMessageAt
+    }
+}
