@@ -5,7 +5,7 @@ struct MainView: View {
     @Bindable var store: StoreOf<MainFeature>
 
     var body: some View {
-        NavigationStackStore(store.scope(state: \.path, action: \.path)) {
+        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ZStack(alignment: .bottom) {
                 tabContent
                 CustomTabBarView(
@@ -21,6 +21,9 @@ struct MainView: View {
             case .filterDetail(let detailStore):
                 FilterDetailView(store: detailStore)
                     .navigationBarHidden(true)
+            case .chatRoom(let chatStore):
+                ChatRoomView(store: chatStore)
+                    .navigationBarHidden(true)
             }
         }
     }
@@ -34,7 +37,9 @@ struct MainView: View {
             FeedView(store: store.scope(state: \.feed, action: \.feed))
         case .explore:
             UploadFilterView(store: store.scope(state: \.upload, action: \.upload))
-        case .search, .mypage:
+        case .chat:
+            ChatListView(store: store.scope(state: \.chatList, action: \.chatList))
+        case .mypage:
             Color.filterzBlackBase.ignoresSafeArea()
         }
     }
@@ -86,7 +91,7 @@ private extension MainFeature.Tab {
         case .home:      return isSelected ? "house.fill" : "house"
         case .market:    return "square.grid.2x2"
         case .explore:   return "sparkles"
-        case .search:    return "magnifyingglass"
+        case .chat:      return isSelected ? "message.fill" : "message"
         case .mypage:    return isSelected ? "person.fill" : "person"
         }
     }

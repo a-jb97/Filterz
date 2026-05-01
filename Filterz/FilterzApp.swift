@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 import KakaoSDKCommon
 import KakaoSDKAuth
@@ -36,6 +37,7 @@ struct FilterzApp: App {
     var body: some Scene {
         WindowGroup {
             AppView(store: store)
+                .modelContainer(ChatModelContainer.shared)
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
                         _ = AuthController.handleOpenUrl(url: url)

@@ -76,7 +76,7 @@ struct UploadFilterView: View {
             guard let item else { return }
             Task.detached(priority: .userInitiated) {
                 guard let data = try? await item.loadTransferable(type: Data.self) else { return }
-                await MainActor.run { store.send(.imageSelected(data)) }
+                _ = await MainActor.run { store.send(.imageSelected(data)) }
             }
         }
         .onChange(of: store.displayThumbnail) { _, data in

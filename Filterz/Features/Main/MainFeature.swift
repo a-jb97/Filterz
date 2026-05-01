@@ -4,12 +4,13 @@ import ComposableArchitecture
 struct MainFeature {
 
     enum Tab: Equatable, CaseIterable {
-        case home, market, explore, search, mypage
+        case home, market, explore, chat, mypage
     }
 
-    @Reducer(state: .equatable)
+    @Reducer
     enum Path {
         case filterDetail(FilterDetailFeature)
+        case chatRoom(ChatRoomFeature)
     }
 
     @ObservableState
@@ -18,7 +19,9 @@ struct MainFeature {
         var home: HomeFeature.State = .init()
         var feed: FeedFeature.State = .init()
         var upload: UploadFilterFeature.State = .init()
+        var chatList: ChatListFeature.State = .init()
         var path: StackState<Path.State> = .init()
+        var isOpeningDM: Bool = false
     }
 
     enum Action: Sendable {
@@ -26,7 +29,9 @@ struct MainFeature {
         case home(HomeFeature.Action)
         case feed(FeedFeature.Action)
         case upload(UploadFilterFeature.Action)
+        case chatList(ChatListFeature.Action)
         case path(StackActionOf<Path>)
+        case createChatRoomResponse(Result<ChatRoom, any Error>)
         case logoutTapped
         case delegate(Delegate)
 
@@ -35,6 +40,8 @@ struct MainFeature {
             case logoutCompleted
         }
     }
+
+    @Dependency(\.chatClient) var chatClient
 
     var body: some Reducer<State, Action> {
         Scope(state: \.home, action: \.home) {
@@ -45,6 +52,9 @@ struct MainFeature {
         }
         Scope(state: \.upload, action: \.upload) {
             UploadFilterFeature()
+        }
+        Scope(state: \.chatList, action: \.chatList) {
+            ChatListFeature()
         }
         Reduce { state, action in
             switch action {
@@ -69,7 +79,41 @@ struct MainFeature {
                 state.path.removeLast()
                 return .none
 
-            case .home, .feed, .upload, .path:
+            case .path(.element(_, .filterDetail(.delegate(.dmCreatorTapped(let creatorId))))):
+                guard !state.isOpeningDM else { return .none }
+                state.isOpeningDM = true
+                return .run { send in
+                    do {
+                        let dto = try await chatClient.createChatRoom(creatorId)
+                        let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
+                        if let room = ChatRoom(dto: dto, currentUserId: currentUserId) {
+                            await send(.createChatRoomResponse(.success(room)))
+                        } else {
+                            await send(.createChatRoomResponse(.failure(NetworkError.decodingFailed)))
+                        }
+                    } catch {
+                        await send(.createChatRoomResponse(.failure(error)))
+                    }
+                }
+
+            case .createChatRoomResponse(.success(let room)):
+                state.isOpeningDM = false
+                state.path.append(.chatRoom(.init(room: room)))
+                return .none
+
+            case .createChatRoomResponse(.failure):
+                state.isOpeningDM = false
+                return .none
+
+            case .chatList(.delegate(.roomTapped(let room))):
+                state.path.append(.chatRoom(.init(room: room)))
+                return .none
+
+            case .path(.element(_, .chatRoom(.delegate(.backTapped)))):
+                state.path.removeLast()
+                return .none
+
+            case .home, .feed, .upload, .chatList, .path:
                 return .none
 
             case .logoutTapped:
@@ -82,3 +126,5 @@ struct MainFeature {
         .forEach(\.path, action: \.path)
     }
 }
+
+extension MainFeature.Path.State: Equatable {}
