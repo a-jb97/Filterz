@@ -1,0 +1,182 @@
+import ComposableArchitecture
+import Foundation
+
+@Reducer
+struct ChatRoomFeature {
+
+    @ObservableState
+    struct State: Equatable {
+        let room: ChatRoom
+        var messages: IdentifiedArrayOf<ChatMessage> = []
+        var draft: String = ""
+        var pickedImages: [Data] = []
+        var isSending: Bool = false
+        var isSyncing: Bool = false
+        var isSocketConnected: Bool = false
+        var errorMessage: String? = nil
+        var currentUserId: String = KeychainHelper.load(forKey: "userId") ?? ""
+    }
+
+    enum Action: Sendable {
+        case onAppear
+        case onDisappear
+        case loadedLocal([ChatMessage])
+        case syncedRemote([ChatMessage])
+        case syncFailed(String)
+        case socketEvent(ChatSocketEvent)
+        case draftChanged(String)
+        case imagesPicked([Data])
+        case sendTapped
+        case sendResponse(Result<ChatMessage, any Error>)
+        case backTapped
+        case delegate(Delegate)
+
+        @CasePathable
+        enum Delegate: Sendable {
+            case backTapped
+        }
+    }
+
+    @Dependency(\.chatClient) var chatClient
+    @Dependency(\.chatLocalStore) var chatLocalStore
+    @Dependency(\.chatSocketClient) var chatSocketClient
+
+    var body: some Reducer<State, Action> {
+        Reduce { state, action in
+            switch action {
+            case .onAppear:
+                guard !state.isSyncing else { return .none }
+                state.isSyncing = true
+                let roomId = state.room.roomId
+                return .run { send in
+                    let local = try await chatLocalStore.fetchMessages(roomId)
+                    await send(.loadedLocal(local))
+
+                    let nextParam = local.last?.createdAt.iso8601UTC
+                    let remote = try await chatClient.getMessages(roomId, nextParam)
+                    if !remote.isEmpty {
+                        try await chatLocalStore.upsertMessages(remote, roomId)
+                    }
+                    let merged = try await chatLocalStore.fetchMessages(roomId)
+                    await send(.syncedRemote(merged))
+
+                    let stream = await chatSocketClient.connect(roomId)
+                    for await event in stream {
+                        await send(.socketEvent(event))
+                    }
+                } catch: { error, send in
+                    await send(.syncFailed(error.localizedDescription))
+                }
+                .cancellable(id: "chatRoomSocket-\(roomId)", cancelInFlight: true)
+
+            case .onDisappear:
+                let roomId = state.room.roomId
+                return .merge(
+                    .cancel(id: "chatRoomSocket-\(roomId)"),
+                    .run { _ in await chatSocketClient.disconnect() }
+                )
+
+            case .loadedLocal(let messages):
+                state.messages = IdentifiedArray(uniqueElements: messages)
+                return .none
+
+            case .syncedRemote(let messages):
+                state.isSyncing = false
+                state.messages = IdentifiedArray(uniqueElements: messages)
+                return .none
+
+            case .syncFailed(let message):
+                state.isSyncing = false
+                state.errorMessage = message
+                return .none
+
+            case .socketEvent(.connected):
+                state.isSocketConnected = true
+                return .none
+
+            case .socketEvent(.disconnected):
+                state.isSocketConnected = false
+                return .none
+
+            case .socketEvent(.message(let message)):
+                state.messages[id: message.id] = message
+                let roomId = state.room.roomId
+                return .run { _ in
+                    let dto = ChatResponseDTO(
+                        chatId: message.chatId,
+                        roomId: message.roomId,
+                        content: message.content,
+                        createdAt: message.createdAt.iso8601UTC,
+                        updatedAt: message.updatedAt.iso8601UTC,
+                        sender: UserInfoResponseDTO(
+                            userID: message.senderId,
+                            nick: message.senderNick,
+                            profileImage: message.senderProfilePath
+                        ),
+                        files: message.files
+                    )
+                    try? await chatLocalStore.upsertMessages([dto], roomId)
+                }
+
+            case .socketEvent(.authError(let message)):
+                state.errorMessage = message
+                state.isSocketConnected = false
+                return .run { _ in await chatSocketClient.disconnect() }
+
+            case .socketEvent(.error(let message)):
+                state.errorMessage = message
+                return .none
+
+            case .draftChanged(let value):
+                state.draft = value
+                return .none
+
+            case .imagesPicked(let datas):
+                state.pickedImages = datas
+                return .none
+
+            case .sendTapped:
+                guard !state.isSending else { return .none }
+                let trimmed = state.draft.trimmingCharacters(in: .whitespacesAndNewlines)
+                let images = state.pickedImages
+                guard !trimmed.isEmpty || !images.isEmpty else { return .none }
+                state.isSending = true
+                state.draft = ""
+                state.pickedImages = []
+                let roomId = state.room.roomId
+                let content: String? = trimmed.isEmpty ? nil : trimmed
+                return .run { send in
+                    do {
+                        var filePaths: [String]? = nil
+                        if !images.isEmpty {
+                            filePaths = try await chatClient.uploadFiles(roomId, images)
+                        }
+                        let dto = try await chatClient.sendMessage(roomId, content, filePaths)
+                        try? await chatLocalStore.upsertMessages([dto], roomId)
+                        if let message = ChatMessage(dto: dto) {
+                            await send(.sendResponse(.success(message)))
+                        }
+                    } catch {
+                        await send(.sendResponse(.failure(error)))
+                    }
+                }
+
+            case .sendResponse(.success(let message)):
+                state.isSending = false
+                state.messages[id: message.id] = message
+                return .none
+
+            case .sendResponse(.failure(let error)):
+                state.isSending = false
+                state.errorMessage = error.localizedDescription
+                return .none
+
+            case .backTapped:
+                return .send(.delegate(.backTapped))
+
+            case .delegate:
+                return .none
+            }
+        }
+    }
+}
