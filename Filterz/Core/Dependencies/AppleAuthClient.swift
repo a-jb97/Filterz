@@ -22,17 +22,20 @@ extension AppleAuthClient: DependencyKey {
         AppleAuthClient(
             login: {
                 try await withCheckedThrowingContinuation { continuation in
-                    let provider = ASAuthorizationAppleIDProvider()
-                    let request = provider.createRequest()
-                    request.requestedScopes = [.fullName, .email]
+                    // ASAuthorizationController은 메인 스레드에서 실행해야 함
+                    Task { @MainActor in
+                        let provider = ASAuthorizationAppleIDProvider()
+                        let request = provider.createRequest()
+                        request.requestedScopes = [.fullName, .email]
 
-                    let delegate = AppleSignInDelegate(continuation: continuation)
-                    let controller = ASAuthorizationController(authorizationRequests: [request])
-                    controller.delegate = delegate
-                    controller.presentationContextProvider = delegate
-                    controller.performRequests()
-                    // controller가 delegate를 weak으로 잡으므로 controller에 강한 참조로 묶어둠
-                    objc_setAssociatedObject(controller, &AssociatedKeys.delegate, delegate, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                        let delegate = AppleSignInDelegate(continuation: continuation)
+                        let controller = ASAuthorizationController(authorizationRequests: [request])
+                        controller.delegate = delegate
+                        controller.presentationContextProvider = delegate
+                        controller.performRequests()
+                        // controller가 delegate를 weak으로 잡으므로 controller에 강한 참조로 묶어둠
+                        objc_setAssociatedObject(controller, &AssociatedKeys.delegate, delegate, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                    }
                 }
             }
         )
@@ -61,7 +64,7 @@ extension DependencyValues {
 // MARK: - Associated Key
 
 private enum AssociatedKeys {
-    static var delegate = "AppleSignInDelegate"
+    nonisolated(unsafe) static var delegate = 0
 }
 
 // MARK: - ASAuthorizationController Delegate Bridge

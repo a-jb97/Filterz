@@ -4,31 +4,31 @@ import Foundation
 
 // MARK: - Geolocation
 
-struct Geolocation: Codable, Sendable {
+nonisolated struct Geolocation: Codable, Sendable {
     let longitude: Double
     let latitude: Double
 }
 
 // MARK: - Banner
 
-struct BannerDTO: Decodable, Sendable, Equatable {
+nonisolated struct BannerDTO: Decodable, Sendable, Equatable {
     let name: String
     let imageUrl: String
     let payload: BannerPayload?
 }
 
-struct BannerListResponseDTO: Decodable, Sendable {
+nonisolated struct BannerListResponseDTO: Decodable, Sendable {
     let data: [BannerDTO]
 }
 
-struct BannerPayload: Decodable, Equatable {
+nonisolated struct BannerPayload: Decodable, Equatable {
     let type: String
     let value: String
 }
 
 // MARK: - Log
 
-struct LogDTO: Decodable, Sendable {
+nonisolated struct LogDTO: Decodable, Sendable {
     let date: String
     let name: String
     let method: String
@@ -45,20 +45,20 @@ struct LogDTO: Decodable, Sendable {
     }
 }
 
-struct LogListResponseDTO: Decodable, Sendable {
+nonisolated struct LogListResponseDTO: Decodable, Sendable {
     let count: Int
     let logs: [LogDTO]
 }
 
 // MARK: - File
 
-struct FileResponseDTO: Decodable, Sendable {
+nonisolated struct FileResponseDTO: Decodable, Sendable {
     let files: [String]
 }
 
 // MARK: - Notification Request
 
-struct PushNotificationRequestDTO: Encodable, Sendable {
+nonisolated struct PushNotificationRequestDTO: Encodable, Sendable {
     let userId: String
     let title: String
     let subtitle: String?

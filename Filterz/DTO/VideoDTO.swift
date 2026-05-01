@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Response DTOs
 
-struct VideoResponseDTO: Decodable, Sendable {
+nonisolated struct VideoResponseDTO: Decodable, Sendable {
     let videoId: String
     let fileName: String
     let title: String
@@ -30,7 +30,7 @@ struct VideoResponseDTO: Decodable, Sendable {
     }
 }
 
-struct StreamUrlResponseDTO: Decodable, Sendable {
+nonisolated struct StreamUrlResponseDTO: Decodable, Sendable {
     let videoId: String
     let streamUrl: String
     let qualities: [[String: String]]
@@ -43,7 +43,7 @@ struct StreamUrlResponseDTO: Decodable, Sendable {
     }
 }
 
-struct VideoListResponseDTO: Decodable, Sendable {
+nonisolated struct VideoListResponseDTO: Decodable, Sendable {
     let data: [VideoResponseDTO]
     let nextCursor: String?
 
@@ -55,7 +55,7 @@ struct VideoListResponseDTO: Decodable, Sendable {
 
 // MARK: - Request DTOs
 
-struct VideoLikeRequestDTO: Encodable, Sendable {
+nonisolated struct VideoLikeRequestDTO: Encodable, Sendable {
     let likeStatus: Bool
 
     enum CodingKeys: String, CodingKey {
