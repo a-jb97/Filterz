@@ -43,7 +43,7 @@ enum Router: URLRequestConvertible {
     // MARK: - Chat
     case getChatRooms
     case createChatRoom(query: CreateChatRoomRequestDTO)
-    case getChatMessages(roomId: String)
+    case getChatMessages(roomId: String, next: String? = nil)
     case sendMessage(roomId: String, query: SendMessageRequestDTO)
     case sendChatFiles(roomId: String)
 
@@ -106,7 +106,7 @@ extension Router {
         case .deletePostComment(let pId, let cId):          return "/posts/\(pId)/comments/\(cId)"
         // Chat
         case .getChatRooms, .createChatRoom:                return "/chats"
-        case .getChatMessages(let id),
+        case .getChatMessages(let id, _),
              .sendMessage(let id, _):                       return "/chats/\(id)"
         case .sendChatFiles(let id):                        return "/chats/\(id)/files"
         // Order & Payment
@@ -164,6 +164,9 @@ extension Router {
             if let next     { items.append(URLQueryItem(name: "next",     value: next)) }
             if let category { items.append(URLQueryItem(name: "category", value: category)) }
             if !items.isEmpty { urlComponents.queryItems = items }
+        }
+        if case .getChatMessages(_, let next) = self, let next {
+            urlComponents.queryItems = [URLQueryItem(name: "next", value: next)]
         }
         let url = urlComponents.url!
         var request = URLRequest(url: url)

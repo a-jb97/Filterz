@@ -2,14 +2,15 @@
 
 import Alamofire
 import Foundation
+import os
 
 // MARK: - AuthInterceptor
 
 private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
     private let refreshSession = Session()
-    private var isRefreshing = false
-    private var pendingCompletions: [(RetryResult) -> Void] = []
-    private let lock = NSLock()
+    private let state = OSAllocatedUnfairLock<(isRefreshing: Bool, pending: [(RetryResult) -> Void])>(
+        initialState: (isRefreshing: false, pending: [])
+    )
 
     func retry(
         _ request: Request,
@@ -28,14 +29,16 @@ private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
             return
         }
 
-        lock.lock()
-        if isRefreshing {
-            pendingCompletions.append(completion)
-            lock.unlock()
-            return
+        let shouldReturn = state.withLock { s -> Bool in
+            if s.isRefreshing {
+                s.pending.append(completion)
+                return true
+            } else {
+                s.isRefreshing = true
+                return false
+            }
         }
-        isRefreshing = true
-        lock.unlock()
+        if shouldReturn { return }
 
         Task {
             let router = Router.refreshToken(
@@ -47,11 +50,12 @@ private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
                 .serializingData()
                 .response
 
-            lock.lock()
-            let pending = pendingCompletions
-            pendingCompletions.removeAll()
-            isRefreshing = false
-            lock.unlock()
+            let pending = state.withLock { s -> [(RetryResult) -> Void] in
+                let p = s.pending
+                s.pending.removeAll()
+                s.isRefreshing = false
+                return p
+            }
 
             switch result.result {
             case .success(let data):
