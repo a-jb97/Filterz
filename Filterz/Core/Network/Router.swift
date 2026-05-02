@@ -125,7 +125,7 @@ extension Router {
         case .uploadFile:                                   return "/filters/files"
         case .getBanners:                                   return "/banners/main"
         case .getLogs:                                      return "/logs"
-        case .sendPushNotification:                         return "/notifications"
+        case .sendPushNotification:                         return "/notifications/push"
         }
     }
 
