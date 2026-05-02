@@ -5,29 +5,33 @@ struct ChatBubbleView: View {
     let isMine: Bool
     let showsTimestamp: Bool
     let showsProfile: Bool
+    let startsGroup: Bool
+    let endsGroup: Bool
 
     private var maxWidth: CGFloat {
-        UIScreen.main.bounds.width * 0.65
+        UIScreen.main.bounds.width * 0.7
     }
 
     var body: some View {
         if isMine {
             HStack(alignment: .bottom) {
                 Spacer(minLength: 0)
-                HStack(alignment: .bottom, spacing: 4) {
+                HStack(alignment: .bottom, spacing: 3) {
                     if showsTimestamp { timestampView }
                     bubbleContent
                 }
+                .padding(.leading, 56)
             }
         } else {
             HStack(alignment: .bottom, spacing: 8) {
                 profileColumn
-                HStack(alignment: .bottom, spacing: 4) {
+                HStack(alignment: .bottom, spacing: 3) {
                     bubbleContent
                     if showsTimestamp { timestampView }
                 }
                 Spacer(minLength: 0)
             }
+            .padding(.trailing, 56)
         }
     }
 
@@ -48,6 +52,9 @@ struct ChatBubbleView: View {
         Text(message.createdAt.chatDisplay)
             .font(.pretendard(11, weight: .regular))
             .foregroundColor(.filterzGray60)
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.bottom, 1)
     }
 
     @ViewBuilder
@@ -64,11 +71,34 @@ struct ChatBubbleView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .background(bubbleBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .clipShape(bubbleShape)
                     .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)
             }
         }
-        .frame(maxWidth: maxWidth, alignment: isMine ? .trailing : .leading)
+    }
+
+    private var bubbleShape: UnevenRoundedRectangle {
+        let large: CGFloat = 20
+        let tight: CGFloat = 6
+
+        if isMine {
+            return UnevenRoundedRectangle(
+                topLeadingRadius: large,
+                bottomLeadingRadius: large,
+                bottomTrailingRadius: endsGroup ? large : tight,
+                topTrailingRadius: startsGroup ? large : tight,
+                style: .continuous
+            )
+        } else {
+            return UnevenRoundedRectangle(
+                topLeadingRadius: startsGroup ? large : tight,
+                bottomLeadingRadius: endsGroup ? large : tight,
+                bottomTrailingRadius: large,
+                topTrailingRadius: large,
+                style: .continuous
+            )
+        }
     }
 
     @ViewBuilder
