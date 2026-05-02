@@ -36,7 +36,7 @@ private let dateFormatter: DateFormatter = {
 private let dateSeparatorFormatter: DateFormatter = {
     let f = DateFormatter()
     f.locale = Locale(identifier: "ko_KR")
-    f.dateFormat = "M월 d일 a h:mm"
+    f.dateFormat = "M월 d일 EEEE"
     return f
 }()
 
@@ -55,6 +55,10 @@ extension Date {
             return timeFormatter.string(from: self)
         }
         return dateFormatter.string(from: self)
+    }
+
+    nonisolated var chatTimeDisplay: String {
+        timeFormatter.string(from: self)
     }
 
     nonisolated var chatSeparatorDisplay: String {

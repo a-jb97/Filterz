@@ -49,7 +49,7 @@ struct ChatBubbleView: View {
     }
 
     private var timestampView: some View {
-        Text(message.createdAt.chatDisplay)
+        Text(message.createdAt.chatTimeDisplay)
             .font(.pretendard(11, weight: .regular))
             .foregroundColor(.filterzGray60)
             .lineLimit(1)
