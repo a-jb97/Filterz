@@ -89,6 +89,10 @@ nonisolated struct UserInfoResponseDTO: Decodable, Sendable {
     }
 }
 
+nonisolated struct UserSearchResponseDTO: Decodable, Sendable {
+    let data: [UserInfoResponseDTO]
+}
+
 nonisolated struct TodayAuthorUserDTO: Decodable, Sendable {
     let userID: String
     let nick: String
