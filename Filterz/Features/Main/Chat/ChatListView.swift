@@ -25,6 +25,7 @@ struct ChatListView: View {
         .onChange(of: store.isSearchPresented) { _, isPresented in
             isSearchFocused = isPresented
         }
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     private var header: some View {
@@ -109,20 +110,36 @@ struct ChatListView: View {
     }
 
     private var roomList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(store.rooms) { room in
+        List {
+            ForEach(store.rooms) { room in
+                VStack(spacing: 0) {
                     Button { store.send(.roomTapped(room)) } label: {
                         ChatRoomCell(room: room)
                     }
                     .buttonStyle(.plain)
+                    .disabled(store.deletingRoomId == room.id)
+
                     Divider()
                         .background(Color.filterzTranslucent)
                         .padding(.leading, 84)
                 }
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.filterzBlackBase)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        store.send(.deleteButtonTapped(room))
+                    } label: {
+                        Label("삭제", systemImage: "trash")
+                    }
+                    .disabled(store.deletingRoomId != nil)
+                }
             }
-            .padding(.bottom, 100)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.filterzBlackBase)
+        .contentMargins(.bottom, 100, for: .scrollContent)
     }
 
     private var searchResults: some View {

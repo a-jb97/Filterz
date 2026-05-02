@@ -11,6 +11,7 @@ final class ChatRoomEntity {
     var opponentProfilePath: String?
     var lastMessageContent: String?
     var lastMessageAt: Date?
+    var isHidden: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessageEntity.room)
     var messages: [ChatMessageEntity] = []
@@ -33,5 +34,6 @@ final class ChatRoomEntity {
         self.opponentProfilePath = opponentProfilePath
         self.lastMessageContent = lastMessageContent
         self.lastMessageAt = lastMessageAt
+        self.isHidden = false
     }
 }

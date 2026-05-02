@@ -7,6 +7,7 @@ actor ChatLocalStoreActor {
 
     func fetchRooms() throws -> [ChatRoom] {
         let descriptor = FetchDescriptor<ChatRoomEntity>(
+            predicate: #Predicate { !$0.isHidden },
             sortBy: [SortDescriptor(\.lastMessageAt, order: .reverse),
                      SortDescriptor(\.updatedAt, order: .reverse)]
         )
@@ -121,6 +122,28 @@ actor ChatLocalStoreActor {
 
         try modelContext.save()
     }
+
+    func hideRoom(roomId: String) throws {
+        let descriptor = FetchDescriptor<ChatRoomEntity>(
+            predicate: #Predicate { $0.roomId == roomId }
+        )
+
+        if let room = try modelContext.fetch(descriptor).first {
+            room.isHidden = true
+            try modelContext.save()
+        }
+    }
+
+    func unhideRoom(roomId: String) throws {
+        let descriptor = FetchDescriptor<ChatRoomEntity>(
+            predicate: #Predicate { $0.roomId == roomId }
+        )
+
+        if let room = try modelContext.fetch(descriptor).first {
+            room.isHidden = false
+            try modelContext.save()
+        }
+    }
 }
 
 struct ChatLocalStore: Sendable {
@@ -128,6 +151,8 @@ struct ChatLocalStore: Sendable {
     var upsertRooms: @Sendable (_ dtos: [ChatRoomResponseDTO], _ currentUserId: String) async throws -> Void
     var fetchMessages: @Sendable (_ roomId: String) async throws -> [ChatMessage]
     var upsertMessages: @Sendable (_ dtos: [ChatResponseDTO], _ roomId: String) async throws -> Void
+    var hideRoom: @Sendable (_ roomId: String) async throws -> Void
+    var unhideRoom: @Sendable (_ roomId: String) async throws -> Void
 }
 
 extension ChatLocalStore: DependencyKey {
@@ -143,6 +168,12 @@ extension ChatLocalStore: DependencyKey {
             },
             upsertMessages: { dtos, roomId in
                 try await actor.upsertMessages(dtos, roomId: roomId)
+            },
+            hideRoom: { roomId in
+                try await actor.hideRoom(roomId: roomId)
+            },
+            unhideRoom: { roomId in
+                try await actor.unhideRoom(roomId: roomId)
             }
         )
     }
@@ -152,7 +183,9 @@ extension ChatLocalStore: DependencyKey {
             fetchRooms: { [] },
             upsertRooms: { _, _ in },
             fetchMessages: { _ in [] },
-            upsertMessages: { _, _ in }
+            upsertMessages: { _, _ in },
+            hideRoom: { _ in },
+            unhideRoom: { _ in }
         )
     }
 }

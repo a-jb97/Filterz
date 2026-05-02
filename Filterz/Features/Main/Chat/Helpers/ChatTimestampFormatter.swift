@@ -1,67 +1,67 @@
 import Foundation
 
-private nonisolated(unsafe) let utcISO8601Parser: ISO8601DateFormatter = {
+private nonisolated func makeUTCISO8601Parser() -> ISO8601DateFormatter {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     return f
-}()
+}
 
-private nonisolated(unsafe) let utcISO8601ParserNoFraction: ISO8601DateFormatter = {
+private nonisolated func makeUTCISO8601ParserNoFraction() -> ISO8601DateFormatter {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withInternetDateTime]
     return f
-}()
+}
 
-private nonisolated(unsafe) let utcISO8601Writer: ISO8601DateFormatter = {
+private nonisolated func makeUTCISO8601Writer() -> ISO8601DateFormatter {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     f.timeZone = TimeZone(identifier: "UTC")
     return f
-}()
+}
 
-private let timeFormatter: DateFormatter = {
+private nonisolated func makeTimeFormatter() -> DateFormatter {
     let f = DateFormatter()
     f.locale = Locale(identifier: "ko_KR")
     f.dateFormat = "a h:mm"
     return f
-}()
+}
 
-private let dateFormatter: DateFormatter = {
+private nonisolated func makeDateFormatter() -> DateFormatter {
     let f = DateFormatter()
     f.locale = Locale(identifier: "ko_KR")
     f.dateFormat = "yyyy.MM.dd"
     return f
-}()
+}
 
-private let dateSeparatorFormatter: DateFormatter = {
+private nonisolated func makeDateSeparatorFormatter() -> DateFormatter {
     let f = DateFormatter()
     f.locale = Locale(identifier: "ko_KR")
     f.dateFormat = "M월 d일 EEEE"
     return f
-}()
+}
 
 extension Date {
     nonisolated static func parseUTCISO8601(_ string: String) -> Date? {
-        if let date = utcISO8601Parser.date(from: string) { return date }
-        return utcISO8601ParserNoFraction.date(from: string)
+        if let date = makeUTCISO8601Parser().date(from: string) { return date }
+        return makeUTCISO8601ParserNoFraction().date(from: string)
     }
 
     nonisolated var iso8601UTC: String {
-        utcISO8601Writer.string(from: self)
+        makeUTCISO8601Writer().string(from: self)
     }
 
     nonisolated var chatDisplay: String {
         if Calendar.current.isDateInToday(self) {
-            return timeFormatter.string(from: self)
+            return makeTimeFormatter().string(from: self)
         }
-        return dateFormatter.string(from: self)
+        return makeDateFormatter().string(from: self)
     }
 
     nonisolated var chatTimeDisplay: String {
-        timeFormatter.string(from: self)
+        makeTimeFormatter().string(from: self)
     }
 
     nonisolated var chatSeparatorDisplay: String {
-        dateSeparatorFormatter.string(from: self)
+        makeDateSeparatorFormatter().string(from: self)
     }
 }
