@@ -16,6 +16,7 @@ enum Router: URLRequestConvertible {
     case myInfo
     case withdraw
     case getTodayAuthor
+    case searchUsers(nick: String?)
 
     // MARK: - Filter
     case getFilters(next: String? = nil, category: String? = nil)
@@ -87,6 +88,7 @@ extension Router {
         case .myInfo:                                       return "/users/me"
         case .withdraw:                                     return "/users/withdraw"
         case .getTodayAuthor:                               return "/users/today-author"
+        case .searchUsers:                                  return "/users/search"
         // Filter
         case .getFilters(_, _), .createFilter:                  return "/filters"
         case .getFilter(let id), .editFilter(let id),
@@ -129,7 +131,7 @@ extension Router {
 
     private var method: HTTPMethod {
         switch self {
-        case .myInfo, .getTodayAuthor, .getFilters(_, _), .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
+        case .myInfo, .getTodayAuthor, .searchUsers, .getFilters(_, _), .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
              .getPosts, .getPost,
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,
@@ -164,6 +166,9 @@ extension Router {
             if let next     { items.append(URLQueryItem(name: "next",     value: next)) }
             if let category { items.append(URLQueryItem(name: "category", value: category)) }
             if !items.isEmpty { urlComponents.queryItems = items }
+        }
+        if case .searchUsers(let nick) = self, let nick {
+            urlComponents.queryItems = [URLQueryItem(name: "nick", value: nick)]
         }
         if case .getChatMessages(_, let next) = self, let next {
             urlComponents.queryItems = [URLQueryItem(name: "next", value: next)]
