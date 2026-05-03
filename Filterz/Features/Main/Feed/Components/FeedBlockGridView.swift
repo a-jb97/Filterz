@@ -79,76 +79,140 @@ struct FeedBlockGridView: View {
     let items: [FeedItem]
     var onItemTapped: (String) -> Void = { _ in }
 
-    private var leftItems: [FeedItem] {
-        items.enumerated().filter { $0.offset % 2 == 0 }.map(\.element)
+    private var columns: [[FeedMasonryItem]] {
+        var columns: [[FeedMasonryItem]] = [[], []]
+        var columnHeights: [CGFloat] = [0, 0]
+
+        for (index, item) in items.enumerated() {
+            let columnIndex = columnHeights[0] <= columnHeights[1] ? 0 : 1
+            let masonryItem = FeedMasonryItem(item: item, index: index)
+            columns[columnIndex].append(masonryItem)
+            columnHeights[columnIndex] += masonryItem.estimatedHeight
+        }
+
+        return columns
     }
 
-    private var rightItems: [FeedItem] {
-        items.enumerated().filter { $0.offset % 2 == 1 }.map(\.element)
+    private var columnWidth: CGFloat {
+        let horizontalPadding: CGFloat = 40
+        let columnSpacing: CGFloat = 12
+        return (UIScreen.main.bounds.width - horizontalPadding - columnSpacing) / 2
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            VStack(spacing: 8) {
-                ForEach(leftItems) { item in
-                    FeedMasonryCardView(item: item)
-                        .onTapGesture { onItemTapped(item.id) }
+        HStack(alignment: .top, spacing: 12) {
+            ForEach(columns.indices, id: \.self) { columnIndex in
+                LazyVStack(spacing: 26) {
+                    ForEach(columns[columnIndex]) { masonryItem in
+                        FeedMasonryCardView(
+                            masonryItem: masonryItem,
+                            width: columnWidth
+                        )
+                        .onTapGesture { onItemTapped(masonryItem.item.id) }
+                    }
                 }
+                .frame(width: columnWidth)
             }
-            .frame(maxWidth: .infinity)
-
-            VStack(spacing: 8) {
-                ForEach(rightItems) { item in
-                    FeedMasonryCardView(item: item)
-                        .onTapGesture { onItemTapped(item.id) }
-                }
-            }
-            .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - FeedMasonryItem
+
+private struct FeedMasonryItem: Identifiable {
+    let item: FeedItem
+    let index: Int
+
+    var id: String { item.id }
+
+    var aspectRatio: CGFloat {
+        let ratios: [CGFloat] = [0.76, 1.16, 1.28, 0.82, 1.0, 0.72, 1.1, 0.9]
+        return ratios[index % ratios.count]
+    }
+
+    var estimatedHeight: CGFloat {
+        1 / aspectRatio + 0.26
     }
 }
 
 // MARK: - FeedMasonryCardView
 
 private struct FeedMasonryCardView: View {
-    let item: FeedItem
+    let masonryItem: FeedMasonryItem
+    let width: CGFloat
+
+    private var item: FeedItem {
+        masonryItem.item
+    }
+
+    private var isCompactCard: Bool {
+        masonryItem.aspectRatio >= 1.05
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            ZStack {
-                AuthenticatedImageView(path: item.imageURL, contentMode: .fit)
-                    .frame(maxWidth: .infinity)
+        VStack(alignment: .leading, spacing: 10) {
+            imageCard
 
-                VStack {
-                    HStack {
-                        Text(item.title)
-                            .font(.filterzDisplay(14))
-                            .foregroundColor(.filterzGray30)
-                        Spacer()
-                    }
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        HStack(spacing: 3) {
-                            Image(systemName: "heart.fill")
-                                .resizable()
-                                .frame(width: 12, height: 11)
-                                .foregroundColor(.filterzGray30)
-                            Text("\(item.likeCount)")
-                                .font(.pretendard(12, weight: .semibold))
-                                .foregroundColor(.filterzGray30)
-                        }
-                    }
-                }
-                .padding(8)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            Text(item.authorNick)
-                .font(.pretendard(12, weight: .medium))
+            Text(item.authorNick.uppercased())
+                .font(.pretendard(16, weight: .bold))
                 .foregroundColor(.filterzGray75)
-                .padding(.horizontal, 4)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 8)
         }
+        .frame(width: width, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private var imageCard: some View {
+        ZStack {
+            AuthenticatedImageView(path: item.imageURL, contentMode: .fill)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.filterzBlackTurquoise)
+                .clipped()
+
+            LinearGradient(
+                colors: [
+                    .black.opacity(0.48),
+                    .clear,
+                    .black.opacity(0.56)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        .frame(width: width, height: width / masonryItem.aspectRatio)
+        .overlay(alignment: .topLeading) {
+            Text(item.title)
+                .font(.filterzDisplay(isCompactCard ? 14 : 17))
+                .foregroundColor(.filterzGray30)
+                .lineLimit(1)
+                .minimumScaleFactor(0.55)
+                .frame(
+                    maxWidth: width - (isCompactCard ? 20 : 24),
+                    minHeight: isCompactCard ? 24 : 28,
+                    alignment: .leading
+                )
+                .padding(.top, isCompactCard ? 8 : 11)
+                .padding(.leading, isCompactCard ? 10 : 12)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            HStack(spacing: 4) {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: isCompactCard ? 13 : 15, weight: .bold))
+                    .foregroundColor(.filterzGray30)
+
+                Text("\(item.likeCount)")
+                    .font(.pretendard(isCompactCard ? 14 : 16, weight: .bold))
+                    .foregroundColor(.filterzGray30)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(minHeight: isCompactCard ? 22 : 24)
+            .padding(.trailing, isCompactCard ? 10 : 12)
+            .padding(.bottom, isCompactCard ? 8 : 10)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }
