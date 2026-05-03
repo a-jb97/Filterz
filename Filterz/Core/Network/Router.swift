@@ -49,9 +49,9 @@ enum Router: URLRequestConvertible {
     case sendChatFiles(roomId: String)
 
     // MARK: - Order & Payment
-    case createOrder(filterId: String)
+    case createOrder(query: OrderCreateRequestDTO)
     case getOrders
-    case getOrder(orderId: String)
+    case getOrder(orderCode: String)
     case validatePayment(query: PaymentValidationRequestDTO)
 
     // MARK: - Video
@@ -112,9 +112,9 @@ extension Router {
              .sendMessage(let id, _):                       return "/chats/\(id)"
         case .sendChatFiles(let id):                        return "/chats/\(id)/files"
         // Order & Payment
-        case .createOrder(let id):                          return "/orders/\(id)"
+        case .createOrder:                                  return "/orders"
         case .getOrders:                                    return "/orders"
-        case .getOrder(let id):                             return "/orders/\(id)"
+        case .getOrder(let code):                           return "/payments/\(code)"
         case .validatePayment:                              return "/payments/validation"
         // Video
         case .getVideos:                                    return "/videos"
@@ -203,6 +203,8 @@ extension Router {
         case .createChatRoom(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .sendMessage(_, let query):
+            return try JSONParameterEncoder.default.encode(query, into: request)
+        case .createOrder(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .validatePayment(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)

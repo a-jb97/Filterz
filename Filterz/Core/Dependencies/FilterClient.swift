@@ -119,3 +119,93 @@ extension DependencyValues {
         set { self[FilterClient.self] = newValue }
     }
 }
+
+struct PaymentClient: Sendable {
+    var createOrder: @Sendable (_ filterId: String, _ totalPrice: Int) async throws -> OrderCreateResponseDTO
+    var validatePayment: @Sendable (_ impUid: String) async throws -> PaymentResponseDTO
+}
+
+extension PaymentClient: DependencyKey {
+    static var liveValue: PaymentClient {
+        PaymentClient(
+            createOrder: { filterId, totalPrice in
+                try await NetworkManager.shared.request(
+                    .createOrder(query: OrderCreateRequestDTO(filterId: filterId, totalPrice: totalPrice))
+                )
+            },
+            validatePayment: { impUid in
+                try await NetworkManager.shared.request(
+                    .validatePayment(query: PaymentValidationRequestDTO(impUid: impUid))
+                )
+            }
+        )
+    }
+
+    static var testValue: PaymentClient {
+        PaymentClient(
+            createOrder: { _, totalPrice in
+                OrderCreateResponseDTO(
+                    orderId: "test-order-id",
+                    orderCode: "ios_sesac_test_order",
+                    totalPrice: totalPrice,
+                    createdAt: "",
+                    updatedAt: ""
+                )
+            },
+            validatePayment: { impUid in
+                PaymentResponseDTO(
+                    impUid: impUid,
+                    merchantUid: "iOS_sesac_test_order",
+                    payMethod: "card",
+                    channel: nil,
+                    pgProvider: "html5_inicis",
+                    embPgProvider: nil,
+                    pgTid: nil,
+                    pgId: "INIpayTest",
+                    escrow: nil,
+                    applyNum: nil,
+                    bankCode: nil,
+                    bankName: nil,
+                    cardCode: nil,
+                    cardName: nil,
+                    cardIssuerCode: nil,
+                    cardIssuerName: nil,
+                    cardPublisherCode: nil,
+                    cardPublisherName: nil,
+                    cardQuota: nil,
+                    cardNumber: nil,
+                    cardType: nil,
+                    vbankCode: nil,
+                    vbankName: nil,
+                    vbankNum: nil,
+                    vbankHolder: nil,
+                    vbankDate: nil,
+                    vbankIssuedAt: nil,
+                    name: "테스트 필터",
+                    amount: 2000,
+                    currency: "KRW",
+                    buyerName: "전민석",
+                    buyerEmail: nil,
+                    buyerTel: nil,
+                    buyerAddr: nil,
+                    buyerPostcode: nil,
+                    customData: nil,
+                    userAgent: nil,
+                    status: "paid",
+                    startedAt: nil,
+                    paidAt: nil,
+                    receiptUrl: nil,
+                    createdAt: "",
+                    updatedAt: ""
+                )
+            }
+        )
+    }
+}
+
+extension DependencyValues {
+    var paymentClient: PaymentClient {
+        get { self[PaymentClient.self] }
+        set { self[PaymentClient.self] = newValue }
+    }
+}
