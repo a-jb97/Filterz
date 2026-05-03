@@ -53,11 +53,12 @@ private struct CustomTabBarView: View {
     let chatUnreadCount: Int
 
     var body: some View {
-        HStack(spacing: 32) {
+        HStack(spacing: 20) {
             ForEach(MainFeature.Tab.allCases, id: \.self) { tab in
                 tabButton(for: tab)
             }
         }
+        .padding(.horizontal, 24)
         .frame(width: 350, height: 68)
         .background(
             ZStack {

@@ -5,11 +5,11 @@ import Foundation
 // MARK: - Order Response DTOs
 
 nonisolated struct OrderCreateResponseDTO: Decodable, Sendable {
-    let orderId: String
+    let orderId: String?
     let orderCode: String
     let totalPrice: Int
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
 
     enum CodingKeys: String, CodingKey {
         case orderId = "order_id"
@@ -50,8 +50,8 @@ nonisolated struct ReceiptOrderResponseDTO: Decodable, Sendable {
 // MARK: - Payment Response DTOs
 
 nonisolated struct PaymentResponseDTO: Decodable, Sendable {
-    let impUid: String
-    let merchantUid: String
+    let impUid: String?
+    let merchantUid: String?
     let payMethod: String?
     let channel: String?
     let pgProvider: String?
@@ -78,7 +78,7 @@ nonisolated struct PaymentResponseDTO: Decodable, Sendable {
     let vbankDate: Int?
     let vbankIssuedAt: Int?
     let name: String?
-    let amount: Int
+    let amount: Int?
     let currency: String?
     let buyerName: String?
     let buyerEmail: String?
@@ -91,8 +91,8 @@ nonisolated struct PaymentResponseDTO: Decodable, Sendable {
     let startedAt: String?
     let paidAt: String?
     let receiptUrl: String?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
 
     enum CodingKeys: String, CodingKey {
         case impUid = "imp_uid"
@@ -137,6 +137,16 @@ nonisolated struct PaymentResponseDTO: Decodable, Sendable {
 }
 
 // MARK: - Request DTOs
+
+nonisolated struct OrderCreateRequestDTO: Encodable, Sendable {
+    let filterId: String
+    let totalPrice: Int
+
+    enum CodingKeys: String, CodingKey {
+        case filterId = "filter_id"
+        case totalPrice = "total_price"
+    }
+}
 
 nonisolated struct PaymentValidationRequestDTO: Encodable, Sendable {
     let impUid: String

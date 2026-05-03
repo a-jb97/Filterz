@@ -13,6 +13,7 @@ import KakaoSDKAuth
 import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
+import iamport_ios
 
 struct ChatPushPayload: Equatable, Sendable {
     let roomId: String
@@ -111,6 +112,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 #if DEBUG
         print("APNs token registration failed: \(error.localizedDescription)")
 #endif
+    }
+
+    func application(_ app: UIApplication,
+                     open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        if AuthApi.isKakaoTalkLoginUrl(url) {
+            return AuthController.handleOpenUrl(url: url)
+        }
+        Iamport.shared.receivedURL(url)
+        return true
     }
 
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
@@ -213,6 +224,8 @@ struct FilterzApp: App {
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
                         _ = AuthController.handleOpenUrl(url: url)
+                    } else {
+                        Iamport.shared.receivedURL(url)
                     }
                 }
         }
