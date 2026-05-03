@@ -48,8 +48,9 @@ extension AuthClient: DependencyKey {
         return AuthClient(
             emailLogin: { email, password in
                 do {
+                    let deviceToken = PushNotificationBridge.fcmToken
                     let dto: LoginResponseDTO = try await manager.request(
-                        .login(query: LoginRequestDTO(email: email, password: password, deviceToken: nil))
+                        .login(query: LoginRequestDTO(email: email, password: password, deviceToken: deviceToken))
                     )
                     APIKey.accessToken = dto.accessToken
                     APIKey.refreshToken = dto.refreshToken
@@ -65,8 +66,9 @@ extension AuthClient: DependencyKey {
             },
             signUp: { email, password, nickname in
                 do {
+                    let deviceToken = PushNotificationBridge.fcmToken
                     let dto: LoginResponseDTO = try await manager.request(
-                        .join(query: JoinRequestDTO(email: email, password: password, nick: nickname, name: nil, introduction: nil, deviceToken: nil))
+                        .join(query: JoinRequestDTO(email: email, password: password, nick: nickname, name: nil, introduction: nil, deviceToken: deviceToken))
                     )
                     APIKey.accessToken = dto.accessToken
                     APIKey.refreshToken = dto.refreshToken
@@ -101,14 +103,15 @@ extension AuthClient: DependencyKey {
             socialLogin: { provider, token in
                 do {
                     let dto: LoginResponseDTO
+                    let deviceToken = PushNotificationBridge.fcmToken
                     switch provider {
                     case .kakao:
                         dto = try await manager.request(
-                            .kakaoLogin(query: KakaoLoginRequestDTO(oauthToken: token, deviceToken: nil))
+                            .kakaoLogin(query: KakaoLoginRequestDTO(oauthToken: token, deviceToken: deviceToken))
                         )
                     case .apple:
                         dto = try await manager.request(
-                            .appleLogin(query: AppleLoginRequestDTO(idToken: token, deviceToken: nil))
+                            .appleLogin(query: AppleLoginRequestDTO(idToken: token, deviceToken: deviceToken))
                         )
                     }
                     APIKey.accessToken = dto.accessToken

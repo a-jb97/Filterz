@@ -3,6 +3,7 @@ import SwiftUI
 extension Color {
     static let filterzBackground    = Color(hex: "#000000")
     static let filterzAccent        = Color(hex: "#FFE100")
+    static let filterzAccentDeep    = Color(hex: "#FFB800")
     static let filterzSurface       = Color(hex: "#1A1A1A")
     static let filterzBorder        = Color(hex: "#2A2A2A")
     static let filterzTextPrimary   = Color.white

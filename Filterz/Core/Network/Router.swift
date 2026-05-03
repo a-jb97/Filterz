@@ -16,6 +16,7 @@ enum Router: URLRequestConvertible {
     case myInfo
     case withdraw
     case getTodayAuthor
+    case searchUsers(nick: String?)
 
     // MARK: - Filter
     case getFilters(next: String? = nil, category: String? = nil)
@@ -43,7 +44,7 @@ enum Router: URLRequestConvertible {
     // MARK: - Chat
     case getChatRooms
     case createChatRoom(query: CreateChatRoomRequestDTO)
-    case getChatMessages(roomId: String)
+    case getChatMessages(roomId: String, next: String? = nil)
     case sendMessage(roomId: String, query: SendMessageRequestDTO)
     case sendChatFiles(roomId: String)
 
@@ -87,6 +88,7 @@ extension Router {
         case .myInfo:                                       return "/users/me"
         case .withdraw:                                     return "/users/withdraw"
         case .getTodayAuthor:                               return "/users/today-author"
+        case .searchUsers:                                  return "/users/search"
         // Filter
         case .getFilters(_, _), .createFilter:                  return "/filters"
         case .getFilter(let id), .editFilter(let id),
@@ -106,7 +108,7 @@ extension Router {
         case .deletePostComment(let pId, let cId):          return "/posts/\(pId)/comments/\(cId)"
         // Chat
         case .getChatRooms, .createChatRoom:                return "/chats"
-        case .getChatMessages(let id),
+        case .getChatMessages(let id, _),
              .sendMessage(let id, _):                       return "/chats/\(id)"
         case .sendChatFiles(let id):                        return "/chats/\(id)/files"
         // Order & Payment
@@ -123,13 +125,13 @@ extension Router {
         case .uploadFile:                                   return "/filters/files"
         case .getBanners:                                   return "/banners/main"
         case .getLogs:                                      return "/logs"
-        case .sendPushNotification:                         return "/notifications"
+        case .sendPushNotification:                         return "/notifications/push"
         }
     }
 
     private var method: HTTPMethod {
         switch self {
-        case .myInfo, .getTodayAuthor, .getFilters(_, _), .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
+        case .myInfo, .getTodayAuthor, .searchUsers, .getFilters(_, _), .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
              .getPosts, .getPost,
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,
@@ -164,6 +166,12 @@ extension Router {
             if let next     { items.append(URLQueryItem(name: "next",     value: next)) }
             if let category { items.append(URLQueryItem(name: "category", value: category)) }
             if !items.isEmpty { urlComponents.queryItems = items }
+        }
+        if case .searchUsers(let nick) = self, let nick {
+            urlComponents.queryItems = [URLQueryItem(name: "nick", value: nick)]
+        }
+        if case .getChatMessages(_, let next) = self, let next {
+            urlComponents.queryItems = [URLQueryItem(name: "next", value: next)]
         }
         let url = urlComponents.url!
         var request = URLRequest(url: url)

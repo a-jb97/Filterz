@@ -1,0 +1,116 @@
+import SwiftUI
+
+struct ChatBubbleView: View {
+    let message: ChatMessage
+    let isMine: Bool
+    let showsTimestamp: Bool
+    let showsProfile: Bool
+    let startsGroup: Bool
+    let endsGroup: Bool
+
+    private var maxWidth: CGFloat {
+        UIScreen.main.bounds.width * 0.7
+    }
+
+    var body: some View {
+        if isMine {
+            HStack(alignment: .bottom) {
+                Spacer(minLength: 0)
+                HStack(alignment: .bottom, spacing: 3) {
+                    if showsTimestamp { timestampView }
+                    bubbleContent
+                }
+                .padding(.leading, 56)
+            }
+        } else {
+            HStack(alignment: .bottom, spacing: 8) {
+                profileColumn
+                HStack(alignment: .bottom, spacing: 3) {
+                    bubbleContent
+                    if showsTimestamp { timestampView }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.trailing, 56)
+        }
+    }
+
+    private var profileColumn: some View {
+        Group {
+            if showsProfile {
+                AuthenticatedImageView(path: message.senderProfilePath)
+                    .frame(width: 32, height: 32)
+                    .background(Color.filterzBlackTurquoise)
+                    .clipShape(Circle())
+            } else {
+                Color.clear.frame(width: 32, height: 32)
+            }
+        }
+    }
+
+    private var timestampView: some View {
+        Text(message.createdAt.chatTimeDisplay)
+            .font(.pretendard(11, weight: .regular))
+            .foregroundColor(.filterzGray60)
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.bottom, 1)
+    }
+
+    @ViewBuilder
+    private var bubbleContent: some View {
+        VStack(alignment: isMine ? .trailing : .leading, spacing: 6) {
+            if !message.files.isEmpty {
+                ChatImageGrid(paths: message.files)
+                    .frame(maxWidth: maxWidth)
+            }
+            if let content = message.content, !content.isEmpty {
+                Text(content)
+                    .font(.pretendard(14, weight: .regular))
+                    .foregroundColor(isMine ? .filterzBlackBase : .filterzGray30)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(bubbleBackground)
+                    .clipShape(bubbleShape)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)
+            }
+        }
+    }
+
+    private var bubbleShape: UnevenRoundedRectangle {
+        let large: CGFloat = 20
+        let tight: CGFloat = 6
+
+        if isMine {
+            return UnevenRoundedRectangle(
+                topLeadingRadius: large,
+                bottomLeadingRadius: large,
+                bottomTrailingRadius: endsGroup ? large : tight,
+                topTrailingRadius: startsGroup ? large : tight,
+                style: .continuous
+            )
+        } else {
+            return UnevenRoundedRectangle(
+                topLeadingRadius: startsGroup ? large : tight,
+                bottomLeadingRadius: endsGroup ? large : tight,
+                bottomTrailingRadius: large,
+                topTrailingRadius: large,
+                style: .continuous
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var bubbleBackground: some View {
+        if isMine {
+            LinearGradient(
+                colors: [Color.filterzAccent, Color.filterzAccentDeep],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            Color.filterzBlackTurquoise
+        }
+    }
+}

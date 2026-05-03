@@ -15,6 +15,32 @@ struct AppView: View {
             }
         }
         .onAppear { store.send(.onAppear) }
+        .task {
+            if let payload = await PushNotificationBridge.consumePendingTappedPayload() {
+                store.send(.chatPushTapped(payload))
+            }
+        }
+        .task {
+            for await notification in NotificationCenter.default.notifications(
+                named: PushNotificationBridge.receivedNotification
+            ) {
+                guard let payload = notification.userInfo?[PushNotificationBridge.payloadKey] as? ChatPushPayload else {
+                    continue
+                }
+                store.send(.chatPushReceived(payload))
+            }
+        }
+        .task {
+            for await notification in NotificationCenter.default.notifications(
+                named: PushNotificationBridge.tappedNotification
+            ) {
+                guard let payload = notification.userInfo?[PushNotificationBridge.payloadKey] as? ChatPushPayload else {
+                    continue
+                }
+                await PushNotificationBridge.clearPendingTappedPayload(payload)
+                store.send(.chatPushTapped(payload))
+            }
+        }
     }
 
     private var splashView: some View {

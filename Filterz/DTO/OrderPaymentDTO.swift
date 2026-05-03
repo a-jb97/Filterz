@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Order Response DTOs
 
-struct OrderCreateResponseDTO: Decodable, Sendable {
+nonisolated struct OrderCreateResponseDTO: Decodable, Sendable {
     let orderId: String
     let orderCode: String
     let totalPrice: Int
@@ -19,7 +19,7 @@ struct OrderCreateResponseDTO: Decodable, Sendable {
     }
 }
 
-struct OrderResponseDTO: Decodable, Sendable {
+nonisolated struct OrderResponseDTO: Decodable, Sendable {
     let orderId: String
     let orderCode: String
     let filter: FilterSummaryResponseDTO_Order
@@ -34,7 +34,7 @@ struct OrderResponseDTO: Decodable, Sendable {
     }
 }
 
-struct ReceiptOrderResponseDTO: Decodable, Sendable {
+nonisolated struct ReceiptOrderResponseDTO: Decodable, Sendable {
     let paymentId: String
     let orderItem: OrderResponseDTO
     let createdAt: String
@@ -49,7 +49,7 @@ struct ReceiptOrderResponseDTO: Decodable, Sendable {
 
 // MARK: - Payment Response DTOs
 
-struct PaymentResponseDTO: Decodable, Sendable {
+nonisolated struct PaymentResponseDTO: Decodable, Sendable {
     let impUid: String
     let merchantUid: String
     let payMethod: String?
@@ -138,7 +138,7 @@ struct PaymentResponseDTO: Decodable, Sendable {
 
 // MARK: - Request DTOs
 
-struct PaymentValidationRequestDTO: Encodable, Sendable {
+nonisolated struct PaymentValidationRequestDTO: Encodable, Sendable {
     let impUid: String
 
     enum CodingKeys: String, CodingKey {

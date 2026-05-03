@@ -19,6 +19,8 @@
 		9E2A0ABB2FA07D630005F318 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */; };
 		9E2A0ABE2FA07E880005F318 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */; };
 		9E2A0AC02FA07E880005F318 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */; };
+		9E3CA4852FA61FD500C73CB9 /* iamport-ios in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3CA4842FA61FD500C73CB9 /* iamport-ios */; };
+		9E60AB7A2FA3D7890058545F /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9E60AB792FA3D7890058545F /* SocketIO */; };
 		9E847F292F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */; };
 		9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9EB5967B2F98EE7000CA0337 /* .gitignore */; };
 		9EB5967F2F98F8C300CA0337 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */; };
@@ -86,7 +88,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E3CA4852FA61FD500C73CB9 /* iamport-ios in Frameworks */,
 				9EE1A6BA2F9A70B000996D54 /* Alamofire in Frameworks */,
+				9E60AB7A2FA3D7890058545F /* SocketIO in Frameworks */,
 				9EB596872F98FB1C00CA0337 /* KakaoSDKUser in Frameworks */,
 				9E2A0AC02FA07E880005F318 /* FirebaseMessaging in Frameworks */,
 				9E2A0ABE2FA07E880005F318 /* FirebaseAnalytics in Frameworks */,
@@ -172,6 +176,8 @@
 				9EE1A6B92F9A70B000996D54 /* Alamofire */,
 				9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */,
 				9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */,
+				9E60AB792FA3D7890058545F /* SocketIO */,
+				9E3CA4842FA61FD500C73CB9 /* iamport-ios */,
 			);
 			productName = Filterz;
 			productReference = 9EB596512F98B56F00CA0337 /* Filterz.app */;
@@ -260,6 +266,8 @@
 				9EB596812F98FB1C00CA0337 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 				9EE1A6B82F9A70B000996D54 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				9E60AB782FA3D7890058545F /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
+				9E3CA4832FA61FD500C73CB9 /* XCRemoteSwiftPackageReference "iamport-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EB596522F98B56F00CA0337 /* Products */;
@@ -686,6 +694,22 @@
 				minimumVersion = 12.12.1;
 			};
 		};
+		9E3CA4832FA61FD500C73CB9 /* XCRemoteSwiftPackageReference "iamport-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/iamport/iamport-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.7;
+			};
+		};
+		9E60AB782FA3D7890058545F /* XCRemoteSwiftPackageReference "socket.io-client-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/socketio/socket.io-client-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 16.1.1;
+			};
+		};
 		9EB5967D2F98F8C300CA0337 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
@@ -724,6 +748,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		9E3CA4842FA61FD500C73CB9 /* iamport-ios */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E3CA4832FA61FD500C73CB9 /* XCRemoteSwiftPackageReference "iamport-ios" */;
+			productName = "iamport-ios";
+		};
+		9E60AB792FA3D7890058545F /* SocketIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E60AB782FA3D7890058545F /* XCRemoteSwiftPackageReference "socket.io-client-swift" */;
+			productName = SocketIO;
 		};
 		9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;

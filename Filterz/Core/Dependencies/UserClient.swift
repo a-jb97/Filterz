@@ -3,6 +3,7 @@ import Foundation
 
 struct UserClient: Sendable {
     var getTodayAuthor: @Sendable () async throws -> TodayAuthorResponseDTO
+    var searchUsers: @Sendable (_ nick: String) async throws -> [UserInfoResponseDTO]
 }
 
 extension UserClient: DependencyKey {
@@ -10,6 +11,10 @@ extension UserClient: DependencyKey {
         UserClient(
             getTodayAuthor: {
                 try await NetworkManager.shared.request(.getTodayAuthor)
+            },
+            searchUsers: { nick in
+                let response: UserSearchResponseDTO = try await NetworkManager.shared.request(.searchUsers(nick: nick))
+                return response.data
             }
         )
     }
@@ -31,7 +36,8 @@ extension UserClient: DependencyKey {
         return UserClient(
             getTodayAuthor: {
                 TodayAuthorResponseDTO(author: mockAuthor, filters: mockFilters)
-            }
+            },
+            searchUsers: { _ in [] }
         )
     }
 }

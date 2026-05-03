@@ -1,10 +1,10 @@
 import Foundation
 import Security
 
-enum KeychainHelper {
+nonisolated enum KeychainHelper {
     private static let service = "com.jade.Filterz"
 
-    static func save(_ value: String, forKey key: String) {
+    nonisolated static func save(_ value: String, forKey key: String) {
         let data = Data(value.utf8)
         let query: [CFString: Any] = [
             kSecClass:            kSecClassGenericPassword,
@@ -16,7 +16,7 @@ enum KeychainHelper {
         SecItemAdd(query as CFDictionary, nil)
     }
 
-    static func load(forKey key: String) -> String? {
+    nonisolated static func load(forKey key: String) -> String? {
         let query: [CFString: Any] = [
             kSecClass:            kSecClassGenericPassword,
             kSecAttrService:      service,
@@ -30,7 +30,7 @@ enum KeychainHelper {
         return String(data: data, encoding: .utf8)
     }
 
-    static func delete(forKey key: String) {
+    nonisolated static func delete(forKey key: String) {
         let query: [CFString: Any] = [
             kSecClass:       kSecClassGenericPassword,
             kSecAttrService: service,

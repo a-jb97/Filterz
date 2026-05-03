@@ -7,6 +7,18 @@ import MapKit
 import UIKit
 
 struct ImageMetadata: Equatable, Sendable {
+    nonisolated init() {
+        cameraModel = nil
+        format = nil
+        lensSpec = nil
+        megapixels = nil
+        resolution = nil
+        fileSize = nil
+        latitude = nil
+        longitude = nil
+        address = nil
+        dateTimeOriginal = nil
+    }
     var cameraModel: String?
     var format: String?
     var lensSpec: String?
@@ -204,7 +216,7 @@ struct UploadFilterFeature {
 
 // MARK: - EXIF Helpers
 
-private func extractDisplayMetadata(from data: Data) -> ImageMetadata {
+nonisolated private func extractDisplayMetadata(from data: Data) -> ImageMetadata {
     var meta = ImageMetadata()
 
     guard let source = CGImageSourceCreateWithData(data as CFData, nil),
@@ -294,7 +306,7 @@ private func makeMapSnapshot(lat: Double, lon: Double) async -> Data? {
     return annotated.jpegData(compressionQuality: 0.85)
 }
 
-private func makeThumbnail(_ data: Data, maxSide: CGFloat) -> Data? {
+nonisolated private func makeThumbnail(_ data: Data, maxSide: CGFloat) -> Data? {
     guard let image = UIImage(data: data) else { return nil }
     let scale = min(maxSide / image.size.width, maxSide / image.size.height, 1.0)
     guard scale < 1.0 else { return image.jpegData(compressionQuality: 0.85) }
@@ -304,7 +316,7 @@ private func makeThumbnail(_ data: Data, maxSide: CGFloat) -> Data? {
     return resized.jpegData(compressionQuality: 0.85)
 }
 
-private func compressUnder2MB(_ data: Data) -> Data {
+nonisolated private func compressUnder2MB(_ data: Data) -> Data {
     let limit = 2 * 1024 * 1024  // 2MB
 
     guard let image = UIImage(data: data) else { return data }
@@ -336,7 +348,7 @@ private func compressUnder2MB(_ data: Data) -> Data {
     return resized.jpegData(compressionQuality: 0.1) ?? data
 }
 
-private func buildPhotoMetadataDTO(from data: Data) -> PhotoMetadataDTO? {
+nonisolated private func buildPhotoMetadataDTO(from data: Data) -> PhotoMetadataDTO? {
     guard let source = CGImageSourceCreateWithData(data as CFData, nil),
           let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any]
     else { return nil }
@@ -440,7 +452,7 @@ private func reverseGeocode(lat: Double, lon: Double) async -> String? {
 }
 
 // EXIF "YYYY:MM:DD HH:MM:SS" → ISO 8601 서버 전송용
-private func exifDateToISO8601(_ exifDate: String) -> String {
+nonisolated private func exifDateToISO8601(_ exifDate: String) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
     formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -451,7 +463,7 @@ private func exifDateToISO8601(_ exifDate: String) -> String {
 }
 
 // EXIF "YYYY:MM:DD HH:MM:SS" → 표시용 로컬 날짜 문자열
-private func formatExifDate(_ exifDate: String) -> String {
+nonisolated private func formatExifDate(_ exifDate: String) -> String {
     let inFormatter = DateFormatter()
     inFormatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
     inFormatter.timeZone = TimeZone(secondsFromGMT: 0)

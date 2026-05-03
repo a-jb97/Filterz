@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Response DTOs
 
-struct PostResponseDTO: Decodable, Sendable {
+nonisolated struct PostResponseDTO: Decodable, Sendable {
     let postId: String
     let category: String
     let title: String
@@ -27,7 +27,7 @@ struct PostResponseDTO: Decodable, Sendable {
     }
 }
 
-struct PostSummaryResponseDTO: Decodable, Sendable {
+nonisolated struct PostSummaryResponseDTO: Decodable, Sendable {
     let postId: String
     let category: String
     let title: String
@@ -49,7 +49,7 @@ struct PostSummaryResponseDTO: Decodable, Sendable {
     }
 }
 
-struct PostCommentResponseDTO: Decodable, Sendable {
+nonisolated struct PostCommentResponseDTO: Decodable, Sendable {
     let commentId: String
     let content: String
     let createdAt: String
@@ -62,7 +62,7 @@ struct PostCommentResponseDTO: Decodable, Sendable {
     }
 }
 
-struct PostLikeResponseDTO: Decodable, Sendable {
+nonisolated struct PostLikeResponseDTO: Decodable, Sendable {
     let likeStatus: Bool
 
     enum CodingKeys: String, CodingKey {
@@ -70,11 +70,11 @@ struct PostLikeResponseDTO: Decodable, Sendable {
     }
 }
 
-struct PostSummaryListResponseDTO: Decodable, Sendable {
+nonisolated struct PostSummaryListResponseDTO: Decodable, Sendable {
     let data: [PostSummaryResponseDTO]
 }
 
-struct PostSummaryPaginationResponseDTO: Decodable, Sendable {
+nonisolated struct PostSummaryPaginationResponseDTO: Decodable, Sendable {
     let data: [PostSummaryResponseDTO]
     let nextCursor: String?
 
@@ -86,7 +86,7 @@ struct PostSummaryPaginationResponseDTO: Decodable, Sendable {
 
 // MARK: - Request DTOs
 
-struct CreatePostRequestDTO: Encodable, Sendable {
+nonisolated struct CreatePostRequestDTO: Encodable, Sendable {
     let category: String
     let title: String
     let content: String
@@ -94,6 +94,6 @@ struct CreatePostRequestDTO: Encodable, Sendable {
     let files: [String]?
 }
 
-struct PostFileResponseDTO: Decodable, Sendable {
+nonisolated struct PostFileResponseDTO: Decodable, Sendable {
     let files: [String]
 }
