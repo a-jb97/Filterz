@@ -22,10 +22,16 @@ struct MainFeature {
         var chatList: ChatListFeature.State = .init()
         var path: StackState<Path.State> = .init()
         var isOpeningDM: Bool = false
+        var chatUnreadCount: Int = 0
+        var currentChatRoomId: String? = nil
     }
 
     enum Action: Sendable {
         case tabSelected(Tab)
+        case chatPushReceived(ChatPushPayload)
+        case chatPushTapped(ChatPushPayload)
+        case openChatFromPush(roomId: String)
+        case openChatFromPushResponse(Result<ChatRoom, any Error>)
         case home(HomeFeature.Action)
         case feed(FeedFeature.Action)
         case upload(UploadFilterFeature.Action)
@@ -42,6 +48,7 @@ struct MainFeature {
     }
 
     @Dependency(\.chatClient) var chatClient
+    @Dependency(\.chatLocalStore) var chatLocalStore
 
     var body: some Reducer<State, Action> {
         Scope(state: \.home, action: \.home) {
@@ -62,6 +69,54 @@ struct MainFeature {
                 let returning = tab == .explore && state.selectedTab != .explore
                 state.selectedTab = tab
                 return returning ? .send(.upload(.reset)) : .none
+
+            case .chatPushReceived(let payload):
+                state.chatUnreadCount = payload.unreadCount
+                return .run { _ in
+                    await PushNotificationBridge.setApplicationBadge(payload.unreadCount)
+                }
+
+            case .chatPushTapped(let payload):
+                state.chatUnreadCount = payload.unreadCount
+                return .merge(
+                    .run { _ in
+                        await PushNotificationBridge.setApplicationBadge(payload.unreadCount)
+                    },
+                    .send(.openChatFromPush(roomId: payload.roomId))
+                )
+
+            case .openChatFromPush(let roomId):
+                state.selectedTab = .chat
+                guard state.currentChatRoomId != roomId else { return .none }
+                if let room = state.chatList.rooms[id: roomId] {
+                    state.path.append(.chatRoom(.init(room: room)))
+                    return .none
+                }
+                let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
+                return .run { send in
+                    do {
+                        let dtos = try await chatClient.getChatRooms()
+                        if !dtos.isEmpty {
+                            try await chatLocalStore.upsertRooms(dtos, currentUserId)
+                        }
+                        let rooms = try await chatLocalStore.fetchRooms()
+                        guard let room = rooms.first(where: { $0.roomId == roomId }) else {
+                            throw NetworkError.notFound
+                        }
+                        await send(.openChatFromPushResponse(.success(room)))
+                    } catch {
+                        await send(.openChatFromPushResponse(.failure(error)))
+                    }
+                }
+
+            case .openChatFromPushResponse(.success(let room)):
+                state.chatList.rooms.updateOrAppend(room)
+                guard state.currentChatRoomId != room.roomId else { return .none }
+                state.path.append(.chatRoom(.init(room: room)))
+                return .none
+
+            case .openChatFromPushResponse(.failure):
+                return .none
 
             case .home(.delegate(.filterTapped(let id))):
                 state.path.append(.filterDetail(.init(filterId: id)))
@@ -109,9 +164,38 @@ struct MainFeature {
                 state.path.append(.chatRoom(.init(room: room)))
                 return .none
 
+            case .path(.element(let id, .chatRoom(.onAppear))):
+                guard case let .chatRoom(chatRoomState)? = state.path[id: id] else {
+                    return .none
+                }
+                let roomId = chatRoomState.room.roomId
+                state.currentChatRoomId = roomId
+                return .run { _ in
+                    await MainActor.run {
+                        PushNotificationBridge.currentChatRoomId = roomId
+                    }
+                }
+
+            case .path(.element(let id, .chatRoom(.onDisappear))):
+                guard case let .chatRoom(chatRoomState)? = state.path[id: id],
+                      state.currentChatRoomId == chatRoomState.room.roomId else {
+                    return .none
+                }
+                state.currentChatRoomId = nil
+                return .run { _ in
+                    await MainActor.run {
+                        PushNotificationBridge.currentChatRoomId = nil
+                    }
+                }
+
             case .path(.element(_, .chatRoom(.delegate(.backTapped)))):
+                state.currentChatRoomId = nil
                 state.path.removeLast()
-                return .none
+                return .run { _ in
+                    await MainActor.run {
+                        PushNotificationBridge.currentChatRoomId = nil
+                    }
+                }
 
             case .home, .feed, .upload, .chatList, .path:
                 return .none

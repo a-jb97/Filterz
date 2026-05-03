@@ -9,7 +9,8 @@ struct MainView: View {
             ZStack(alignment: .bottom) {
                 tabContent
                 CustomTabBarView(
-                    selectedTab: $store.selectedTab.sending(\.tabSelected)
+                    selectedTab: $store.selectedTab.sending(\.tabSelected),
+                    chatUnreadCount: store.chatUnreadCount
                 )
                 .padding(.horizontal, 20)
                 .padding(.bottom, 16)
@@ -49,6 +50,7 @@ struct MainView: View {
 
 private struct CustomTabBarView: View {
     @Binding var selectedTab: MainFeature.Tab
+    let chatUnreadCount: Int
 
     var body: some View {
         HStack(spacing: 32) {
@@ -72,16 +74,35 @@ private struct CustomTabBarView: View {
         return Button {
             selectedTab = tab
         } label: {
-            Image(systemName: tab.icon(isSelected: isSelected))
-                .resizable()
-                .scaledToFit()
-                .frame(width: 32, height: 32)
-                .foregroundColor(isSelected ? .filterzGray30 : .filterzGray75)
-                .shadow(
-                    color: isSelected ? Color.white.opacity(0.15) : .clear,
-                    radius: 2, x: 0, y: 3
-                )
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: tab.icon(isSelected: isSelected))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .foregroundColor(isSelected ? .filterzGray30 : .filterzGray75)
+                    .shadow(
+                        color: isSelected ? Color.white.opacity(0.15) : .clear,
+                        radius: 2, x: 0, y: 3
+                    )
+
+                if tab == .chat, chatUnreadCount > 0 {
+                    Text(badgeText(chatUnreadCount))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .frame(minWidth: 18, minHeight: 18)
+                        .padding(.horizontal, chatUnreadCount > 9 ? 4 : 0)
+                        .background(Capsule().fill(Color.filterzAccent))
+                        .offset(x: 9, y: -8)
+                }
+            }
+            .frame(width: 44, height: 44)
         }
+    }
+
+    private func badgeText(_ count: Int) -> String {
+        count > 99 ? "99+" : "\(count)"
     }
 }
 
