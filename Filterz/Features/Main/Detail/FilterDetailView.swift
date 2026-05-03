@@ -1,5 +1,9 @@
 import SwiftUI
 import ComposableArchitecture
+import UIKit
+import WebKit
+import iamport_ios
+import Then
 
 struct FilterDetailView: View {
     @Bindable var store: StoreOf<FilterDetailFeature>
@@ -49,6 +53,22 @@ struct FilterDetailView: View {
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
         .onAppear { store.send(.onAppear) }
+        .fullScreenCover(
+            item: Binding(
+                get: { store.paymentRequest },
+                set: { newValue in
+                    if newValue == nil {
+                        store.send(.paymentSheetDismissed)
+                    }
+                }
+            )
+        ) { request in
+            PortOnePaymentView(request: request) { result in
+                store.send(.portOnePaymentFinished(result))
+            }
+            .ignoresSafeArea()
+        }
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     // MARK: - Navigation Bar
@@ -178,5 +198,103 @@ struct FilterDetailView: View {
             .foregroundColor(.filterzGray60)
             .lineSpacing(8)
             .padding(.horizontal, 16)
+    }
+}
+
+private struct PortOnePaymentView: UIViewControllerRepresentable {
+    let request: PortOnePaymentRequest
+    let onCompletion: (PortOnePaymentResult) -> Void
+
+    func makeUIViewController(context: Context) -> PortOnePaymentViewController {
+        let viewController = PortOnePaymentViewController()
+        viewController.request = request
+        viewController.onCompletion = onCompletion
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: PortOnePaymentViewController, context: Context) {}
+}
+
+private final class PortOnePaymentViewController: UIViewController, WKNavigationDelegate {
+    var request: PortOnePaymentRequest?
+    var onCompletion: ((PortOnePaymentResult) -> Void)?
+    private var didStartPayment = false
+
+    private lazy var wkWebView: WKWebView = {
+        let webView = WKWebView()
+        webView.backgroundColor = .clear
+        webView.navigationDelegate = self
+        return webView
+    }()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = UIColor(red: 11 / 255, green: 11 / 255, blue: 11 / 255, alpha: 1)
+        attachWebView()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        guard !didStartPayment else { return }
+        didStartPayment = true
+        requestPayment()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        Iamport.shared.close()
+        wkWebView.stopLoading()
+        wkWebView.navigationDelegate = nil
+    }
+
+    private func attachWebView() {
+        view.addSubview(wkWebView)
+        wkWebView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            wkWebView.topAnchor.constraint(equalTo: view.topAnchor),
+            wkWebView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            wkWebView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            wkWebView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    private func requestPayment() {
+        guard let request else {
+            onCompletion?(
+                PortOnePaymentResult(
+                    success: false,
+                    impUid: nil,
+                    merchantUid: nil,
+                    errorMessage: "결제 요청 정보를 확인할 수 없습니다."
+                )
+            )
+            return
+        }
+
+        let payment = IamportPayment(
+            pg: PG.html5_inicis.makePgRawName(pgId: "INIpayTest"),
+            merchant_uid: request.merchantUid,
+            amount: request.amount
+        ).then {
+            $0.pay_method = request.payMethod
+            $0.name = request.name
+            $0.buyer_name = request.buyerName
+            $0.app_scheme = request.appScheme
+        }
+
+        Iamport.shared.paymentWebView(
+            webViewMode: wkWebView,
+            userCode: request.userCode,
+            payment: payment
+        ) { [weak self] response in
+            self?.onCompletion?(
+                PortOnePaymentResult(
+                    success: response?.success == true,
+                    impUid: response?.imp_uid,
+                    merchantUid: response?.merchant_uid,
+                    errorMessage: response?.error_msg
+                )
+            )
+        }
     }
 }

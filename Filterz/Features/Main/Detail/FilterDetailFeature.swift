@@ -118,9 +118,9 @@ struct FilterDetail: Equatable, Sendable, Identifiable {
     let exif: FilterExifData
     let presets: FilterPresetValues
     var isLiked: Bool
-    let isDownloaded: Bool
+    var isDownloaded: Bool
     var likeCount: Int
-    let buyerCount: Int
+    var buyerCount: Int
     let createdAt: String
 
     var formattedPrice: String {
@@ -133,6 +133,24 @@ struct FilterDetail: Equatable, Sendable, Identifiable {
     var hashtags: [String] {
         [category]
     }
+}
+
+struct PortOnePaymentRequest: Equatable, Sendable, Identifiable {
+    let id: String
+    let userCode: String
+    let merchantUid: String
+    let amount: String
+    let payMethod: String
+    let name: String
+    let buyerName: String
+    let appScheme: String
+}
+
+struct PortOnePaymentResult: Equatable, Sendable {
+    let success: Bool
+    let impUid: String?
+    let merchantUid: String?
+    let errorMessage: String?
 }
 
 extension FilterDetail {
@@ -171,7 +189,9 @@ struct FilterDetailFeature {
         var isLikeInProgress: Bool = false
         var previewSliderOffset: CGFloat = 0.5
         var isPurchaseLoading: Bool = false
+        var paymentRequest: PortOnePaymentRequest? = nil
         var errorMessage: String? = nil
+        @Presents var alert: AlertState<Action.Alert>?
     }
 
     enum Action: Sendable {
@@ -182,8 +202,15 @@ struct FilterDetailFeature {
         case likeResponse(Result<Void, any Error>)
         case previewSliderChanged(CGFloat)
         case purchaseTapped
+        case createOrderResponse(Result<OrderCreateResponseDTO, any Error>)
+        case portOnePaymentFinished(PortOnePaymentResult)
+        case paymentValidationResponse(Result<PaymentResponseDTO, any Error>)
+        case paymentSheetDismissed
         case dmCreatorTapped
+        case alert(PresentationAction<Alert>)
         case delegate(Delegate)
+
+        enum Alert: Equatable {}
 
         @CasePathable
         enum Delegate: Sendable {
@@ -193,6 +220,17 @@ struct FilterDetailFeature {
     }
 
     @Dependency(\.filterClient) var filterClient
+    @Dependency(\.paymentClient) var paymentClient
+
+    private func makeAlert(title: String, message: String?) -> AlertState<Action.Alert> {
+        AlertState {
+            TextState(title)
+        } actions: {
+            ButtonState(role: .cancel) { TextState("확인") }
+        } message: {
+            TextState(message ?? "오류가 발생했습니다.")
+        }
+    }
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
@@ -255,16 +293,93 @@ struct FilterDetailFeature {
                 return .none
 
             case .purchaseTapped:
+                guard let detail = state.detail,
+                      !detail.isDownloaded,
+                      !state.isPurchaseLoading
+                else { return .none }
                 state.isPurchaseLoading = true
+                return .run { [filterId = detail.id, totalPrice = detail.price] send in
+                    await send(.createOrderResponse(
+                        Result { try await paymentClient.createOrder(filterId, totalPrice) }
+                    ))
+                }
+
+            case .createOrderResponse(.success(let order)):
+                guard let detail = state.detail else {
+                    state.isPurchaseLoading = false
+                    return .none
+                }
+                guard order.totalPrice == detail.price else {
+                    state.isPurchaseLoading = false
+                    state.alert = makeAlert(title: "결제 오류", message: "주문 금액과 필터 금액이 일치하지 않습니다.")
+                    return .none
+                }
+                state.paymentRequest = PortOnePaymentRequest(
+                    id: order.orderCode,
+                    userCode: "imp14511373",
+                    merchantUid: order.orderCode,
+                    amount: "\(order.totalPrice)",
+                    payMethod: "card",
+                    name: detail.title,
+                    buyerName: "전민석",
+                    appScheme: "Filterz"
+                )
+                return .none
+
+            case .createOrderResponse(.failure(let error)):
+                state.isPurchaseLoading = false
+                state.alert = makeAlert(title: "주문 생성 실패", message: error.localizedDescription)
+                return .none
+
+            case .portOnePaymentFinished(let result):
+                state.paymentRequest = nil
+                guard result.success else {
+                    state.isPurchaseLoading = false
+                    state.alert = makeAlert(title: "결제 실패", message: result.errorMessage ?? "결제가 취소되었거나 승인되지 않았습니다.")
+                    return .none
+                }
+                guard let impUid = result.impUid, !impUid.isEmpty else {
+                    state.isPurchaseLoading = false
+                    state.alert = makeAlert(title: "결제 검증 실패", message: "결제 번호를 확인할 수 없습니다.")
+                    return .none
+                }
+                return .run { send in
+                    await send(.paymentValidationResponse(
+                        Result { try await paymentClient.validatePayment(impUid) }
+                    ))
+                }
+
+            case .paymentValidationResponse(.success):
+                state.isPurchaseLoading = false
+                if state.detail?.isDownloaded == false {
+                    state.detail?.buyerCount += 1
+                }
+                state.detail?.isDownloaded = true
+                state.alert = makeAlert(title: "결제 완료", message: "필터 구매가 완료되었습니다.")
+                return .none
+
+            case .paymentValidationResponse(.failure(let error)):
+                state.isPurchaseLoading = false
+                state.alert = makeAlert(title: "결제 검증 실패", message: error.localizedDescription)
+                return .none
+
+            case .paymentSheetDismissed:
+                let wasPresentingPayment = state.paymentRequest != nil
+                state.paymentRequest = nil
+                if wasPresentingPayment, state.isPurchaseLoading {
+                    state.isPurchaseLoading = false
+                    state.alert = makeAlert(title: "결제 취소", message: "결제가 완료되지 않았습니다.")
+                }
                 return .none
 
             case .dmCreatorTapped:
                 guard let creatorId = state.detail?.creator.id else { return .none }
                 return .send(.delegate(.dmCreatorTapped(creatorId: creatorId)))
 
-            case .delegate:
+            case .alert, .delegate:
                 return .none
             }
         }
+        .ifLet(\.$alert, action: \.alert)
     }
 }
