@@ -27,6 +27,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
 	<key>KAKAO_NATIVE_APP_KEY</key>
 	<string>ab1563812676e4871eb76360112858de</string>
 	<key>LSApplicationCategoryType</key>
