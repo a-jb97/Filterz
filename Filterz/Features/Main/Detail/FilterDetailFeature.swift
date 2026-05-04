@@ -184,6 +184,7 @@ struct FilterDetailFeature {
     @ObservableState
     struct State: Equatable {
         let filterId: String
+        var currentUserId: String = KeychainHelper.load(forKey: "userId") ?? ""
         var detail: FilterDetail? = nil
         var isLoading: Bool = false
         var isLikeInProgress: Bool = false
@@ -379,7 +380,8 @@ struct FilterDetailFeature {
                 return .send(.delegate(.userProfileTapped(userId: creatorId)))
 
             case .dmCreatorTapped:
-                guard let creatorId = state.detail?.creator.id else { return .none }
+                guard let creatorId = state.detail?.creator.id,
+                      creatorId != state.currentUserId else { return .none }
                 return .send(.delegate(.dmCreatorTapped(creatorId: creatorId)))
 
             case .alert, .delegate:
