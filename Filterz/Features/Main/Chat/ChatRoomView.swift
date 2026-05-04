@@ -40,10 +40,15 @@ struct ChatRoomView: View {
 
             Spacer()
 
-            Text(store.room.opponentNick)
-                .font(.filterzDisplay(18))
-                .foregroundColor(.filterzGray30)
-                .lineLimit(1)
+            Button {
+                store.send(.opponentProfileTapped)
+            } label: {
+                Text(store.room.opponentNick)
+                    .font(.filterzDisplay(18))
+                    .foregroundColor(.filterzGray30)
+                    .lineLimit(1)
+            }
+            .buttonStyle(.plain)
 
             Spacer()
 
@@ -80,7 +85,10 @@ struct ChatRoomView: View {
                             showsTimestamp: showsTimestamp,
                             showsProfile: showsProfile,
                             startsGroup: startsGroup,
-                            endsGroup: endsGroup
+                            endsGroup: endsGroup,
+                            onProfileTapped: {
+                                store.send(.messageProfileTapped(userId: message.senderId))
+                            }
                         )
                         .id(message.id)
                         .padding(.horizontal, 16)

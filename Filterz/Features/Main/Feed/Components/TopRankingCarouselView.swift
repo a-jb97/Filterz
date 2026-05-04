@@ -3,6 +3,7 @@ import SwiftUI
 struct TopRankingCarouselView: View {
     let items: [FeedItem]
     var onItemTapped: (String) -> Void = { _ in }
+    var onAuthorTapped: (String) -> Void = { _ in }
 
     @State private var focusedID: String?
 
@@ -16,7 +17,11 @@ struct TopRankingCarouselView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { pair in
-                        RankingCardView(item: pair.element, rank: pair.offset + 1)
+                        RankingCardView(
+                            item: pair.element,
+                            rank: pair.offset + 1,
+                            onAuthorTapped: onAuthorTapped
+                        )
                             .id(pair.element.id)
                             .scrollTransition(.interactive) { content, phase in
                                 let lift = liftAmount * (1 - abs(phase.value))
@@ -46,6 +51,7 @@ struct TopRankingCarouselView: View {
 private struct RankingCardView: View {
     let item: FeedItem
     let rank: Int
+    let onAuthorTapped: (String) -> Void
 
     private let cardHeight: CGFloat = 380
     private let badgeRadius: CGFloat = 22
@@ -70,9 +76,14 @@ private struct RankingCardView: View {
                 )
 
             VStack(spacing: 6) {
-                Text(item.authorNick.uppercased())
-                    .font(.pretendard(12, weight: .semibold))
-                    .foregroundColor(.filterzGray75)
+                Button {
+                    onAuthorTapped(item.authorId)
+                } label: {
+                    Text(item.authorNick.uppercased())
+                        .font(.pretendard(12, weight: .semibold))
+                        .foregroundColor(.filterzGray75)
+                }
+                .buttonStyle(.plain)
 
                 Text(item.title)
                     .font(.filterzDisplay(28))

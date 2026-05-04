@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FeaturedArtistView: View {
     let artist: ArtistItem
+    let onProfileTapped: () -> Void
     let onFilterTapped: (String) -> Void
 
     var body: some View {
@@ -12,22 +13,25 @@ struct FeaturedArtistView: View {
                 .foregroundColor(.filterzGray60)
 
             // 작가 프로필
-            HStack(spacing: 16) {
-                AuthenticatedImageView(path: artist.profileImagePath)
-                    .frame(width: 72, height: 72)
-                    .background(Color.filterzTranslucent)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
+            Button(action: onProfileTapped) {
+                HStack(spacing: 16) {
+                    AuthenticatedImageView(path: artist.profileImagePath)
+                        .frame(width: 72, height: 72)
+                        .background(Color.filterzTranslucent)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(artist.name)
-                        .font(.mulgyeolBold(20))
-                        .foregroundColor(.filterzGray30)
-                    Text(artist.nameEn)
-                        .font(.pretendard(16, weight: .medium))
-                        .foregroundColor(.filterzGray75)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(artist.name)
+                            .font(.mulgyeolBold(20))
+                            .foregroundColor(.filterzGray30)
+                        Text(artist.nameEn)
+                            .font(.pretendard(16, weight: .medium))
+                            .foregroundColor(.filterzGray75)
+                    }
                 }
             }
+            .buttonStyle(.plain)
 
             // 작품 가로 스크롤
             ScrollView(.horizontal, showsIndicators: false) {
@@ -70,7 +74,7 @@ private struct TagView: View {
     let text: String
 
     var body: some View {
-        Text("#\(text)")
+        Text("#\(displayHashTag(text))")
             .font(.pretendard(12, weight: .medium))
             .foregroundColor(.filterzGray60)
             .padding(.horizontal, 10)

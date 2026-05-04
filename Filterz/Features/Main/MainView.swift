@@ -27,6 +27,11 @@ struct MainView: View {
                     .navigationBarHidden(true)
             }
         }
+        .sheet(item: $store.scope(state: \.userProfile, action: \.userProfile)) { profileStore in
+            UserProfileView(store: profileStore)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     @ViewBuilder

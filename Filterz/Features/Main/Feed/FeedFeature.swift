@@ -5,6 +5,7 @@ import Foundation
 
 struct FeedItem: Identifiable, Equatable {
     let id: String
+    let authorId: String
     let title: String
     let description: String
     let imageURL: String?
@@ -20,6 +21,7 @@ struct FeedItem: Identifiable, Equatable {
 extension FeedItem {
     init(dto: FilterSummaryResponseDTO) {
         id = dto.filterId
+        authorId = dto.creator.userID
         title = dto.title
         description = dto.description
         imageURL = dto.files.first
@@ -84,12 +86,14 @@ struct FeedFeature {
         case feedResponse(Result<[FilterSummaryResponseDTO], any Error>)
         case feedItemTapped(id: String)
         case topRankingItemTapped(id: String)
+        case authorProfileTapped(userId: String)
         case categorySelected(FilterCategory?)
         case delegate(Delegate)
 
         @CasePathable
         enum Delegate: Sendable {
             case filterTapped(id: String)
+            case userProfileTapped(userId: String)
         }
     }
 
@@ -139,6 +143,9 @@ struct FeedFeature {
 
             case .feedItemTapped(let id), .topRankingItemTapped(let id):
                 return .send(.delegate(.filterTapped(id: id)))
+
+            case .authorProfileTapped(let userId):
+                return .send(.delegate(.userProfileTapped(userId: userId)))
 
             case .categorySelected(let category):
                 state.selectedCategory = category

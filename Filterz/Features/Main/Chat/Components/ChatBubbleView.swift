@@ -7,6 +7,7 @@ struct ChatBubbleView: View {
     let showsProfile: Bool
     let startsGroup: Bool
     let endsGroup: Bool
+    var onProfileTapped: () -> Void = {}
 
     private var maxWidth: CGFloat {
         UIScreen.main.bounds.width * 0.7
@@ -38,10 +39,13 @@ struct ChatBubbleView: View {
     private var profileColumn: some View {
         Group {
             if showsProfile {
-                AuthenticatedImageView(path: message.senderProfilePath)
-                    .frame(width: 32, height: 32)
-                    .background(Color.filterzBlackTurquoise)
-                    .clipShape(Circle())
+                Button(action: onProfileTapped) {
+                    AuthenticatedImageView(path: message.senderProfilePath)
+                        .frame(width: 32, height: 32)
+                        .background(Color.filterzBlackTurquoise)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
             } else {
                 Color.clear.frame(width: 32, height: 32)
             }

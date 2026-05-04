@@ -30,7 +30,7 @@ struct ChatListView: View {
 
     private var header: some View {
         HStack {
-            Text("Chat")
+            Text("채팅")
                 .font(.filterzDisplay(24))
                 .foregroundColor(.filterzGray30)
             Spacer()
@@ -113,10 +113,11 @@ struct ChatListView: View {
         List {
             ForEach(store.rooms) { room in
                 VStack(spacing: 0) {
-                    Button { store.send(.roomTapped(room)) } label: {
-                        ChatRoomCell(room: room)
-                    }
-                    .buttonStyle(.plain)
+                    ChatRoomCell(
+                        room: room,
+                        onRoomTapped: { store.send(.roomTapped(room)) },
+                        onProfileTapped: { store.send(.roomProfileTapped(room)) }
+                    )
                     .disabled(store.deletingRoomId == room.id)
 
                     Divider()
@@ -164,15 +165,12 @@ struct ChatListView: View {
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(store.searchResults) { user in
-                            Button {
-                                store.send(.searchUserTapped(user))
-                            } label: {
-                                SearchUserCell(
-                                    user: user,
-                                    isLoading: store.creatingChatUserId == user.userId
-                                )
-                            }
-                            .buttonStyle(.plain)
+                            SearchUserCell(
+                                user: user,
+                                isLoading: store.creatingChatUserId == user.userId,
+                                onProfileTapped: { store.send(.searchUserProfileTapped(user)) },
+                                onDMTapped: { store.send(.searchUserTapped(user)) }
+                            )
                             .disabled(store.creatingChatUserId != nil)
                             Divider()
                                 .background(Color.filterzTranslucent)
@@ -189,19 +187,26 @@ struct ChatListView: View {
 private struct SearchUserCell: View {
     let user: ChatListFeature.SearchUser
     let isLoading: Bool
+    let onProfileTapped: () -> Void
+    let onDMTapped: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            AuthenticatedImageView(path: user.profileImagePath)
-                .frame(width: 48, height: 48)
-                .background(Color.filterzBlackTurquoise)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
+            Button(action: onProfileTapped) {
+                HStack(spacing: 12) {
+                    AuthenticatedImageView(path: user.profileImagePath)
+                        .frame(width: 48, height: 48)
+                        .background(Color.filterzBlackTurquoise)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
-            Text(user.nick)
-                .font(.pretendard(15, weight: .semibold))
-                .foregroundColor(.filterzGray30)
-                .lineLimit(1)
+                    Text(user.nick)
+                        .font(.pretendard(15, weight: .semibold))
+                        .foregroundColor(.filterzGray30)
+                        .lineLimit(1)
+                }
+            }
+            .buttonStyle(.plain)
 
             Spacer(minLength: 12)
 
@@ -209,6 +214,21 @@ private struct SearchUserCell: View {
                 ProgressView()
                     .tint(Color.filterzGray60)
                     .scaleEffect(0.85)
+            } else {
+                Button(action: onDMTapped) {
+                    Image(systemName: "paperplane")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                        .foregroundColor(.filterzGray45)
+                        .padding(12)
+                        .background(
+                            Circle()
+                                .fill(Color.filterzBlackTurquoise)
+                                .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
+                        )
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 16)

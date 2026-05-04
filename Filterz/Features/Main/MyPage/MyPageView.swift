@@ -46,7 +46,7 @@ struct MyPageView: View {
 
     private var header: some View {
         HStack {
-            Text("My Page")
+            Text("마이 페이지")
                 .font(.filterzDisplay(24))
                 .foregroundColor(.filterzGray30)
             Spacer()
@@ -167,7 +167,7 @@ struct MyPageView: View {
                     .foregroundColor(.filterzGray75)
             } else {
                 ForEach(hashTags, id: \.self) { tag in
-                    Text("#\(tag)")
+                    Text("#\(displayHashTag(tag))")
                         .font(.pretendard(13, weight: .medium))
                         .foregroundColor(.filterzGray30)
                         .padding(.horizontal, 12)

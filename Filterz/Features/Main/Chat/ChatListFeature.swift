@@ -38,9 +38,11 @@ struct ChatListFeature {
         case loadedRemote([ChatRoom])
         case loadFailed(String)
         case roomTapped(ChatRoom)
+        case roomProfileTapped(ChatRoom)
         case searchButtonTapped
         case searchTextChanged(String)
         case searchResponse(Result<[SearchUser], any Error>)
+        case searchUserProfileTapped(SearchUser)
         case searchUserTapped(SearchUser)
         case createChatRoomResponse(Result<ChatRoom, any Error>)
         case deleteButtonTapped(ChatRoom)
@@ -56,6 +58,7 @@ struct ChatListFeature {
         @CasePathable
         enum Delegate: Sendable {
             case roomTapped(ChatRoom)
+            case userProfileTapped(userId: String)
         }
     }
 
@@ -100,6 +103,9 @@ struct ChatListFeature {
 
             case .roomTapped(let room):
                 return .send(.delegate(.roomTapped(room)))
+
+            case .roomProfileTapped(let room):
+                return .send(.delegate(.userProfileTapped(userId: room.opponentUserId)))
 
             case .deleteButtonTapped(let room):
                 state.alert = AlertState {
@@ -198,6 +204,9 @@ struct ChatListFeature {
                 state.searchResults.removeAll()
                 state.errorMessage = error.localizedDescription
                 return .none
+
+            case .searchUserProfileTapped(let user):
+                return .send(.delegate(.userProfileTapped(userId: user.userId)))
 
             case .searchUserTapped(let user):
                 guard state.creatingChatUserId == nil else { return .none }

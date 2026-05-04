@@ -21,6 +21,8 @@ struct FeedView: View {
 
                         TopRankingCarouselView(items: store.topRankingItems) { id in
                             store.send(.topRankingItemTapped(id: id))
+                        } onAuthorTapped: { userId in
+                            store.send(.authorProfileTapped(userId: userId))
                         }
                         .padding(.top, 8)
 
@@ -30,11 +32,15 @@ struct FeedView: View {
                         case .block:
                             FeedBlockGridView(items: store.feedItems) { id in
                                 store.send(.feedItemTapped(id: id))
+                            } onAuthorTapped: { userId in
+                                store.send(.authorProfileTapped(userId: userId))
                             }
                             .padding(.top, 8)
                         case .list:
                             FeedListView(items: store.feedItems) { id in
                                 store.send(.feedItemTapped(id: id))
+                            } onAuthorTapped: { userId in
+                                store.send(.authorProfileTapped(userId: userId))
                             }
                             .padding(.top, 8)
                         }
@@ -101,20 +107,14 @@ struct FeedView: View {
 private struct FeedNavBarView: View {
     var body: some View {
         HStack {
-            Color.clear.frame(width: 48, height: 48)
-
+            Text("피드")
+                .font(.filterzDisplay(24))
+                .foregroundColor(.filterzGray30)
             Spacer()
-
-            Text("FEED")
-                .font(.mulgyeolBold(20))
-                .foregroundColor(.filterzGray60)
-
-            Spacer()
-
-            Color.clear.frame(width: 48, height: 48)
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 16)
         .frame(height: 56)
+        .background(Color.filterzBlackBase)
     }
 }
 
