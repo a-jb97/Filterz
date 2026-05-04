@@ -25,6 +25,7 @@ struct ArtistFilterWork: Identifiable, Equatable {
 }
 
 struct ArtistItem: Equatable {
+    let userId: String
     let name: String
     let nameEn: String
     let profileImagePath: String?
@@ -34,6 +35,7 @@ struct ArtistItem: Equatable {
     let filterWorks: [ArtistFilterWork]
 
     static let placeholder = ArtistItem(
+        userId: "",
         name: "윤새싹",
         nameEn: "SESAC YOON",
         profileImagePath: nil,
@@ -47,12 +49,13 @@ struct ArtistItem: Equatable {
 extension ArtistItem {
     init(dto: TodayAuthorResponseDTO) {
         let user = dto.author
+        userId = user.userID
         name = user.nick
         nameEn = user.name ?? ""
         profileImagePath = user.profileImage
         quote = user.introduction ?? ""
         bio = user.description ?? ""
-        tags = (user.hashTags ?? []).map { $0.hasPrefix("#") ? String($0.dropFirst()) : $0 }
+        tags = (user.hashTags ?? []).map(displayHashTag)
         filterWorks = (dto.filters ?? []).map { ArtistFilterWork(id: $0.filterId, imageURL: $0.files.first) }
     }
 }
@@ -89,6 +92,7 @@ struct HomeFeature {
         case hotFilterTapped(id: String)
         case todayAuthorResponse(Result<TodayAuthorResponseDTO, any Error>)
         case todayAuthorFilterTapped(filterId: String)
+        case todayAuthorProfileTapped
         case categoryTapped(FilterCategory)
         case delegate(Delegate)
 
@@ -96,6 +100,7 @@ struct HomeFeature {
         enum Delegate: Sendable {
             case filterTapped(id: String)
             case categoryTapped(FilterCategory)
+            case userProfileTapped(userId: String)
         }
     }
 
@@ -195,6 +200,10 @@ struct HomeFeature {
 
             case .todayAuthorFilterTapped(let filterId):
                 return .send(.delegate(.filterTapped(id: filterId)))
+
+            case .todayAuthorProfileTapped:
+                guard !state.featuredArtist.userId.isEmpty else { return .none }
+                return .send(.delegate(.userProfileTapped(userId: state.featuredArtist.userId)))
 
             case .tryFilterTapped:
                 guard !state.todayFilterId.isEmpty else { return .none }

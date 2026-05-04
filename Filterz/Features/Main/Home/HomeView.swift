@@ -16,6 +16,7 @@ struct HomeView: View {
                 )
                 FeaturedArtistView(
                     artist: store.featuredArtist,
+                    onProfileTapped: { store.send(.todayAuthorProfileTapped) },
                     onFilterTapped: { id in store.send(.todayAuthorFilterTapped(filterId: id)) }
                 )
                 Spacer().frame(height: 100)

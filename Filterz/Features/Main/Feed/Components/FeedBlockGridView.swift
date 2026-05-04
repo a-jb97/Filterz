@@ -5,11 +5,12 @@ import SwiftUI
 struct FeedListView: View {
     let items: [FeedItem]
     var onItemTapped: (String) -> Void = { _ in }
+    var onAuthorTapped: (String) -> Void = { _ in }
 
     var body: some View {
         VStack(spacing: 0) {
             ForEach(items) { item in
-                FeedListRowView(item: item)
+                FeedListRowView(item: item, onAuthorTapped: onAuthorTapped)
                     .onTapGesture { onItemTapped(item.id) }
             }
         }
@@ -21,6 +22,7 @@ struct FeedListView: View {
 
 private struct FeedListRowView: View {
     let item: FeedItem
+    let onAuthorTapped: (String) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -42,9 +44,14 @@ private struct FeedListRowView: View {
                         )
                 }
 
-                Text(item.authorNick)
-                    .font(.pretendard(13, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                Button {
+                    onAuthorTapped(item.authorId)
+                } label: {
+                    Text(item.authorNick)
+                        .font(.pretendard(13, weight: .medium))
+                        .foregroundColor(.filterzGray60)
+                }
+                .buttonStyle(.plain)
 
                 Text(item.description)
                     .font(.pretendard(13, weight: .regular))
@@ -78,6 +85,7 @@ private struct FeedListRowView: View {
 struct FeedBlockGridView: View {
     let items: [FeedItem]
     var onItemTapped: (String) -> Void = { _ in }
+    var onAuthorTapped: (String) -> Void = { _ in }
 
     private var columns: [[FeedMasonryItem]] {
         var columns: [[FeedMasonryItem]] = [[], []]
@@ -106,7 +114,8 @@ struct FeedBlockGridView: View {
                     ForEach(columns[columnIndex]) { masonryItem in
                         FeedMasonryCardView(
                             masonryItem: masonryItem,
-                            width: columnWidth
+                            width: columnWidth,
+                            onAuthorTapped: onAuthorTapped
                         )
                         .onTapGesture { onItemTapped(masonryItem.item.id) }
                     }
@@ -141,6 +150,7 @@ private struct FeedMasonryItem: Identifiable {
 private struct FeedMasonryCardView: View {
     let masonryItem: FeedMasonryItem
     let width: CGFloat
+    let onAuthorTapped: (String) -> Void
 
     private var item: FeedItem {
         masonryItem.item
@@ -154,12 +164,17 @@ private struct FeedMasonryCardView: View {
         VStack(alignment: .leading, spacing: 10) {
             imageCard
 
-            Text(item.authorNick.uppercased())
-                .font(.pretendard(16, weight: .bold))
-                .foregroundColor(.filterzGray75)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .padding(.horizontal, 8)
+            Button {
+                onAuthorTapped(item.authorId)
+            } label: {
+                Text(item.authorNick.uppercased())
+                    .font(.pretendard(16, weight: .bold))
+                    .foregroundColor(.filterzGray75)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, 8)
+            }
+            .buttonStyle(.plain)
         }
         .frame(width: width, alignment: .leading)
         .contentShape(Rectangle())

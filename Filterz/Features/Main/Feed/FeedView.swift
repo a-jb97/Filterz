@@ -21,6 +21,8 @@ struct FeedView: View {
 
                         TopRankingCarouselView(items: store.topRankingItems) { id in
                             store.send(.topRankingItemTapped(id: id))
+                        } onAuthorTapped: { userId in
+                            store.send(.authorProfileTapped(userId: userId))
                         }
                         .padding(.top, 8)
 
@@ -30,11 +32,15 @@ struct FeedView: View {
                         case .block:
                             FeedBlockGridView(items: store.feedItems) { id in
                                 store.send(.feedItemTapped(id: id))
+                            } onAuthorTapped: { userId in
+                                store.send(.authorProfileTapped(userId: userId))
                             }
                             .padding(.top, 8)
                         case .list:
                             FeedListView(items: store.feedItems) { id in
                                 store.send(.feedItemTapped(id: id))
+                            } onAuthorTapped: { userId in
+                                store.send(.authorProfileTapped(userId: userId))
                             }
                             .padding(.top, 8)
                         }

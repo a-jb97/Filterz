@@ -206,6 +206,7 @@ struct FilterDetailFeature {
         case portOnePaymentFinished(PortOnePaymentResult)
         case paymentValidationResponse(Result<PaymentResponseDTO, any Error>)
         case paymentSheetDismissed
+        case creatorProfileTapped
         case dmCreatorTapped
         case alert(PresentationAction<Alert>)
         case delegate(Delegate)
@@ -215,6 +216,7 @@ struct FilterDetailFeature {
         @CasePathable
         enum Delegate: Sendable {
             case backTapped
+            case userProfileTapped(userId: String)
             case dmCreatorTapped(creatorId: String)
         }
     }
@@ -371,6 +373,10 @@ struct FilterDetailFeature {
                     state.alert = makeAlert(title: "결제 취소", message: "결제가 완료되지 않았습니다.")
                 }
                 return .none
+
+            case .creatorProfileTapped:
+                guard let creatorId = state.detail?.creator.id else { return .none }
+                return .send(.delegate(.userProfileTapped(userId: creatorId)))
 
             case .dmCreatorTapped:
                 guard let creatorId = state.detail?.creator.id else { return .none }

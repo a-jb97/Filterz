@@ -29,12 +29,15 @@ struct ChatRoomFeature {
         case sendTapped
         case sendResponse(Result<ChatMessage, any Error>)
         case pushNotificationFailed(String)
+        case opponentProfileTapped
+        case messageProfileTapped(userId: String)
         case backTapped
         case delegate(Delegate)
 
         @CasePathable
         enum Delegate: Sendable {
             case backTapped
+            case userProfileTapped(userId: String)
         }
     }
 
@@ -189,6 +192,12 @@ struct ChatRoomFeature {
                 state.errorMessage = "푸시 알림 전송 실패: \(message)"
                 return .none
 
+            case .opponentProfileTapped:
+                return .send(.delegate(.userProfileTapped(userId: state.room.opponentUserId)))
+
+            case .messageProfileTapped(let userId):
+                return .send(.delegate(.userProfileTapped(userId: userId)))
+
             case .backTapped:
                 return .send(.delegate(.backTapped))
 
@@ -199,7 +208,7 @@ struct ChatRoomFeature {
     }
 }
 
-private func notificationBody(content: String?, fileCount: Int) -> String {
+nonisolated private func notificationBody(content: String?, fileCount: Int) -> String {
     if let content, !content.isEmpty {
         return content
     }

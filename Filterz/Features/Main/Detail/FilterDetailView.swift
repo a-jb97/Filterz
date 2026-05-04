@@ -32,6 +32,7 @@ struct FilterDetailView: View {
                                 .padding(.horizontal, 16)
                             CreatorSection(
                                 creator: detail.creator,
+                                onProfileTapped: { store.send(.creatorProfileTapped) },
                                 onDMTapped: { store.send(.dmCreatorTapped) }
                             )
                             .padding(.horizontal, 16)
