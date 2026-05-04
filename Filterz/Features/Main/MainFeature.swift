@@ -22,6 +22,7 @@ struct MainFeature {
         var chatList: ChatListFeature.State = .init()
         var mypage: MyPageFeature.State = .init()
         var path: StackState<Path.State> = .init()
+        @Presents var userProfile: UserProfileFeature.State?
         var isOpeningDM: Bool = false
         var chatUnreadCount: Int = 0
         var currentChatRoomId: String? = nil
@@ -39,6 +40,8 @@ struct MainFeature {
         case chatList(ChatListFeature.Action)
         case mypage(MyPageFeature.Action)
         case path(StackActionOf<Path>)
+        case userProfile(PresentationAction<UserProfileFeature.Action>)
+        case userProfileRequested(userId: String)
         case createChatRoomResponse(Result<ChatRoom, any Error>)
         case delegate(Delegate)
 
@@ -130,13 +133,22 @@ struct MainFeature {
                 state.selectedTab = .market
                 return .send(.feed(.categorySelected(category)))
 
+            case .home(.delegate(.userProfileTapped(let userId))):
+                return presentUserProfile(&state, userId: userId)
+
             case .feed(.delegate(.filterTapped(let id))):
                 state.path.append(.filterDetail(.init(filterId: id)))
                 return .none
 
+            case .feed(.delegate(.userProfileTapped(let userId))):
+                return presentUserProfile(&state, userId: userId)
+
             case .path(.element(_, .filterDetail(.delegate(.backTapped)))):
                 state.path.removeLast()
                 return .none
+
+            case .path(.element(_, .filterDetail(.delegate(.userProfileTapped(let userId))))):
+                return presentUserProfile(&state, userId: userId)
 
             case .path(.element(_, .filterDetail(.delegate(.dmCreatorTapped(let creatorId))))):
                 guard !state.isOpeningDM else { return .none }
@@ -167,6 +179,9 @@ struct MainFeature {
             case .chatList(.delegate(.roomTapped(let room))):
                 state.path.append(.chatRoom(.init(room: room)))
                 return .none
+
+            case .chatList(.delegate(.userProfileTapped(let userId))):
+                return presentUserProfile(&state, userId: userId)
 
             case .mypage(.delegate(.logoutCompleted)):
                 return .send(.delegate(.logoutCompleted))
@@ -204,7 +219,13 @@ struct MainFeature {
                     }
                 }
 
-            case .home, .feed, .upload, .chatList, .mypage, .path:
+            case .path(.element(_, .chatRoom(.delegate(.userProfileTapped(let userId))))):
+                return presentUserProfile(&state, userId: userId)
+
+            case .userProfileRequested(let userId):
+                return presentUserProfile(&state, userId: userId)
+
+            case .home, .feed, .upload, .chatList, .mypage, .path, .userProfile:
                 return .none
 
             case .delegate:
@@ -212,6 +233,17 @@ struct MainFeature {
             }
         }
         .forEach(\.path, action: \.path)
+        .ifLet(\.$userProfile, action: \.userProfile) {
+            UserProfileFeature()
+        }
+    }
+
+    private func presentUserProfile(_ state: inout State, userId: String) -> Effect<Action> {
+        guard !userId.isEmpty else { return .none }
+        let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
+        guard userId != currentUserId else { return .none }
+        state.userProfile = .init(userId: userId)
+        return .none
     }
 }
 

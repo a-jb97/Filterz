@@ -3,6 +3,7 @@ import Foundation
 
 struct UserClient: Sendable {
     var myInfo: @Sendable () async throws -> MyInfoResponseDTO
+    var userProfile: @Sendable (_ userId: String) async throws -> UserProfileResponseDTO
     var editMyProfile: @Sendable (_ query: EditMyProfileRequestDTO) async throws -> EditMyProfileResponseDTO
     var uploadProfileImage: @Sendable (_ image: Data) async throws -> String?
     var getTodayAuthor: @Sendable () async throws -> TodayAuthorResponseDTO
@@ -14,6 +15,9 @@ extension UserClient: DependencyKey {
         UserClient(
             myInfo: {
                 try await NetworkManager.shared.request(.myInfo)
+            },
+            userProfile: { userId in
+                try await NetworkManager.shared.request(.userProfile(userId: userId))
             },
             editMyProfile: { query in
                 try await NetworkManager.shared.request(.editMyProfile(query: query))
@@ -58,6 +62,16 @@ extension UserClient: DependencyKey {
         )
         return UserClient(
             myInfo: { mockInfo },
+            userProfile: { userId in
+                UserProfileResponseDTO(
+                    userID: userId,
+                    nick: "테스트작가",
+                    name: "Test Artist",
+                    introduction: "테스트 소개입니다.",
+                    profileImage: nil,
+                    hashTags: ["필터", "사진"]
+                )
+            },
             editMyProfile: { query in
                 MyInfoResponseDTO(
                     userID: mockInfo.userID,
