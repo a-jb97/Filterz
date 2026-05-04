@@ -41,7 +41,7 @@ struct MainView: View {
         case .chat:
             ChatListView(store: store.scope(state: \.chatList, action: \.chatList))
         case .mypage:
-            Color.filterzBlackBase.ignoresSafeArea()
+            MyPageView(store: store.scope(state: \.mypage, action: \.mypage))
         }
     }
 }

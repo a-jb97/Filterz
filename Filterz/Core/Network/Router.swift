@@ -14,7 +14,7 @@ enum Router: URLRequestConvertible {
     case refreshToken(query: RefreshTokenRequestDTO)
     case logout
     case myInfo
-    case withdraw
+    case editMyProfile(query: EditMyProfileRequestDTO)
     case getTodayAuthor
     case searchUsers(nick: String?)
 
@@ -85,8 +85,7 @@ extension Router {
         case .emailValidation:                              return "/users/validation/email"
         case .refreshToken:                                 return "/auth/refresh"
         case .logout:                                       return "/users/logout"
-        case .myInfo:                                       return "/users/me"
-        case .withdraw:                                     return "/users/withdraw"
+        case .myInfo, .editMyProfile:                       return "/users/me/profile"
         case .getTodayAuthor:                               return "/users/today-author"
         case .searchUsers:                                  return "/users/search"
         // Filter
@@ -139,11 +138,10 @@ extension Router {
              .getBanners, .getLogs,
              .refreshToken:
             return .get
-        case .editFilter, .editPost:
+        case .editMyProfile, .editFilter, .editPost:
             return .put
         case .deleteFilter, .deleteFilterComment,
-             .deletePost, .deletePostComment,
-             .withdraw:
+             .deletePost, .deletePostComment:
             return .delete
         default:
             return .post
@@ -196,6 +194,8 @@ extension Router {
         case .refreshToken(let query):
             request.setValue(query.refreshToken, forHTTPHeaderField: "RefreshToken")
             return request
+        case .editMyProfile(let query):
+            return try JSONParameterEncoder.default.encode(query, into: request)
         case .createFilter(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .createPost(let query):

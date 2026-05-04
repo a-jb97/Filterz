@@ -161,6 +161,11 @@ final class NetworkManager: @unchecked Sendable {
             .serializingData()
             .response
 
+        if let statusCode = response.response?.statusCode,
+           (200..<300).contains(statusCode) {
+            return
+        }
+
         if let error = response.error {
             throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
         }

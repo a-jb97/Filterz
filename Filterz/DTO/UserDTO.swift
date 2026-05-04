@@ -33,6 +33,15 @@ nonisolated struct AppleLoginRequestDTO: Encodable, Sendable {
     let deviceToken: String?
 }
 
+nonisolated struct EditMyProfileRequestDTO: Encodable, Sendable {
+    let nick: String?
+    let name: String?
+    let introduction: String?
+    let phoneNum: String?
+    let profileImage: String?
+    let hashTags: [String]?
+}
+
 // MARK: - Response DTOs
 
 nonisolated struct LoginResponseDTO: Decodable, Sendable {
@@ -62,8 +71,8 @@ nonisolated struct MyInfoResponseDTO: Decodable, Sendable {
     let name: String?
     let introduction: String?
     let profileImage: String?
-    let followers: [UserInfoResponseDTO]
-    let following: [UserInfoResponseDTO]
+    let phoneNum: String?
+    let hashTags: [String]
 
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
@@ -72,10 +81,12 @@ nonisolated struct MyInfoResponseDTO: Decodable, Sendable {
         case name
         case introduction
         case profileImage
-        case followers
-        case following
+        case phoneNum
+        case hashTags
     }
 }
+
+typealias EditMyProfileResponseDTO = MyInfoResponseDTO
 
 nonisolated struct UserInfoResponseDTO: Decodable, Sendable {
     let userID: String
@@ -114,17 +125,5 @@ nonisolated struct TodayAuthorResponseDTO: Decodable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case author, filters
-    }
-}
-
-nonisolated struct WithdrawResponseDTO: Decodable, Sendable {
-    let userID: String
-    let email: String
-    let nick: String
-
-    enum CodingKeys: String, CodingKey {
-        case userID = "user_id"
-        case email
-        case nick
     }
 }
