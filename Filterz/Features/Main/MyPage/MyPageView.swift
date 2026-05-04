@@ -130,7 +130,7 @@ struct MyPageView: View {
     private func profileImage(_ profile: MyProfile) -> some View {
         ZStack {
             Circle()
-                .fill(Color.filterzBlackTurquoise)
+                .fill(Color.filterzBlackAccent)
 
             AuthenticatedImageView(path: profile.profileImagePath)
                 .clipShape(Circle())
@@ -172,7 +172,7 @@ struct MyPageView: View {
                         .foregroundColor(.filterzGray30)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 7)
-                        .background(Capsule().fill(Color.filterzBlackTurquoise))
+                        .background(Capsule().fill(Color.filterzBlackAccent))
                         .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
                 }
             }
@@ -256,7 +256,7 @@ private struct ProfileEditSheet: View {
         VStack(alignment: .center, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color.filterzBlackTurquoise)
+                    .fill(Color.filterzBlackAccent)
 
                 if let previewImage {
                     Image(uiImage: previewImage)

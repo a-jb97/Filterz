@@ -179,11 +179,11 @@ struct UploadFilterView: View {
                 .padding(.vertical, 7)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(isSelected ? Color.filterzBrightTurquoise : Color.filterzBlackTurquoise)
+                        .fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(
-                                    isSelected ? Color.filterzBrightTurquoise : Color.filterzDeepSprout,
+                                    isSelected ? Color.filterzAccent : Color.filterzDeepSprout,
                                     lineWidth: 1
                                 )
                         )
@@ -203,7 +203,7 @@ struct UploadFilterView: View {
                     PhotosPicker(selection: $pickerItem, matching: .images) {
                         Text("수정하기")
                             .font(.filterzCaption())
-                            .foregroundStyle(Color.filterzBrightTurquoise)
+                            .foregroundStyle(Color.filterzAccent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -329,7 +329,7 @@ struct UploadFilterView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.filterzBlackTurquoise)
+        .background(Color.filterzBlackAccent)
     }
 
     // MARK: - 필터 소개

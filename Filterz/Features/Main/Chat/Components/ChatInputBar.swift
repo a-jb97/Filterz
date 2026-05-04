@@ -47,7 +47,7 @@ struct ChatInputBar: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.filterzBlackTurquoise)
+                    .fill(Color.filterzBlackAccent)
             )
 
             Button(action: onSend) {

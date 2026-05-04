@@ -11,7 +11,7 @@ struct CreatorSection: View {
                 HStack(spacing: 12) {
                     AuthenticatedImageView(path: creator.profileImagePath)
                         .frame(width: 48, height: 48)
-                        .background(Color.filterzBlackTurquoise)
+                        .background(Color.filterzBlackAccent)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
@@ -38,7 +38,7 @@ struct CreatorSection: View {
                     .padding(14)
                     .background(
                         Circle()
-                            .fill(Color.filterzBlackTurquoise)
+                            .fill(Color.filterzBlackAccent)
                             .overlay(
                                 Circle().stroke(Color.filterzTranslucent, lineWidth: 1)
                             )

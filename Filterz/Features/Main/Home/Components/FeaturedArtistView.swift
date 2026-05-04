@@ -81,7 +81,7 @@ private struct TagView: View {
             .padding(.vertical, 5)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(Color.filterzBlackTurquoise)
+                    .fill(Color.filterzBlackAccent)
             )
     }
 }

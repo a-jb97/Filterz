@@ -28,7 +28,7 @@ struct FilterPresetsSection: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackTurquoise)
+                .fill(Color.filterzBlackAccent)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.filterzTranslucent, lineWidth: 1)
