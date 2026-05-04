@@ -101,16 +101,7 @@ struct FeedView: View {
 private struct FeedNavBarView: View {
     var body: some View {
         HStack {
-            Button {
-            } label: {
-                Image(systemName: "chevron.left")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 12, height: 20)
-                    .foregroundColor(.filterzGray60)
-                    .padding(8)
-            }
-            .frame(width: 48, height: 48)
+            Color.clear.frame(width: 48, height: 48)
 
             Spacer()
 
