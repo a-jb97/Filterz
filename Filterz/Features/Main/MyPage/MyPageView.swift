@@ -167,7 +167,7 @@ struct MyPageView: View {
                     .foregroundColor(.filterzGray75)
             } else {
                 ForEach(hashTags, id: \.self) { tag in
-                    Text("#\(tag)")
+                    Text("#\(displayHashTag(tag))")
                         .font(.pretendard(13, weight: .medium))
                         .foregroundColor(.filterzGray30)
                         .padding(.horizontal, 12)
