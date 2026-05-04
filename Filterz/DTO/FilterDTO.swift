@@ -100,8 +100,10 @@ nonisolated struct FilterSummaryPaginationListResponseDTO: Decodable, Sendable {
     }
 }
 
-nonisolated struct FilterGeoListResponseDTO: Decodable, Sendable {
-    let data: [FilterSummaryResponseDTO]
+nonisolated struct UserFilterListRequestDTO: Encodable, Sendable {
+    let next: String?
+    let limit: Int?
+    let category: String?
 }
 
 nonisolated struct FilterLikeRequestDTO: Encodable, Sendable {

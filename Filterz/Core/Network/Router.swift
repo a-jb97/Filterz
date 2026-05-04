@@ -21,12 +21,12 @@ enum Router: URLRequestConvertible {
 
     // MARK: - Filter
     case getFilters(next: String? = nil, category: String? = nil)
+    case getUserFilters(userId: String, query: UserFilterListRequestDTO)
     case createFilter(query: CreateFilterRequestDTO)
     case getFilter(id: String)
     case editFilter(id: String)
     case deleteFilter(id: String)
     case likeFilter(id: String, query: FilterLikeRequestDTO)
-    case getFilterGeo
     case getTodayFilter
     case getHotTrendFilters
     case createFilterComment(filterId: String)
@@ -92,10 +92,10 @@ extension Router {
         case .searchUsers:                                  return "/users/search"
         // Filter
         case .getFilters(_, _), .createFilter:                  return "/filters"
+        case .getUserFilters(let userId, _):                return "/filters/users/\(userId)"
         case .getFilter(let id), .editFilter(let id),
              .deleteFilter(let id):                         return "/filters/\(id)"
         case .likeFilter(let id, _):                        return "/filters/\(id)/like"
-        case .getFilterGeo:                                 return "/filters/geo"
         case .getTodayFilter:                               return "/filters/today-filter"
         case .getHotTrendFilters:                           return "/filters/hot-trend"
         case .createFilterComment(let id):                  return "/filters/\(id)/comments"
@@ -132,7 +132,7 @@ extension Router {
 
     private var method: HTTPMethod {
         switch self {
-        case .myInfo, .userProfile, .getTodayAuthor, .searchUsers, .getFilters(_, _), .getFilter, .getFilterGeo, .getTodayFilter, .getHotTrendFilters,
+        case .myInfo, .userProfile, .getTodayAuthor, .searchUsers, .getFilters(_, _), .getUserFilters, .getFilter, .getTodayFilter, .getHotTrendFilters,
              .getPosts, .getPost,
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,
@@ -165,6 +165,13 @@ extension Router {
             var items: [URLQueryItem] = []
             if let next     { items.append(URLQueryItem(name: "next",     value: next)) }
             if let category { items.append(URLQueryItem(name: "category", value: category)) }
+            if !items.isEmpty { urlComponents.queryItems = items }
+        }
+        if case .getUserFilters(_, let query) = self {
+            var items: [URLQueryItem] = []
+            if let next = query.next { items.append(URLQueryItem(name: "next", value: next)) }
+            if let limit = query.limit { items.append(URLQueryItem(name: "limit", value: String(limit))) }
+            if let category = query.category { items.append(URLQueryItem(name: "category", value: category)) }
             if !items.isEmpty { urlComponents.queryItems = items }
         }
         if case .searchUsers(let nick) = self, let nick {
