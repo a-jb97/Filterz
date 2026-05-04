@@ -20,6 +20,7 @@ struct MainFeature {
         var feed: FeedFeature.State = .init()
         var upload: UploadFilterFeature.State = .init()
         var chatList: ChatListFeature.State = .init()
+        var mypage: MyPageFeature.State = .init()
         var path: StackState<Path.State> = .init()
         var isOpeningDM: Bool = false
         var chatUnreadCount: Int = 0
@@ -36,9 +37,9 @@ struct MainFeature {
         case feed(FeedFeature.Action)
         case upload(UploadFilterFeature.Action)
         case chatList(ChatListFeature.Action)
+        case mypage(MyPageFeature.Action)
         case path(StackActionOf<Path>)
         case createChatRoomResponse(Result<ChatRoom, any Error>)
-        case logoutTapped
         case delegate(Delegate)
 
         @CasePathable
@@ -62,6 +63,9 @@ struct MainFeature {
         }
         Scope(state: \.chatList, action: \.chatList) {
             ChatListFeature()
+        }
+        Scope(state: \.mypage, action: \.mypage) {
+            MyPageFeature()
         }
         Reduce { state, action in
             switch action {
@@ -164,6 +168,9 @@ struct MainFeature {
                 state.path.append(.chatRoom(.init(room: room)))
                 return .none
 
+            case .mypage(.delegate(.logoutCompleted)):
+                return .send(.delegate(.logoutCompleted))
+
             case .path(.element(let id, .chatRoom(.onAppear))):
                 guard case let .chatRoom(chatRoomState)? = state.path[id: id] else {
                     return .none
@@ -197,11 +204,8 @@ struct MainFeature {
                     }
                 }
 
-            case .home, .feed, .upload, .chatList, .path:
+            case .home, .feed, .upload, .chatList, .mypage, .path:
                 return .none
-
-            case .logoutTapped:
-                return .send(.delegate(.logoutCompleted))
 
             case .delegate:
                 return .none
