@@ -225,6 +225,11 @@ struct MainFeature {
             case .userProfileRequested(let userId):
                 return presentUserProfile(&state, userId: userId)
 
+            case .userProfile(.presented(.delegate(.filterTapped(let id)))):
+                state.userProfile = nil
+                state.path.append(.filterDetail(.init(filterId: id)))
+                return .none
+
             case .home, .feed, .upload, .chatList, .mypage, .path, .userProfile:
                 return .none
 
