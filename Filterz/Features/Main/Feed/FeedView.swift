@@ -107,20 +107,14 @@ struct FeedView: View {
 private struct FeedNavBarView: View {
     var body: some View {
         HStack {
-            Color.clear.frame(width: 48, height: 48)
-
+            Text("피드")
+                .font(.filterzDisplay(24))
+                .foregroundColor(.filterzGray30)
             Spacer()
-
-            Text("FEED")
-                .font(.mulgyeolBold(20))
-                .foregroundColor(.filterzGray60)
-
-            Spacer()
-
-            Color.clear.frame(width: 48, height: 48)
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 16)
         .frame(height: 56)
+        .background(Color.filterzBlackBase)
     }
 }
 

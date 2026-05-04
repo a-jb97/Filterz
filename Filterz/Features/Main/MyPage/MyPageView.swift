@@ -46,7 +46,7 @@ struct MyPageView: View {
 
     private var header: some View {
         HStack {
-            Text("My Page")
+            Text("마이 페이지")
                 .font(.filterzDisplay(24))
                 .foregroundColor(.filterzGray30)
             Spacer()

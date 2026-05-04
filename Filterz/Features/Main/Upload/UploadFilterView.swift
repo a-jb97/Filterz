@@ -114,32 +114,30 @@ struct UploadFilterView: View {
     // MARK: - Navigation Header
 
     private var navigationHeader: some View {
-        ZStack {
-            Text("MAKE")
-                .font(.filterzDisplay(18))
+        HStack {
+            Text("필터 제작")
+                .font(.filterzDisplay(24))
                 .foregroundStyle(Color.filterzGray30)
-                .frame(maxWidth: .infinity, alignment: .center)
 
-            HStack {
-                Spacer()
+            Spacer()
 
-                Button { store.send(.saveTapped) } label: {
-                    if store.isUploading {
-                        ProgressView()
-                            .tint(Color.filterzGray30)
-                            .frame(width: 44, height: 44)
-                    } else {
-                        Image(systemName: "square.and.arrow.down")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundStyle(Color.filterzGray30)
-                            .frame(width: 44, height: 44)
-                    }
+            Button { store.send(.saveTapped) } label: {
+                if store.isUploading {
+                    ProgressView()
+                        .tint(Color.filterzGray30)
+                        .frame(width: 44, height: 44)
+                } else {
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(Color.filterzGray30)
+                        .frame(width: 44, height: 44)
                 }
-                .disabled(store.isUploading)
             }
-            .padding(.horizontal, 8)
+            .disabled(store.isUploading)
         }
+        .padding(.horizontal, 16)
         .frame(height: 56)
+        .background(Color.filterzBlackBase)
     }
 
     // MARK: - 필터명

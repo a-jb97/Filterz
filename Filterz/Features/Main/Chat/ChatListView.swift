@@ -30,7 +30,7 @@ struct ChatListView: View {
 
     private var header: some View {
         HStack {
-            Text("Chat")
+            Text("채팅")
                 .font(.filterzDisplay(24))
                 .foregroundColor(.filterzGray30)
             Spacer()
