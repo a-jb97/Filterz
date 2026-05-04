@@ -184,7 +184,7 @@ private struct FeedMasonryCardView: View {
         ZStack {
             AuthenticatedImageView(path: item.imageURL, contentMode: .fill)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.filterzBlackTurquoise)
+                .background(Color.filterzBlackAccent)
                 .clipped()
 
             LinearGradient(

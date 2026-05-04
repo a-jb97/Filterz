@@ -10,7 +10,7 @@ struct ChatRoomCell: View {
             Button(action: onProfileTapped) {
                 AuthenticatedImageView(path: room.opponentProfilePath)
                     .frame(width: 56, height: 56)
-                    .background(Color.filterzBlackTurquoise)
+                    .background(Color.filterzBlackAccent)
                     .clipShape(Circle())
                     .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
             }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CreatorSection: View {
     let creator: FilterCreator
+    let showsDMButton: Bool
     var onProfileTapped: () -> Void = {}
     var onDMTapped: () -> Void = {}
 
@@ -11,7 +12,7 @@ struct CreatorSection: View {
                 HStack(spacing: 12) {
                     AuthenticatedImageView(path: creator.profileImagePath)
                         .frame(width: 48, height: 48)
-                        .background(Color.filterzBlackTurquoise)
+                        .background(Color.filterzBlackAccent)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
@@ -29,20 +30,22 @@ struct CreatorSection: View {
 
             Spacer()
 
-            Button(action: onDMTapped) {
-                Image(systemName: "paperplane")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                    .foregroundColor(.filterzGray45)
-                    .padding(14)
-                    .background(
-                        Circle()
-                            .fill(Color.filterzBlackTurquoise)
-                            .overlay(
-                                Circle().stroke(Color.filterzTranslucent, lineWidth: 1)
-                            )
-                    )
+            if showsDMButton {
+                Button(action: onDMTapped) {
+                    Image(systemName: "paperplane")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(.filterzGray45)
+                        .padding(14)
+                        .background(
+                            Circle()
+                                .fill(Color.filterzBlackAccent)
+                                .overlay(
+                                    Circle().stroke(Color.filterzTranslucent, lineWidth: 1)
+                                )
+                        )
+                }
             }
         }
     }

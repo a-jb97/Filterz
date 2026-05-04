@@ -17,24 +17,33 @@ struct AuthenticatedImageView: View {
                 Color.clear
             }
         }
-        .task(id: path) { await loadImage() }
+        .task(id: path) { await loadImage(for: path) }
     }
 
-    private func loadImage() async {
-        guard let path else { image = nil; return }
+    private func loadImage(for path: String?) async {
+        guard let path else {
+            image = nil
+            return
+        }
 
         if let cached = imageCache.object(forKey: path as NSString) {
             image = cached
             return
         }
 
-        guard let url = URL(string: APIKey.baseURL + path) else { return }
+        image = nil
+
+        guard let url = URL(string: APIKey.baseURL + path) else {
+            return
+        }
         var request = URLRequest(url: url)
         request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
         request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
 
         guard let (data, _) = try? await URLSession.shared.data(for: request),
-              let loaded = UIImage(data: data) else { return }
+              let loaded = UIImage(data: data),
+              !Task.isCancelled,
+              self.path == path else { return }
 
         imageCache.setObject(loaded, forKey: path as NSString)
         image = loaded

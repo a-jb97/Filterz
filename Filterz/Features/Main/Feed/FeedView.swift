@@ -71,19 +71,19 @@ struct FeedView: View {
                 HStack(spacing: 4) {
                     Text(category.title)
                         .font(.pretendard(12, weight: .semibold))
-                        .foregroundColor(.filterzBrightTurquoise)
+                        .foregroundColor(.filterzAccent)
                     Button {
                         store.send(.categorySelected(nil))
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.filterzBrightTurquoise)
+                            .foregroundColor(.filterzAccent)
                     }
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
-                    Capsule().fill(Color.filterzBlackTurquoise)
+                    Capsule().fill(Color.filterzBlackAccent)
                 )
             }
 
@@ -142,16 +142,16 @@ private struct SortButtonRowView: View {
         } label: {
             Text(mode.title)
                 .font(.pretendard(14, weight: isSelected ? .bold : .medium))
-                .foregroundColor(isSelected ? .filterzGray45 : .filterzGray75)
-                .padding(.horizontal, 17)
-                .padding(.vertical, 5)
+                .foregroundColor(isSelected ? .filterzBackground : .filterzGray30)
+                .padding(.horizontal, isSelected ? 17 : 12)
+                .padding(.vertical, isSelected ? 5 : 7)
                 .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(isSelected ? Color.filterzBrightTurquoise : Color.filterzBlackTurquoise)
+                    Capsule()
+                        .fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 14)
+                            Capsule()
                                 .stroke(
-                                    isSelected ? Color.filterzDeepSprout : Color.clear,
+                                    Color.filterzDeepSprout,
                                     lineWidth: 1
                                 )
                         )

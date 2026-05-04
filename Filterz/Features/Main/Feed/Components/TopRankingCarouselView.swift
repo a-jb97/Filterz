@@ -69,7 +69,7 @@ private struct RankingCardView: View {
     private var card: some View {
         ZStack(alignment: .bottom) {
             RoundedRectangle(cornerRadius: 110, style: .circular)
-                .fill(Color.filterzBlackTurquoise)
+                .fill(Color.filterzBlackAccent)
                 .overlay(
                     RoundedRectangle(cornerRadius: 110, style: .circular)
                         .stroke(Color.filterzDeepSprout, lineWidth: 2)
@@ -119,7 +119,7 @@ private struct RankBadgeView: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(Color.filterzBlackTurquoise)
+                .fill(Color.filterzBlackAccent)
                 .overlay(
                     Circle()
                         .stroke(Color.filterzDeepSprout, lineWidth: 2)
@@ -128,7 +128,7 @@ private struct RankBadgeView: View {
 
             Text("\(rank)")
                 .font(.filterzDisplay(24))
-                .foregroundColor(.filterzBrightTurquoise)
+                .foregroundColor(.filterzAccent)
         }
     }
 }

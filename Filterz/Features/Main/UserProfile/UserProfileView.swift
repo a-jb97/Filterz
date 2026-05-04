@@ -94,7 +94,7 @@ struct UserProfileView: View {
     private func profileImage(_ profile: UserProfile) -> some View {
         ZStack {
             Circle()
-                .fill(Color.filterzBlackTurquoise)
+                .fill(Color.filterzBlackAccent)
 
             AuthenticatedImageView(path: profile.profileImagePath)
                 .clipShape(Circle())
@@ -136,7 +136,7 @@ struct UserProfileView: View {
                         .foregroundColor(.filterzGray30)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 7)
-                        .background(Capsule().fill(Color.filterzBlackTurquoise))
+                        .background(Capsule().fill(Color.filterzBlackAccent))
                         .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
                 }
             }

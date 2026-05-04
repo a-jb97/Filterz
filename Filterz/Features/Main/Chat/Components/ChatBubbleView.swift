@@ -42,7 +42,7 @@ struct ChatBubbleView: View {
                 Button(action: onProfileTapped) {
                     AuthenticatedImageView(path: message.senderProfilePath)
                         .frame(width: 32, height: 32)
-                        .background(Color.filterzBlackTurquoise)
+                        .background(Color.filterzBlackAccent)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -114,7 +114,7 @@ struct ChatBubbleView: View {
                 endPoint: .bottomTrailing
             )
         } else {
-            Color.filterzBlackTurquoise
+            Color.filterzBlackAccent
         }
     }
 }

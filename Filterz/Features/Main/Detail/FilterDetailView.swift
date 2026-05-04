@@ -32,6 +32,7 @@ struct FilterDetailView: View {
                                 .padding(.horizontal, 16)
                             CreatorSection(
                                 creator: detail.creator,
+                                showsDMButton: detail.creator.id != store.currentUserId,
                                 onProfileTapped: { store.send(.creatorProfileTapped) },
                                 onDMTapped: { store.send(.dmCreatorTapped) }
                             )
@@ -152,7 +153,7 @@ struct FilterDetailView: View {
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackTurquoise)
+                .fill(Color.filterzBlackAccent)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.filterzTranslucent, lineWidth: 1)
@@ -185,7 +186,7 @@ struct FilterDetailView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .background(
-                            Capsule().fill(Color.filterzBlackTurquoise)
+                            Capsule().fill(Color.filterzBlackAccent)
                         )
                 }
             }
