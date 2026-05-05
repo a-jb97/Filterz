@@ -112,6 +112,10 @@ nonisolated struct LikedFilterListRequestDTO: Encodable, Sendable {
     let category: String?
 }
 
+nonisolated struct FilterCommentRequestDTO: Encodable, Sendable {
+    let content: String
+}
+
 nonisolated struct FilterLikeRequestDTO: Encodable, Sendable {
     let likeStatus: Bool
 

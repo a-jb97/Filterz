@@ -31,6 +31,7 @@ enum Router: URLRequestConvertible {
     case getTodayFilter
     case getHotTrendFilters
     case createFilterComment(filterId: String)
+    case editFilterComment(filterId: String, commentId: String, query: FilterCommentRequestDTO)
     case deleteFilterComment(filterId: String, commentId: String)
 
     // MARK: - Post
@@ -101,7 +102,8 @@ extension Router {
         case .getTodayFilter:                               return "/filters/today-filter"
         case .getHotTrendFilters:                           return "/filters/hot-trend"
         case .createFilterComment(let id):                  return "/filters/\(id)/comments"
-        case .deleteFilterComment(let fId, let cId):        return "/filters/\(fId)/comments/\(cId)"
+        case .editFilterComment(let fId, let cId, _),
+             .deleteFilterComment(let fId, let cId):        return "/filters/\(fId)/comments/\(cId)"
         // Post
         case .getPosts, .createPost:                        return "/posts"
         case .getPost(let id), .editPost(let id),
@@ -142,7 +144,7 @@ extension Router {
              .getBanners, .getLogs,
              .refreshToken:
             return .get
-        case .editMyProfile, .editFilter, .editPost:
+        case .editMyProfile, .editFilter, .editFilterComment, .editPost:
             return .put
         case .deleteFilter, .deleteFilterComment,
              .deletePost, .deletePostComment:
@@ -217,6 +219,8 @@ extension Router {
         case .createFilter(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .editFilter(_, let query):
+            return try JSONParameterEncoder.default.encode(query, into: request)
+        case .editFilterComment(_, _, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .createPost(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
