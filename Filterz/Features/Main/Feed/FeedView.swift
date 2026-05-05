@@ -12,6 +12,7 @@ struct FeedView: View {
             VStack(spacing: 0) {
                 FeedNavBarView(
                     isSearchPresented: store.isSearchPresented,
+                    onVideoTapped: { store.send(.videoButtonTapped) },
                     onSearchTapped: { store.send(.searchButtonTapped) }
                 )
                 if store.isSearchPresented {
@@ -275,6 +276,7 @@ struct FeedView: View {
 
 private struct FeedNavBarView: View {
     let isSearchPresented: Bool
+    let onVideoTapped: () -> Void
     let onSearchTapped: () -> Void
 
     var body: some View {
@@ -283,6 +285,14 @@ private struct FeedNavBarView: View {
                 .font(.filterzDisplay(24))
                 .foregroundColor(.filterzGray30)
             Spacer()
+            Button(action: onVideoTapped) {
+                Image(systemName: "video")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(Color.filterzGray30)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
             Button(action: onSearchTapped) {
                 Image(systemName: isSearchPresented ? "xmark" : "magnifyingglass")
                     .font(.system(size: 18, weight: .medium))

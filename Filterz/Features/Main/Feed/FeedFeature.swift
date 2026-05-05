@@ -109,6 +109,7 @@ struct FeedFeature {
         case topRankingResponse(Result<FilterSummaryListResponseDTO, any Error>)
         case feedResponse(Result<[FilterSummaryResponseDTO], any Error>)
         case searchButtonTapped
+        case videoButtonTapped
         case searchTextChanged(String)
         case userSearchResponse(Result<[SearchUser], any Error>)
         case searchUserSelected(SearchUser)
@@ -124,6 +125,7 @@ struct FeedFeature {
         enum Delegate: Sendable {
             case filterTapped(id: String)
             case userProfileTapped(userId: String)
+            case videoListRequested
         }
     }
 
@@ -185,6 +187,9 @@ struct FeedFeature {
                     )
                 }
                 return .none
+
+            case .videoButtonTapped:
+                return .send(.delegate(.videoListRequested))
 
             case .searchTextChanged(let text):
                 guard state.searchText != text else { return .none }

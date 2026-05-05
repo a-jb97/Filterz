@@ -34,6 +34,12 @@ struct MainView: View {
             case .chatRoom(let chatStore):
                 ChatRoomView(store: chatStore)
                     .navigationBarHidden(true)
+            case .videoList(let videoListStore):
+                VideoListView(store: videoListStore)
+                    .navigationBarHidden(true)
+            case .videoPlayer(let videoPlayerStore):
+                VideoPlayerView(store: videoPlayerStore)
+                    .navigationBarHidden(true)
             }
         }
         .sheet(item: $store.scope(state: \.userProfile, action: \.userProfile)) { profileStore in
