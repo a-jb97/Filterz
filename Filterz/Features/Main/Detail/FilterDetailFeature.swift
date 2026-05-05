@@ -39,6 +39,51 @@ struct FilterExifData: Equatable, Sendable {
         guard let w = pixelWidth, let h = pixelHeight else { return nil }
         return "\(w) × \(h)"
     }
+
+    var dateTimeOriginalFormatted: String? {
+        guard let dateTimeOriginal else { return nil }
+        return formatPhotoMetadataDate(dateTimeOriginal)
+    }
+}
+
+private nonisolated func formatPhotoMetadataDate(_ dateString: String) -> String {
+    let isoWithFraction = ISO8601DateFormatter()
+    isoWithFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+    let isoWithoutFraction = ISO8601DateFormatter()
+    isoWithoutFraction.formatOptions = [.withInternetDateTime]
+
+    let date = isoWithFraction.date(from: dateString)
+        ?? isoWithoutFraction.date(from: dateString)
+        ?? parsePhotoMetadataDate(dateString)
+
+    guard let date else { return dateString }
+
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ko_KR")
+    formatter.dateFormat = "yyyy. MM. dd. a hh:mm"
+    formatter.timeZone = .current
+    return formatter.string(from: date)
+}
+
+private nonisolated func parsePhotoMetadataDate(_ dateString: String) -> Date? {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ko_KR")
+    formatter.timeZone = .current
+
+    for format in [
+        "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX",
+        "yyyy-MM-dd'T'HH:mm:ssXXXXX",
+        "yyyy-MM-dd'T'HH:mm:ss",
+        "yyyy:MM:dd HH:mm:ss"
+    ] {
+        formatter.dateFormat = format
+        if let date = formatter.date(from: dateString) {
+            return date
+        }
+    }
+
+    return nil
 }
 
 extension FilterExifData {
