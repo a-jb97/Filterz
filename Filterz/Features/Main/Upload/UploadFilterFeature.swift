@@ -63,6 +63,7 @@ struct UploadFilterFeature {
         var displayThumbnail: Data? = nil
         var mapSnapshotData: Data? = nil
         var imageMetadata: ImageMetadata? = nil
+        var filterValues: FilterAdjustmentValues = .init()
         var filterDescription: String = ""
         var price: String = ""
         var isUploading: Bool = false
@@ -82,6 +83,7 @@ struct UploadFilterFeature {
             selectedCategory = detail.category
             existingImagePath = detail.imageURLs.first
             imageMetadata = detail.exif.imageMetadata
+            filterValues = FilterAdjustmentValues(presets: detail.presets)
             filterDescription = detail.description
             price = "\(detail.price)"
         }
@@ -92,6 +94,8 @@ struct UploadFilterFeature {
         case filterNameChanged(String)
         case categorySelected(String)
         case imageSelected(Data?)
+        case editPhotoTapped
+        case filterValuesUpdated(FilterAdjustmentValues)
         case filterDescriptionChanged(String)
         case priceChanged(String)
         case saveTapped
@@ -108,6 +112,7 @@ struct UploadFilterFeature {
         @CasePathable
         enum Delegate: Sendable {
             case backTapped
+            case makeFilterRequested(FilterMakerFeature.Source, FilterAdjustmentValues)
             case editCompleted(FilterResponseDTO)
         }
     }
@@ -144,21 +149,37 @@ struct UploadFilterFeature {
                 state.mapSnapshotData = nil
                 state.imageMetadata = nil
                 guard let data else { return .none }
-                return .run { send in
-                    let thumbTask = Task.detached(priority: .userInitiated) {
-                        makeThumbnail(data, maxSide: 600)
+                return .merge(
+                    .send(.delegate(.makeFilterRequested(.local(data), state.filterValues))),
+                    .run { send in
+                        let thumbTask = Task.detached(priority: .userInitiated) {
+                            makeThumbnail(data, maxSide: 600)
+                        }
+                        let metaTask = Task.detached(priority: .userInitiated) {
+                            extractDisplayMetadata(from: data)
+                        }
+                        let (t, m) = await (thumbTask.value, metaTask.value)
+                        await send(.imageProcessed(thumbnail: t, metadata: m))
+                        guard let lat = m.latitude, let lon = m.longitude else { return }
+                        async let addr = reverseGeocode(lat: lat, lon: lon)
+                        async let snap = makeMapSnapshot(lat: lat, lon: lon)
+                        if let a = await addr { await send(.locationResolved(a)) }
+                        await send(.mapSnapshotGenerated(await snap))
                     }
-                    let metaTask = Task.detached(priority: .userInitiated) {
-                        extractDisplayMetadata(from: data)
-                    }
-                    let (t, m) = await (thumbTask.value, metaTask.value)
-                    await send(.imageProcessed(thumbnail: t, metadata: m))
-                    guard let lat = m.latitude, let lon = m.longitude else { return }
-                    async let addr = reverseGeocode(lat: lat, lon: lon)
-                    async let snap = makeMapSnapshot(lat: lat, lon: lon)
-                    if let a = await addr { await send(.locationResolved(a)) }
-                    await send(.mapSnapshotGenerated(await snap))
+                )
+
+            case .editPhotoTapped:
+                if let data = state.selectedImageData {
+                    return .send(.delegate(.makeFilterRequested(.local(data), state.filterValues)))
                 }
+                if let path = state.existingImagePath {
+                    return .send(.delegate(.makeFilterRequested(.remote(path), state.filterValues)))
+                }
+                return .none
+
+            case .filterValuesUpdated(let values):
+                state.filterValues = values.clamped()
+                return .none
 
             case .imageProcessed(let thumbnail, let metadata):
                 state.displayThumbnail = thumbnail
@@ -204,8 +225,9 @@ struct UploadFilterFeature {
                 }
 
                 state.isUploading = true
+                let filterValues = state.filterValues
 
-                return .run { [filterClient, imageData = state.selectedImageData] send in
+                return .run { [filterClient, imageData = state.selectedImageData, filterValues] send in
                     let files: [String]
                     let photoMeta: PhotoMetadataDTO?
                     if let imageData {
@@ -224,12 +246,7 @@ struct UploadFilterFeature {
                         files: files,
                         price: price,
                         photoMetadata: photoMeta,
-                        filterValues: mode.existingFilterValues ?? FilterValuesDTO(
-                            brightness: 0, exposure: 0, contrast: 0,
-                            saturation: 0, sharpness: 0, blur: 0,
-                            vignette: 0, noiseReduction: 0, highlights: 0,
-                            shadows: 0, temperature: 0, blackPoint: 0
-                        )
+                        filterValues: filterValues.dto
                     )
                     let result: FilterResponseDTO
                     switch mode {
@@ -256,6 +273,7 @@ struct UploadFilterFeature {
                 state.displayThumbnail = nil
                 state.mapSnapshotData = nil
                 state.imageMetadata = nil
+                state.filterValues = .init()
                 state.filterDescription = ""
                 state.price = ""
                 return .none
