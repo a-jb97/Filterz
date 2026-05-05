@@ -13,6 +13,9 @@ struct FilterClient: Sendable {
     var createFilter: @Sendable (_ query: CreateFilterRequestDTO) async throws -> FilterResponseDTO
     var editFilter: @Sendable (_ id: String, _ query: CreateFilterRequestDTO) async throws -> FilterResponseDTO
     var deleteFilter: @Sendable (_ id: String) async throws -> Void
+    var createFilterComment: @Sendable (_ filterId: String, _ query: FilterCommentRequestDTO) async throws -> Void
+    var editFilterComment: @Sendable (_ filterId: String, _ commentId: String, _ query: FilterCommentRequestDTO) async throws -> Void
+    var deleteFilterComment: @Sendable (_ filterId: String, _ commentId: String) async throws -> Void
 }
 
 extension FilterClient: DependencyKey {
@@ -50,6 +53,15 @@ extension FilterClient: DependencyKey {
             },
             deleteFilter: { id in
                 try await NetworkManager.shared.requestVoid(.deleteFilter(id: id))
+            },
+            createFilterComment: { filterId, query in
+                try await NetworkManager.shared.requestVoid(.createFilterComment(filterId: filterId, query: query))
+            },
+            editFilterComment: { filterId, commentId, query in
+                try await NetworkManager.shared.requestVoid(.editFilterComment(filterId: filterId, commentId: commentId, query: query))
+            },
+            deleteFilterComment: { filterId, commentId in
+                try await NetworkManager.shared.requestVoid(.deleteFilterComment(filterId: filterId, commentId: commentId))
             }
         )
     }
@@ -128,7 +140,10 @@ extension FilterClient: DependencyKey {
             uploadFile: { _ in FileResponseDTO(files: []) },
             createFilter: { _ in mockDetail },
             editFilter: { _, _ in mockDetail },
-            deleteFilter: { _ in }
+            deleteFilter: { _ in },
+            createFilterComment: { _, _ in },
+            editFilterComment: { _, _, _ in },
+            deleteFilterComment: { _, _ in }
         )
     }
 }
