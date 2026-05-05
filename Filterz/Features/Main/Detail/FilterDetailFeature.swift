@@ -168,6 +168,7 @@ struct FilterDetail: Equatable, Sendable, Identifiable {
     var isDownloaded: Bool
     var likeCount: Int
     var buyerCount: Int
+    var comments: [FilterComment]
     let createdAt: String
 
     var formattedPrice: String {
@@ -179,6 +180,55 @@ struct FilterDetail: Equatable, Sendable, Identifiable {
 
     var hashtags: [String] {
         [category]
+    }
+}
+
+struct FilterComment: Equatable, Sendable, Identifiable {
+    let id: String
+    let content: String
+    let createdAt: String
+    let creator: FilterCreator
+    let replies: [FilterComment]
+
+    var createdAtFormatted: String {
+        formatPhotoMetadataDate(createdAt)
+    }
+}
+
+extension FilterComment {
+    nonisolated init(dto: FilterCommentResponseDTO) {
+        id = dto.commentId
+        content = dto.content
+        createdAt = dto.createdAt
+        creator = FilterCreator(
+            id: dto.creator.userID,
+            nick: dto.creator.nick,
+            profileImagePath: dto.creator.profileImage
+        )
+        replies = dto.replies.map { FilterComment(dto: $0) }
+    }
+
+    nonisolated init(dto: CommentResponseDTO) {
+        id = dto.commentId
+        content = dto.content
+        createdAt = dto.createdAt
+        creator = FilterCreator(
+            id: dto.creator.userID,
+            nick: dto.creator.nick,
+            profileImagePath: dto.creator.profileImage
+        )
+        replies = []
+    }
+}
+
+struct FilterCommentTarget: Equatable, Sendable, Identifiable {
+    let id: String
+    let parentId: String?
+    let content: String
+    let creator: FilterCreator
+
+    var isReply: Bool {
+        parentId != nil
     }
 }
 
@@ -219,6 +269,7 @@ extension FilterDetail {
         isDownloaded = dto.isDownloaded || dto.creator.userID == currentUserId
         likeCount = dto.likeCount
         buyerCount = dto.buyerCount
+        comments = dto.comments.map(FilterComment.init(dto:))
         createdAt = dto.createdAt
     }
 }
@@ -238,6 +289,11 @@ struct FilterDetailFeature {
         var previewSliderOffset: CGFloat = 0.5
         var isPurchaseLoading: Bool = false
         var isDeleteLoading: Bool = false
+        var commentText: String = ""
+        var replyTarget: FilterCommentTarget? = nil
+        var editingComment: FilterCommentTarget? = nil
+        var deletingComment: FilterCommentTarget? = nil
+        var isCommentSubmitting: Bool = false
         var paymentRequest: PortOnePaymentRequest? = nil
         var errorMessage: String? = nil
         @Presents var alert: AlertState<Action.Alert>?
@@ -261,11 +317,22 @@ struct FilterDetailFeature {
         case deleteTapped
         case deleteResponse(Result<Void, any Error>)
         case editCompleted(FilterResponseDTO)
+        case commentTextChanged(String)
+        case replyTapped(commentId: String)
+        case editCommentTapped(commentId: String)
+        case deleteCommentTapped(commentId: String)
+        case cancelCommentModeTapped
+        case submitCommentTapped
+        case createCommentResponse(Result<Void, any Error>)
+        case editCommentResponse(Result<Void, any Error>)
+        case deleteCommentResponse(Result<Void, any Error>)
+        case commentsRefreshResponse(Result<FilterResponseDTO, any Error>)
         case alert(PresentationAction<Alert>)
         case delegate(Delegate)
 
         enum Alert: Equatable {
             case confirmDelete
+            case confirmDeleteComment
         }
 
         @CasePathable
@@ -303,6 +370,53 @@ struct FilterDetailFeature {
             }
         } message: {
             TextState("'\(title)' 필터를 삭제하시겠습니까? 삭제한 필터는 복구할 수 없습니다.")
+        }
+    }
+
+    private func makeCommentDeleteConfirmationAlert(isReply: Bool) -> AlertState<Action.Alert> {
+        AlertState {
+            TextState(isReply ? "대댓글 삭제" : "댓글 삭제")
+        } actions: {
+            ButtonState(role: .destructive, action: .confirmDeleteComment) {
+                TextState("삭제")
+            }
+            ButtonState(role: .cancel) {
+                TextState("취소")
+            }
+        } message: {
+            TextState(isReply ? "대댓글을 삭제하시겠습니까?" : "댓글을 삭제하시겠습니까? 댓글에 달린 대댓글도 함께 삭제됩니다.")
+        }
+    }
+
+    private func findCommentTarget(in comments: [FilterComment], commentId: String) -> FilterCommentTarget? {
+        for comment in comments {
+            if comment.id == commentId {
+                return FilterCommentTarget(
+                    id: comment.id,
+                    parentId: nil,
+                    content: comment.content,
+                    creator: comment.creator
+                )
+            }
+
+            if let reply = comment.replies.first(where: { $0.id == commentId }) {
+                return FilterCommentTarget(
+                    id: reply.id,
+                    parentId: comment.id,
+                    content: reply.content,
+                    creator: reply.creator
+                )
+            }
+        }
+
+        return nil
+    }
+
+    private func refreshDetailEffect(filterId: String) -> Effect<Action> {
+        .run { send in
+            await send(.commentsRefreshResponse(
+                Result { try await filterClient.getFilterDetail(filterId) }
+            ))
         }
     }
 
@@ -491,6 +605,130 @@ struct FilterDetailFeature {
 
             case .editCompleted(let dto):
                 state.detail = FilterDetail(dto: dto, currentUserId: state.currentUserId)
+                return .none
+
+            case .commentTextChanged(let text):
+                state.commentText = text
+                return .none
+
+            case .replyTapped(let commentId):
+                guard let detail = state.detail,
+                      let target = findCommentTarget(in: detail.comments, commentId: commentId),
+                      !target.isReply
+                else { return .none }
+                state.replyTarget = target
+                state.editingComment = nil
+                state.commentText = ""
+                return .none
+
+            case .editCommentTapped(let commentId):
+                guard let detail = state.detail,
+                      let target = findCommentTarget(in: detail.comments, commentId: commentId),
+                      target.creator.id == state.currentUserId
+                else { return .none }
+                state.editingComment = target
+                state.replyTarget = nil
+                state.commentText = target.content
+                return .none
+
+            case .deleteCommentTapped(let commentId):
+                guard let detail = state.detail,
+                      let target = findCommentTarget(in: detail.comments, commentId: commentId),
+                      target.creator.id == state.currentUserId,
+                      !state.isCommentSubmitting
+                else { return .none }
+                state.deletingComment = target
+                state.alert = makeCommentDeleteConfirmationAlert(isReply: target.isReply)
+                return .none
+
+            case .cancelCommentModeTapped:
+                state.replyTarget = nil
+                state.editingComment = nil
+                state.commentText = ""
+                return .none
+
+            case .submitCommentTapped:
+                guard let detail = state.detail,
+                      !state.isCommentSubmitting
+                else { return .none }
+                let content = state.commentText.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !content.isEmpty else { return .none }
+                state.isCommentSubmitting = true
+
+                if let editingComment = state.editingComment {
+                    guard editingComment.creator.id == state.currentUserId else {
+                        state.isCommentSubmitting = false
+                        return .none
+                    }
+                    let query = FilterCommentRequestDTO(content: content, parentComment: nil)
+                    return .run { [filterId = detail.id, commentId = editingComment.id] send in
+                        await send(.editCommentResponse(
+                            Result { try await filterClient.editFilterComment(filterId, commentId, query) }
+                        ))
+                    }
+                }
+
+                let query = FilterCommentRequestDTO(
+                    content: content,
+                    parentComment: state.replyTarget?.id
+                )
+                return .run { [filterId = detail.id] send in
+                    await send(.createCommentResponse(
+                        Result { try await filterClient.createFilterComment(filterId, query) }
+                    ))
+                }
+
+            case .createCommentResponse(.success):
+                state.isCommentSubmitting = false
+                state.commentText = ""
+                state.replyTarget = nil
+                return refreshDetailEffect(filterId: state.filterId)
+
+            case .createCommentResponse(.failure(let error)):
+                state.isCommentSubmitting = false
+                state.alert = makeAlert(title: "댓글 작성 실패", message: error.localizedDescription)
+                return .none
+
+            case .editCommentResponse(.success):
+                state.isCommentSubmitting = false
+                state.commentText = ""
+                state.editingComment = nil
+                return refreshDetailEffect(filterId: state.filterId)
+
+            case .editCommentResponse(.failure(let error)):
+                state.isCommentSubmitting = false
+                state.alert = makeAlert(title: "댓글 수정 실패", message: error.localizedDescription)
+                return .none
+
+            case .alert(.presented(.confirmDeleteComment)):
+                guard let target = state.deletingComment,
+                      target.creator.id == state.currentUserId,
+                      !state.isCommentSubmitting
+                else { return .none }
+                state.isCommentSubmitting = true
+                return .run { [filterId = state.filterId, commentId = target.id] send in
+                    await send(.deleteCommentResponse(
+                        Result { try await filterClient.deleteFilterComment(filterId, commentId) }
+                    ))
+                }
+
+            case .deleteCommentResponse(.success):
+                state.isCommentSubmitting = false
+                state.deletingComment = nil
+                return refreshDetailEffect(filterId: state.filterId)
+
+            case .deleteCommentResponse(.failure(let error)):
+                state.isCommentSubmitting = false
+                state.deletingComment = nil
+                state.alert = makeAlert(title: "댓글 삭제 실패", message: error.localizedDescription)
+                return .none
+
+            case .commentsRefreshResponse(.success(let dto)):
+                state.detail = FilterDetail(dto: dto, currentUserId: state.currentUserId)
+                return .none
+
+            case .commentsRefreshResponse(.failure(let error)):
+                state.alert = makeAlert(title: "댓글 새로고침 실패", message: error.localizedDescription)
                 return .none
 
             case .alert, .delegate:
