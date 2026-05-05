@@ -25,10 +25,19 @@ struct HeroBannerView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 555)
 
-            // "사용해보기" 버튼 — 우상단
+            // 상단 로고와 "사용해보기" 버튼
             VStack {
-                HStack {
+                HStack(alignment: .center) {
+                    (
+                        Text("FILTER")
+                            .foregroundColor(.filterzGray30)
+                        + Text("Z")
+                            .foregroundColor(.filterzAccent)
+                    )
+                    .font(.filterzDisplay(24))
+
                     Spacer()
+
                     Button {
                         store.send(.tryFilterTapped)
                     } label: {
@@ -48,7 +57,7 @@ struct HeroBannerView: View {
                     }
                 }
                 .padding(.top, 64)
-                .padding(.trailing, 20)
+                .padding(.horizontal, 20)
                 Spacer()
             }
 

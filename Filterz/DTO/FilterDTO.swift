@@ -112,6 +112,16 @@ nonisolated struct LikedFilterListRequestDTO: Encodable, Sendable {
     let category: String?
 }
 
+nonisolated struct FilterCommentRequestDTO: Encodable, Sendable {
+    let content: String
+    let parentComment: String?
+
+    enum CodingKeys: String, CodingKey {
+        case content
+        case parentComment = "parent_comment_id"
+    }
+}
+
 nonisolated struct FilterLikeRequestDTO: Encodable, Sendable {
     let likeStatus: Bool
 
