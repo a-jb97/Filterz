@@ -69,24 +69,28 @@ struct FilterMakerView: View {
     }
 
     private var previewArea: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                if let displayImage {
-                    Image(uiImage: displayImage)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    Color.filterzSurface
-                        .overlay(ProgressView().tint(Color.filterzGray60))
+        GeometryReader { proxy in
+            ZStack(alignment: .bottom) {
+                Group {
+                    if let displayImage {
+                        Image(uiImage: displayImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                    } else {
+                        Color.filterzSurface
+                            .overlay(ProgressView().tint(Color.filterzGray60))
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .clipped()
 
-            previewButtons
-                .padding(.horizontal, 20)
-                .padding(.bottom, 18)
+                previewButtons
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 18)
+            }
         }
+        .clipped()
     }
 
     private var previewButtons: some View {

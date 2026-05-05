@@ -22,6 +22,7 @@ enum Router: URLRequestConvertible {
     // MARK: - Filter
     case getFilters(next: String? = nil, category: String? = nil)
     case getUserFilters(userId: String, query: UserFilterListRequestDTO)
+    case getLikedFilters(query: LikedFilterListRequestDTO)
     case createFilter(query: CreateFilterRequestDTO)
     case getFilter(id: String)
     case editFilter(id: String, query: CreateFilterRequestDTO)
@@ -93,6 +94,7 @@ extension Router {
         // Filter
         case .getFilters(_, _), .createFilter:                  return "/filters"
         case .getUserFilters(let userId, _):                return "/filters/users/\(userId)"
+        case .getLikedFilters:                              return "/filters/likes/me"
         case .getFilter(let id), .editFilter(let id, _),
              .deleteFilter(let id):                         return "/filters/\(id)"
         case .likeFilter(let id, _):                        return "/filters/\(id)/like"
@@ -132,7 +134,7 @@ extension Router {
 
     private var method: HTTPMethod {
         switch self {
-        case .myInfo, .userProfile, .getTodayAuthor, .searchUsers, .getFilters(_, _), .getUserFilters, .getFilter, .getTodayFilter, .getHotTrendFilters,
+        case .myInfo, .userProfile, .getTodayAuthor, .searchUsers, .getFilters(_, _), .getUserFilters, .getLikedFilters, .getFilter, .getTodayFilter, .getHotTrendFilters,
              .getPosts, .getPost,
              .getChatRooms, .getChatMessages,
              .getOrders, .getOrder,
@@ -168,6 +170,13 @@ extension Router {
             if !items.isEmpty { urlComponents.queryItems = items }
         }
         if case .getUserFilters(_, let query) = self {
+            var items: [URLQueryItem] = []
+            if let next = query.next { items.append(URLQueryItem(name: "next", value: next)) }
+            if let limit = query.limit { items.append(URLQueryItem(name: "limit", value: String(limit))) }
+            if let category = query.category { items.append(URLQueryItem(name: "category", value: category)) }
+            if !items.isEmpty { urlComponents.queryItems = items }
+        }
+        if case .getLikedFilters(let query) = self {
             var items: [URLQueryItem] = []
             if let next = query.next { items.append(URLQueryItem(name: "next", value: next)) }
             if let limit = query.limit { items.append(URLQueryItem(name: "limit", value: String(limit))) }

@@ -10,6 +10,7 @@ struct MainFeature {
     @Reducer
     enum Path {
         case filterDetail(FilterDetailFeature)
+        case likedFilters(LikedFiltersFeature)
         case uploadFilter(UploadFilterFeature)
         case filterMaker(FilterMakerFeature)
         case chatRoom(ChatRoomFeature)
@@ -182,6 +183,14 @@ struct MainFeature {
                 state.path.append(.uploadFilter(.init(editing: detail)))
                 return .none
 
+            case .path(.element(_, .likedFilters(.delegate(.backTapped)))):
+                state.path.removeLast()
+                return .none
+
+            case .path(.element(_, .likedFilters(.delegate(.filterTapped(let id))))):
+                state.path.append(.filterDetail(.init(filterId: id)))
+                return .none
+
             case .path(.element(let id, .filterDetail(.delegate(.filterDeleted)))):
                 state.path.pop(from: id)
                 return .none
@@ -228,6 +237,10 @@ struct MainFeature {
 
             case .mypage(.delegate(.filterTapped(let id))):
                 state.path.append(.filterDetail(.init(filterId: id)))
+                return .none
+
+            case .mypage(.delegate(.likedFiltersRequested)):
+                state.path.append(.likedFilters(.init()))
                 return .none
 
             case .mypage(.delegate(.logoutCompleted)):
