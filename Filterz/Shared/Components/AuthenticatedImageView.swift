@@ -33,7 +33,8 @@ struct AuthenticatedImageView: View {
 
         image = nil
 
-        guard let url = URL(string: APIKey.baseURL + path) else {
+        let urlString = path.hasPrefix("http") ? path : APIKey.baseURL + path
+        guard let url = URL(string: urlString) else {
             return
         }
         var request = URLRequest(url: url)

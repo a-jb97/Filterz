@@ -14,6 +14,8 @@ struct MainFeature {
         case uploadFilter(UploadFilterFeature)
         case filterMaker(FilterMakerFeature)
         case chatRoom(ChatRoomFeature)
+        case videoList(VideoListFeature)
+        case videoPlayer(VideoPlayerFeature)
     }
 
     @ObservableState
@@ -145,6 +147,10 @@ struct MainFeature {
 
             case .feed(.delegate(.userProfileTapped(let userId))):
                 return presentUserProfile(&state, userId: userId)
+
+            case .feed(.delegate(.videoListRequested)):
+                state.path.append(.videoList(.init()))
+                return .none
 
             case .path(.element(_, .filterDetail(.delegate(.backTapped)))):
                 state.path.removeLast()
@@ -285,6 +291,18 @@ struct MainFeature {
 
             case .path(.element(_, .chatRoom(.delegate(.userProfileTapped(let userId))))):
                 return presentUserProfile(&state, userId: userId)
+
+            case .path(.element(_, .videoList(.delegate(.backTapped)))):
+                state.path.removeLast()
+                return .none
+
+            case .path(.element(_, .videoList(.delegate(.playVideoRequested(let video, let stream))))):
+                state.path.append(.videoPlayer(.init(video: video, stream: stream)))
+                return .none
+
+            case .path(.element(_, .videoPlayer(.delegate(.backTapped)))):
+                state.path.removeLast()
+                return .none
 
             case .userProfileRequested(let userId):
                 return presentUserProfile(&state, userId: userId)
