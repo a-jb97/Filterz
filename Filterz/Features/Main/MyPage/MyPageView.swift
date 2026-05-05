@@ -121,6 +121,8 @@ struct MyPageView: View {
                 .disabled(store.isLoggingOut)
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
+
+                filterSection
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 120)
@@ -177,6 +179,76 @@ struct MyPageView: View {
                 }
             }
         }
+    }
+
+    private var filterSection: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("내가 제작한 필터")
+                .font(.pretendard(18, weight: .semibold))
+                .foregroundColor(.filterzGray30)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            filterCategoryRow
+
+            if store.isFiltersLoading && store.filters.isEmpty {
+                ProgressView()
+                    .tint(.filterzGray45)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 36)
+            } else if store.filters.isEmpty {
+                Text("등록한 필터가 없습니다")
+                    .font(.pretendard(14, weight: .regular))
+                    .foregroundColor(.filterzGray75)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 36)
+            } else {
+                FeedBlockGridView(
+                    items: store.filters,
+                    onItemTapped: { store.send(.filterTapped(id: $0)) },
+                    onAuthorTapped: { _ in }
+                )
+                .padding(.horizontal, -20)
+
+                if store.hasMoreFilters {
+                    ProgressView()
+                        .tint(.filterzGray45)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 4)
+                        .onAppear { store.send(.loadMoreFilters) }
+                }
+            }
+        }
+        .padding(.top, 10)
+    }
+
+    private var filterCategoryRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                categoryButton(title: "전체", isSelected: store.selectedCategory == nil) {
+                    store.send(.filterCategorySelected(nil))
+                }
+
+                ForEach(FilterCategory.allCases, id: \.title) { category in
+                    categoryButton(title: category.title, isSelected: store.selectedCategory == category) {
+                        store.send(.filterCategorySelected(category))
+                    }
+                }
+            }
+        }
+    }
+
+    private func categoryButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.pretendard(13, weight: .semibold))
+                .foregroundColor(isSelected ? .filterzBlackBase : .filterzGray60)
+                .padding(.horizontal, 13)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule().fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
+                )
+        }
+        .buttonStyle(.plain)
     }
 }
 

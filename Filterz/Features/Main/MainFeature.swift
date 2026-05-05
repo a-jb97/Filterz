@@ -183,6 +183,10 @@ struct MainFeature {
             case .chatList(.delegate(.userProfileTapped(let userId))):
                 return presentUserProfile(&state, userId: userId)
 
+            case .mypage(.delegate(.filterTapped(let id))):
+                state.path.append(.filterDetail(.init(filterId: id)))
+                return .none
+
             case .mypage(.delegate(.logoutCompleted)):
                 return .send(.delegate(.logoutCompleted))
 

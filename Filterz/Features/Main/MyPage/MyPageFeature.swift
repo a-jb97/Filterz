@@ -29,7 +29,12 @@ struct MyPageFeature {
     @ObservableState
     struct State: Equatable {
         var profile: MyProfile? = nil
+        var filters: [FeedItem] = []
+        var selectedCategory: FilterCategory? = nil
+        var nextCursor: String? = nil
         var isLoading: Bool = false
+        var isFiltersLoading: Bool = false
+        var hasMoreFilters: Bool = true
         var isSaving: Bool = false
         var isLoggingOut: Bool = false
         var isLogoutConfirmationPresented: Bool = false
@@ -44,6 +49,10 @@ struct MyPageFeature {
     enum Action: Sendable {
         case onAppear
         case profileResponse(Result<MyInfoResponseDTO, any Error>)
+        case filterCategorySelected(FilterCategory?)
+        case loadMoreFilters
+        case filtersResponse(Result<FilterSummaryPaginationListResponseDTO, any Error>, append: Bool)
+        case filterTapped(id: String)
         case editButtonTapped
         case editPresentationChanged(Bool)
         case editNickChanged(String)
@@ -61,33 +70,58 @@ struct MyPageFeature {
 
         @CasePathable
         enum Delegate: Sendable {
+            case filterTapped(id: String)
             case logoutCompleted
         }
     }
 
     @Dependency(\.userClient) var userClient
     @Dependency(\.authClient) var authClient
+    @Dependency(\.filterClient) var filterClient
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                guard state.profile == nil, !state.isLoading else { return .none }
-                state.isLoading = true
-                state.errorMessage = nil
-                return .run { send in
-                    await send(.profileResponse(Result { try await userClient.myInfo() }))
-                }
+                let profileEffect = fetchProfile(&state)
+                let filtersEffect = state.profile != nil && state.filters.isEmpty
+                    ? fetchFilters(&state, append: false)
+                    : Effect<Action>.none
+                return .merge(profileEffect, filtersEffect)
 
             case .profileResponse(.success(let dto)):
                 state.isLoading = false
                 state.profile = MyProfile(dto: dto)
-                return .none
+                return state.filters.isEmpty ? fetchFilters(&state, append: false) : .none
 
             case .profileResponse(.failure(let error)):
                 state.isLoading = false
                 state.errorMessage = displayMessage(for: error)
                 return .none
+
+            case .filterCategorySelected(let category):
+                guard state.selectedCategory != category else { return .none }
+                state.selectedCategory = category
+                return fetchFilters(&state, append: false)
+
+            case .loadMoreFilters:
+                return fetchFilters(&state, append: true)
+
+            case .filtersResponse(.success(let dto), let append):
+                state.isFiltersLoading = false
+                let items = dto.data.map { FeedItem(dto: $0) }
+                state.filters = append ? state.filters + items : items
+                state.nextCursor = dto.nextCursor
+                state.hasMoreFilters = dto.nextCursor != nil && dto.nextCursor != "0"
+                return .none
+
+            case .filtersResponse(.failure(let error), _):
+                state.isFiltersLoading = false
+                state.errorMessage = displayMessage(for: error)
+                return .none
+
+            case .filterTapped(let id):
+                return .send(.delegate(.filterTapped(id: id)))
 
             case .editButtonTapped:
                 guard let profile = state.profile else { return .none }
@@ -208,6 +242,39 @@ struct MyPageFeature {
             case .delegate:
                 return .none
             }
+        }
+    }
+
+    private func fetchProfile(_ state: inout State) -> Effect<Action> {
+        guard state.profile == nil, !state.isLoading else { return .none }
+        state.isLoading = true
+        state.errorMessage = nil
+        return .run { send in
+            await send(.profileResponse(Result { try await userClient.myInfo() }))
+        }
+    }
+
+    private func fetchFilters(_ state: inout State, append: Bool) -> Effect<Action> {
+        guard let userId = state.profile?.userId else { return .none }
+        guard !state.isFiltersLoading else { return .none }
+        guard !append || state.hasMoreFilters else { return .none }
+        state.isFiltersLoading = true
+        if !append {
+            state.filters = []
+            state.nextCursor = nil
+            state.hasMoreFilters = true
+        }
+        state.errorMessage = nil
+        let query = UserFilterListRequestDTO(
+            next: append ? state.nextCursor : nil,
+            limit: 10,
+            category: state.selectedCategory?.categoryString
+        )
+        return .run { [filterClient] send in
+            await send(.filtersResponse(
+                Result { try await filterClient.getUserFilters(userId, query) },
+                append: append
+            ))
         }
     }
 }
