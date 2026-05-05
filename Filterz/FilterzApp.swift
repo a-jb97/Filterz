@@ -88,6 +88,29 @@ enum PushNotificationBridge {
     }
 }
 
+enum OrientationBridge {
+    nonisolated(unsafe) static var supportedOrientations: UIInterfaceOrientationMask = .portrait
+
+    @MainActor
+    static func setSupportedOrientations(_ orientations: UIInterfaceOrientationMask) {
+        supportedOrientations = orientations
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .forEach { windowScene in
+                windowScene.windows
+                    .forEach { $0.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations() }
+            }
+    }
+
+    @MainActor
+    static func requestPortrait() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            return
+        }
+        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+    }
+}
+
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -122,6 +145,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         }
         Iamport.shared.receivedURL(url)
         return true
+    }
+
+    func application(_ application: UIApplication,
+                     supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        OrientationBridge.supportedOrientations
     }
 
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
