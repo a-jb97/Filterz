@@ -50,6 +50,16 @@ struct MyPageView: View {
                 .font(.filterzDisplay(24))
                 .foregroundColor(.filterzGray30)
             Spacer()
+            Button {
+                store.send(.likedFiltersButtonTapped)
+            } label: {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(Color.filterzGray30)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .frame(height: 56)
