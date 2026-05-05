@@ -143,4 +143,63 @@ struct FilterzTests {
         #expect(object["parent_comment_id"] == "parent-1")
     }
 
+    @Test func getVideosRouterEncodesPaginationQuery() throws {
+        let request = try Router.getVideos(
+            query: VideoListRequestDTO(next: "cursor-1", limit: 5)
+        ).asURLRequest()
+        let components = try #require(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let queryItems = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value) })
+
+        #expect(components.path.hasSuffix("/videos"))
+        #expect(queryItems["next"] == "cursor-1")
+        #expect(queryItems["limit"] == "5")
+    }
+
+    @Test func streamURLResponseDecodesQualityURLVariants() throws {
+        let data = Data("""
+        {
+            "video_id": "video-1",
+            "stream_url": "https://example.com/master.m3u8?token=abc",
+            "qualities": [
+                { "quality": "1080p", "stream_url": "https://example.com/1080.m3u8?token=abc" },
+                { "name": "720p", "url": "https://example.com/720.m3u8?token=abc" }
+            ],
+            "subtitles": [
+                { "language": "ko", "url": "https://example.com/ko.vtt" },
+                { "lang": "en", "url": "https://example.com/en.vtt" }
+            ]
+        }
+        """.utf8)
+
+        let dto = try JSONDecoder().decode(StreamUrlResponseDTO.self, from: data)
+
+        #expect(dto.videoId == "video-1")
+        #expect(dto.streamUrl.contains("master.m3u8"))
+        #expect(dto.qualities.map(\.quality) == ["1080p", "720p"])
+        #expect(dto.qualities.map(\.streamUrl).allSatisfy { $0.contains("token=abc") })
+        #expect(dto.subtitles.map(\.language) == ["ko", "en"])
+    }
+
+    @Test func videoStreamPlaybackURLKeepsAPIVersionForRootRelativePath() throws {
+        let stream = VideoStream(dto: StreamUrlResponseDTO(
+            videoId: "video-1",
+            streamUrl: "/videos/video-1/master.m3u8?token=abc",
+            qualities: [],
+            subtitles: []
+        ))
+
+        #expect(stream.playbackURL?.absoluteString == "http://filter.sesac.kr:42598/v1/videos/video-1/master.m3u8?token=abc")
+    }
+
+    @Test func videoStreamPlaybackURLDoesNotDuplicateAPIVersion() throws {
+        let stream = VideoStream(dto: StreamUrlResponseDTO(
+            videoId: "video-1",
+            streamUrl: "/v1/videos/video-1/master.m3u8?token=abc",
+            qualities: [],
+            subtitles: []
+        ))
+
+        #expect(stream.playbackURL?.absoluteString == "http://filter.sesac.kr:42598/v1/videos/video-1/master.m3u8?token=abc")
+    }
+
 }
