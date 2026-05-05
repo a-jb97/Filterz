@@ -11,6 +11,7 @@ struct MainFeature {
     enum Path {
         case filterDetail(FilterDetailFeature)
         case uploadFilter(UploadFilterFeature)
+        case filterMaker(FilterMakerFeature)
         case chatRoom(ChatRoomFeature)
     }
 
@@ -189,6 +190,10 @@ struct MainFeature {
                 state.path.pop(from: id)
                 return .none
 
+            case .path(.element(_, .uploadFilter(.delegate(.makeFilterRequested(let source, let values))))):
+                state.path.append(.filterMaker(.init(source: source, values: values)))
+                return .none
+
             case .path(.element(let id, .uploadFilter(.delegate(.editCompleted(let dto))))):
                 let ids = Array(state.path.ids)
                 if let index = ids.firstIndex(of: id), index > 0 {
@@ -196,6 +201,21 @@ struct MainFeature {
                     let currentUserId = state.path[id: previousId, case: \.filterDetail]?.currentUserId ?? ""
                     state.path[id: previousId, case: \.filterDetail]?.detail = FilterDetail(dto: dto, currentUserId: currentUserId)
                 }
+                state.path.pop(from: id)
+                return .none
+
+            case .path(.element(let id, .filterMaker(.delegate(.saved(let values))))):
+                let ids = Array(state.path.ids)
+                if let index = ids.firstIndex(of: id), index > 0 {
+                    let previousId = ids[index - 1]
+                    state.path[id: previousId, case: \.uploadFilter]?.filterValues = values
+                } else {
+                    state.upload.filterValues = values
+                }
+                state.path.pop(from: id)
+                return .none
+
+            case .path(.element(let id, .filterMaker(.delegate(.backTapped)))):
                 state.path.pop(from: id)
                 return .none
 
@@ -212,6 +232,10 @@ struct MainFeature {
 
             case .mypage(.delegate(.logoutCompleted)):
                 return .send(.delegate(.logoutCompleted))
+
+            case .upload(.delegate(.makeFilterRequested(let source, let values))):
+                state.path.append(.filterMaker(.init(source: source, values: values)))
+                return .none
 
             case .path(.element(let id, .chatRoom(.onAppear))):
                 guard case let .chatRoom(chatRoomState)? = state.path[id: id] else {

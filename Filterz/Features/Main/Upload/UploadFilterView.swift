@@ -213,7 +213,9 @@ struct UploadFilterView: View {
                 sectionLabel("대표 사진 등록")
                 Spacer()
                 if store.selectedImageData != nil || store.existingImagePath != nil {
-                    PhotosPicker(selection: $pickerItem, matching: .images) {
+                    Button {
+                        store.send(.editPhotoTapped)
+                    } label: {
                         Text("수정하기")
                             .font(.filterzCaption())
                             .foregroundStyle(Color.filterzAccent)

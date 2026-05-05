@@ -25,6 +25,9 @@ struct MainView: View {
             case .uploadFilter(let uploadStore):
                 UploadFilterView(store: uploadStore)
                     .navigationBarHidden(true)
+            case .filterMaker(let makerStore):
+                FilterMakerView(store: makerStore)
+                    .navigationBarHidden(true)
             case .chatRoom(let chatStore):
                 ChatRoomView(store: chatStore)
                     .navigationBarHidden(true)
