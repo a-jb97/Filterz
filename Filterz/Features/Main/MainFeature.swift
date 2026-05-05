@@ -193,7 +193,8 @@ struct MainFeature {
                 let ids = Array(state.path.ids)
                 if let index = ids.firstIndex(of: id), index > 0 {
                     let previousId = ids[index - 1]
-                    state.path[id: previousId, case: \.filterDetail]?.detail = FilterDetail(dto: dto)
+                    let currentUserId = state.path[id: previousId, case: \.filterDetail]?.currentUserId ?? ""
+                    state.path[id: previousId, case: \.filterDetail]?.detail = FilterDetail(dto: dto, currentUserId: currentUserId)
                 }
                 state.path.pop(from: id)
                 return .none

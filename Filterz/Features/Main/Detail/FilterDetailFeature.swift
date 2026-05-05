@@ -201,7 +201,7 @@ struct PortOnePaymentResult: Equatable, Sendable {
 }
 
 extension FilterDetail {
-    init(dto: FilterResponseDTO) {
+    init(dto: FilterResponseDTO, currentUserId: String = "") {
         id = dto.filterId
         category = dto.category
         title = dto.title
@@ -216,7 +216,7 @@ extension FilterDetail {
         exif = FilterExifData(dto: dto.photoMetadata)
         presets = FilterPresetValues(dto: dto.filterValues)
         isLiked = dto.isLiked
-        isDownloaded = dto.isDownloaded
+        isDownloaded = dto.isDownloaded || dto.creator.userID == currentUserId
         likeCount = dto.likeCount
         buyerCount = dto.buyerCount
         createdAt = dto.createdAt
@@ -321,7 +321,7 @@ struct FilterDetailFeature {
 
             case .detailResponse(.success(let dto)):
                 state.isLoading = false
-                state.detail = FilterDetail(dto: dto)
+                state.detail = FilterDetail(dto: dto, currentUserId: state.currentUserId)
                 return .none
 
             case .detailResponse(.failure(let error)):
@@ -369,6 +369,7 @@ struct FilterDetailFeature {
             case .purchaseTapped:
                 guard let detail = state.detail,
                       !detail.isDownloaded,
+                      detail.creator.id != state.currentUserId,
                       !state.isPurchaseLoading
                 else { return .none }
                 state.isPurchaseLoading = true
@@ -488,7 +489,7 @@ struct FilterDetailFeature {
                 return .none
 
             case .editCompleted(let dto):
-                state.detail = FilterDetail(dto: dto)
+                state.detail = FilterDetail(dto: dto, currentUserId: state.currentUserId)
                 return .none
 
             case .alert, .delegate:
