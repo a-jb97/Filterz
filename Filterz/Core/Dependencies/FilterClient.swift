@@ -6,6 +6,7 @@ struct FilterClient: Sendable {
     var getHotTrendFilters: @Sendable () async throws -> FilterSummaryListResponseDTO
     var getFilters: @Sendable (_ next: String?, _ category: String?) async throws -> FilterSummaryPaginationListResponseDTO
     var getUserFilters: @Sendable (_ userId: String, _ query: UserFilterListRequestDTO) async throws -> FilterSummaryPaginationListResponseDTO
+    var getLikedFilters: @Sendable (_ query: LikedFilterListRequestDTO) async throws -> FilterSummaryPaginationListResponseDTO
     var getFilterDetail: @Sendable (_ id: String) async throws -> FilterResponseDTO
     var likeFilter: @Sendable (_ id: String, _ status: Bool) async throws -> Void
     var uploadFile: @Sendable (_ images: [Data]) async throws -> FileResponseDTO
@@ -28,6 +29,9 @@ extension FilterClient: DependencyKey {
             },
             getUserFilters: { userId, query in
                 try await NetworkManager.shared.request(.getUserFilters(userId: userId, query: query))
+            },
+            getLikedFilters: { query in
+                try await NetworkManager.shared.request(.getLikedFilters(query: query))
             },
             getFilterDetail: { id in
                 try await NetworkManager.shared.request(.getFilter(id: id))
@@ -118,6 +122,7 @@ extension FilterClient: DependencyKey {
             getHotTrendFilters: { mockFilters },
             getFilters: { _, _ in FilterSummaryPaginationListResponseDTO(data: mockFilters.data, nextCursor: nil) },
             getUserFilters: { _, _ in FilterSummaryPaginationListResponseDTO(data: mockFilters.data, nextCursor: nil) },
+            getLikedFilters: { _ in FilterSummaryPaginationListResponseDTO(data: mockFilters.data, nextCursor: nil) },
             getFilterDetail: { _ in mockDetail },
             likeFilter: { _, _ in },
             uploadFile: { _ in FileResponseDTO(files: []) },
