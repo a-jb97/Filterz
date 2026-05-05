@@ -32,7 +32,7 @@ struct FilterExifData: Equatable, Sendable {
 
     var fileSizeFormatted: String? {
         guard let size = fileSize else { return nil }
-        return String(format: "%.1fMB", size)
+        return String(format: "%.1fMB", size / 1_048_576)
     }
 
     var dimensionsFormatted: String? {
@@ -322,6 +322,7 @@ struct FilterDetailFeature {
             case .detailResponse(.success(let dto)):
                 state.isLoading = false
                 state.detail = FilterDetail(dto: dto, currentUserId: state.currentUserId)
+                state.previewSliderOffset = 0.5
                 return .none
 
             case .detailResponse(.failure(let error)):

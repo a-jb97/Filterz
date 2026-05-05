@@ -121,6 +121,7 @@ struct FilterDetailView: View {
         FilterPreviewView(
             afterImageURL: detail.imageURLs.first,
             beforeImageURL: detail.imageURLs.dropFirst().first,
+            values: FilterAdjustmentValues(presets: detail.presets),
             sliderOffset: store.previewSliderOffset,
             onSliderChanged: { store.send(.previewSliderChanged($0)) }
         )
