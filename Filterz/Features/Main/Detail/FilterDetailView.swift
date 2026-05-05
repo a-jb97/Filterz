@@ -32,9 +32,11 @@ struct FilterDetailView: View {
                                 .padding(.horizontal, 16)
                             CreatorSection(
                                 creator: detail.creator,
-                                showsDMButton: detail.creator.id != store.currentUserId,
+                                accessory: creatorAccessory(detail: detail),
                                 onProfileTapped: { store.send(.creatorProfileTapped) },
-                                onDMTapped: { store.send(.dmCreatorTapped) }
+                                onDMTapped: { store.send(.dmCreatorTapped) },
+                                onEditTapped: { store.send(.editTapped) },
+                                onDeleteTapped: { store.send(.deleteTapped) }
                             )
                             .padding(.horizontal, 16)
                             hashtagsSection(detail: detail)
@@ -123,6 +125,13 @@ struct FilterDetailView: View {
             onSliderChanged: { store.send(.previewSliderChanged($0)) }
         )
         .padding(.horizontal, 16)
+    }
+
+    private func creatorAccessory(detail: FilterDetail) -> CreatorSection.Accessory {
+        if detail.creator.id == store.currentUserId {
+            return .ownerActions
+        }
+        return detail.creator.id.isEmpty ? .none : .dm
     }
 
     private func priceSection(detail: FilterDetail) -> some View {

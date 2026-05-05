@@ -19,6 +19,7 @@ struct FilterExifData: Equatable, Sendable {
     let pixelWidth: Int?
     let pixelHeight: Int?
     let fileSize: Double?
+    let format: String?
     let dateTimeOriginal: String?
     let latitude: Float?
     let longitude: Float?
@@ -51,6 +52,7 @@ extension FilterExifData {
         pixelWidth = dto.pixelWidth
         pixelHeight = dto.pixelHeight
         fileSize = dto.fileSize
+        format = dto.format
         dateTimeOriginal = dto.dateTimeOriginal
         latitude = dto.latitude
         longitude = dto.longitude
@@ -190,6 +192,7 @@ struct FilterDetailFeature {
         var isLikeInProgress: Bool = false
         var previewSliderOffset: CGFloat = 0.5
         var isPurchaseLoading: Bool = false
+        var isDeleteLoading: Bool = false
         var paymentRequest: PortOnePaymentRequest? = nil
         var errorMessage: String? = nil
         @Presents var alert: AlertState<Action.Alert>?
@@ -209,16 +212,24 @@ struct FilterDetailFeature {
         case paymentSheetDismissed
         case creatorProfileTapped
         case dmCreatorTapped
+        case editTapped
+        case deleteTapped
+        case deleteResponse(Result<Void, any Error>)
+        case editCompleted(FilterResponseDTO)
         case alert(PresentationAction<Alert>)
         case delegate(Delegate)
 
-        enum Alert: Equatable {}
+        enum Alert: Equatable {
+            case confirmDelete
+        }
 
         @CasePathable
         enum Delegate: Sendable {
             case backTapped
             case userProfileTapped(userId: String)
             case dmCreatorTapped(creatorId: String)
+            case editFilterRequested(FilterDetail)
+            case filterDeleted
         }
     }
 
@@ -232,6 +243,21 @@ struct FilterDetailFeature {
             ButtonState(role: .cancel) { TextState("확인") }
         } message: {
             TextState(message ?? "오류가 발생했습니다.")
+        }
+    }
+
+    private func makeDeleteConfirmationAlert(title: String) -> AlertState<Action.Alert> {
+        AlertState {
+            TextState("필터 삭제")
+        } actions: {
+            ButtonState(role: .destructive, action: .confirmDelete) {
+                TextState("삭제")
+            }
+            ButtonState(role: .cancel) {
+                TextState("취소")
+            }
+        } message: {
+            TextState("'\(title)' 필터를 삭제하시겠습니까? 삭제한 필터는 복구할 수 없습니다.")
         }
     }
 
@@ -383,6 +409,42 @@ struct FilterDetailFeature {
                 guard let creatorId = state.detail?.creator.id,
                       creatorId != state.currentUserId else { return .none }
                 return .send(.delegate(.dmCreatorTapped(creatorId: creatorId)))
+
+            case .editTapped:
+                guard let detail = state.detail,
+                      detail.creator.id == state.currentUserId else { return .none }
+                return .send(.delegate(.editFilterRequested(detail)))
+
+            case .deleteTapped:
+                guard let detail = state.detail,
+                      detail.creator.id == state.currentUserId,
+                      !state.isDeleteLoading else { return .none }
+                state.alert = makeDeleteConfirmationAlert(title: detail.title)
+                return .none
+
+            case .alert(.presented(.confirmDelete)):
+                guard let detail = state.detail,
+                      detail.creator.id == state.currentUserId,
+                      !state.isDeleteLoading else { return .none }
+                state.isDeleteLoading = true
+                return .run { [filterId = detail.id] send in
+                    await send(.deleteResponse(
+                        Result { try await filterClient.deleteFilter(filterId) }
+                    ))
+                }
+
+            case .deleteResponse(.success):
+                state.isDeleteLoading = false
+                return .send(.delegate(.filterDeleted))
+
+            case .deleteResponse(.failure(let error)):
+                state.isDeleteLoading = false
+                state.alert = makeAlert(title: "삭제 실패", message: error.localizedDescription)
+                return .none
+
+            case .editCompleted(let dto):
+                state.detail = FilterDetail(dto: dto)
+                return .none
 
             case .alert, .delegate:
                 return .none

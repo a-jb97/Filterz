@@ -1,10 +1,18 @@
 import SwiftUI
 
 struct CreatorSection: View {
+    enum Accessory {
+        case none
+        case dm
+        case ownerActions
+    }
+
     let creator: FilterCreator
-    let showsDMButton: Bool
+    let accessory: Accessory
     var onProfileTapped: () -> Void = {}
     var onDMTapped: () -> Void = {}
+    var onEditTapped: () -> Void = {}
+    var onDeleteTapped: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 12) {
@@ -30,7 +38,11 @@ struct CreatorSection: View {
 
             Spacer()
 
-            if showsDMButton {
+            switch accessory {
+            case .none:
+                EmptyView()
+
+            case .dm:
                 Button(action: onDMTapped) {
                     Image(systemName: "paperplane")
                         .resizable()
@@ -46,7 +58,35 @@ struct CreatorSection: View {
                                 )
                         )
                 }
+
+            case .ownerActions:
+                HStack(spacing: 10) {
+                    actionButton(systemName: "pencil", action: onEditTapped)
+                    actionButton(systemName: "trash", foregroundColor: .red, action: onDeleteTapped)
+                }
             }
+        }
+    }
+
+    private func actionButton(
+        systemName: String,
+        foregroundColor: Color = .filterzGray45,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+                .foregroundColor(foregroundColor)
+                .padding(14)
+                .background(
+                    Circle()
+                        .fill(Color.filterzBlackAccent)
+                        .overlay(
+                            Circle().stroke(Color.filterzTranslucent, lineWidth: 1)
+                        )
+                )
         }
     }
 }
