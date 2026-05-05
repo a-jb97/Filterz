@@ -41,6 +41,8 @@ struct FilterDetailView: View {
                             .padding(.horizontal, 16)
                             hashtagsSection(detail: detail)
                             descriptionSection(detail: detail)
+                            commentsSection(detail: detail)
+                                .padding(.horizontal, 16)
                         }
                         .padding(.bottom, 40)
                         .padding(.top, 8)
@@ -210,6 +212,240 @@ struct FilterDetailView: View {
             .foregroundColor(.filterzGray60)
             .lineSpacing(8)
             .padding(.horizontal, 16)
+    }
+
+    private func commentsSection(detail: FilterDetail) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 6) {
+                Text("댓글")
+                    .font(.pretendard(15, weight: .bold))
+                    .foregroundColor(.filterzGray30)
+
+                Text("\(commentCount(detail.comments))")
+                    .font(.pretendard(13, weight: .semibold))
+                    .foregroundColor(.filterzAccent)
+            }
+
+            if detail.comments.isEmpty {
+                Text("첫 댓글을 남겨보세요.")
+                    .font(.pretendard(13, weight: .regular))
+                    .foregroundColor(.filterzGray75)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.filterzBlackAccent)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.filterzTranslucent, lineWidth: 1)
+                            )
+                    )
+            } else {
+                VStack(alignment: .leading, spacing: 14) {
+                    ForEach(detail.comments) { comment in
+                        commentRow(comment, isReply: false)
+
+                        if !comment.replies.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                ForEach(comment.replies) { reply in
+                                    commentRow(reply, isReply: true)
+                                }
+                            }
+                            .padding(.leading, 24)
+                        }
+                    }
+                }
+            }
+
+            commentComposer
+        }
+    }
+
+    private func commentCount(_ comments: [FilterComment]) -> Int {
+        comments.reduce(0) { $0 + 1 + $1.replies.count }
+    }
+
+    private func commentRow(_ comment: FilterComment, isReply: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                avatar(for: comment.creator)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Text(comment.creator.nick)
+                            .font(.pretendard(13, weight: .semibold))
+                            .foregroundColor(.filterzGray30)
+                            .lineLimit(1)
+
+                        Text(comment.createdAtFormatted)
+                            .font(.pretendard(11, weight: .regular))
+                            .foregroundColor(.filterzGray75)
+                            .lineLimit(1)
+
+                        Spacer(minLength: 0)
+                    }
+
+                    Text(comment.content)
+                        .font(.pretendard(13, weight: .regular))
+                        .foregroundColor(.filterzGray60)
+                        .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    HStack(spacing: 12) {
+                        if !isReply {
+                            commentActionButton("답글") {
+                                store.send(.replyTapped(commentId: comment.id))
+                            }
+                        }
+
+                        if comment.creator.id == store.currentUserId {
+                            commentActionButton("수정") {
+                                store.send(.editCommentTapped(commentId: comment.id))
+                            }
+                            commentActionButton("삭제", role: .destructive) {
+                                store.send(.deleteCommentTapped(commentId: comment.id))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isReply ? Color.filterzBlackBase : Color.filterzBlackAccent)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                )
+        )
+    }
+
+    private func avatar(for creator: FilterCreator) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color.filterzBlackAccent)
+
+            if let path = creator.profileImagePath, !path.isEmpty {
+                AuthenticatedImageView(path: path)
+                    .frame(width: 30, height: 30)
+                    .clipShape(Circle())
+            } else {
+                Text(String(creator.nick.prefix(1)))
+                    .font(.pretendard(12, weight: .bold))
+                    .foregroundColor(.filterzGray60)
+            }
+        }
+            .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
+            .frame(width: 30, height: 30)
+    }
+
+    private func commentActionButton(
+        _ title: String,
+        role: ButtonRole? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(role: role, action: action) {
+            Text(title)
+                .font(.pretendard(12, weight: .medium))
+                .foregroundColor(role == .destructive ? .red : .filterzGray75)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var commentComposer: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let modeText = commentModeText {
+                HStack(spacing: 8) {
+                    Text(modeText)
+                        .font(.pretendard(12, weight: .medium))
+                        .foregroundColor(.filterzAccent)
+                        .lineLimit(1)
+
+                    Spacer()
+
+                    Button {
+                        store.send(.cancelCommentModeTapped)
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.filterzGray75)
+                            .frame(width: 24, height: 24)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            HStack(alignment: .bottom, spacing: 10) {
+                TextField(
+                    commentPlaceholder,
+                    text: Binding(
+                        get: { store.commentText },
+                        set: { store.send(.commentTextChanged($0)) }
+                    ),
+                    axis: .vertical
+                )
+                .font(.pretendard(13, weight: .regular))
+                .foregroundColor(.filterzGray30)
+                .lineLimit(1...4)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.filterzBlackAccent)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.filterzTranslucent, lineWidth: 1)
+                        )
+                )
+
+                Button {
+                    store.send(.submitCommentTapped)
+                } label: {
+                    Group {
+                        if store.isCommentSubmitting {
+                            ProgressView()
+                                .tint(.filterzBlackBase)
+                        } else {
+                            Image(systemName: store.editingComment == nil ? "paperplane.fill" : "checkmark")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                    }
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(canSubmitComment ? Color.filterzAccent : Color.filterzBorder))
+                    .foregroundColor(.filterzBlackBase)
+                }
+                .buttonStyle(.plain)
+                .disabled(!canSubmitComment || store.isCommentSubmitting)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.filterzBlackBase)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                )
+        )
+    }
+
+    private var commentModeText: String? {
+        if store.editingComment != nil {
+            return "댓글 수정 중"
+        }
+        if let replyTarget = store.replyTarget {
+            return "@\(replyTarget.creator.nick)에게 답글 작성 중"
+        }
+        return nil
+    }
+
+    private var commentPlaceholder: String {
+        store.editingComment == nil ? "댓글을 입력하세요" : "수정할 내용을 입력하세요"
+    }
+
+    private var canSubmitComment: Bool {
+        !store.commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 
