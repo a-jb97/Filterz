@@ -10,6 +10,7 @@ struct MainFeature {
     @Reducer
     enum Path {
         case filterDetail(FilterDetailFeature)
+        case uploadFilter(UploadFilterFeature)
         case chatRoom(ChatRoomFeature)
     }
 
@@ -174,6 +175,27 @@ struct MainFeature {
 
             case .createChatRoomResponse(.failure):
                 state.isOpeningDM = false
+                return .none
+
+            case .path(.element(_, .filterDetail(.delegate(.editFilterRequested(let detail))))):
+                state.path.append(.uploadFilter(.init(editing: detail)))
+                return .none
+
+            case .path(.element(let id, .filterDetail(.delegate(.filterDeleted)))):
+                state.path.pop(from: id)
+                return .none
+
+            case .path(.element(let id, .uploadFilter(.delegate(.backTapped)))):
+                state.path.pop(from: id)
+                return .none
+
+            case .path(.element(let id, .uploadFilter(.delegate(.editCompleted(let dto))))):
+                let ids = Array(state.path.ids)
+                if let index = ids.firstIndex(of: id), index > 0 {
+                    let previousId = ids[index - 1]
+                    state.path[id: previousId, case: \.filterDetail]?.detail = FilterDetail(dto: dto)
+                }
+                state.path.pop(from: id)
                 return .none
 
             case .chatList(.delegate(.roomTapped(let room))):

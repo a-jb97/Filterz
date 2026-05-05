@@ -51,6 +51,7 @@ struct UploadFilterView: View {
         .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
         .background(Color.filterzBlackBase.ignoresSafeArea())
         .onAppear {
+            store.send(.onAppear)
             if displayImage == nil, let data = store.displayThumbnail {
                 Task.detached(priority: .userInitiated) {
                     let image = UIImage(data: data)
@@ -115,7 +116,19 @@ struct UploadFilterView: View {
 
     private var navigationHeader: some View {
         HStack {
-            Text("필터 제작")
+            if store.mode.isEdit {
+                Button { store.send(.backTapped) } label: {
+                    Image(systemName: "chevron.left")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 10, height: 18)
+                        .foregroundStyle(Color.filterzGray60)
+                        .padding(8)
+                }
+                .frame(width: 44, height: 44)
+            }
+
+            Text(store.mode.isEdit ? "필터 수정" : "필터 제작")
                 .font(.filterzDisplay(24))
                 .foregroundStyle(Color.filterzGray30)
 
@@ -127,7 +140,7 @@ struct UploadFilterView: View {
                         .tint(Color.filterzGray30)
                         .frame(width: 44, height: 44)
                 } else {
-                    Image(systemName: "square.and.arrow.down")
+                    Image(systemName: store.mode.isEdit ? "checkmark" : "square.and.arrow.down")
                         .font(.system(size: 17, weight: .medium))
                         .foregroundStyle(Color.filterzGray30)
                         .frame(width: 44, height: 44)
@@ -174,7 +187,7 @@ struct UploadFilterView: View {
         } label: {
             Text(category)
                 .font(.filterzCaption())
-                .foregroundStyle(isSelected ? Color.filterzGray30 : Color.filterzGray60)
+                .foregroundStyle(isSelected ? Color.filterzBackground : Color.filterzGray30)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
                 .background(
@@ -199,7 +212,7 @@ struct UploadFilterView: View {
             HStack {
                 sectionLabel("대표 사진 등록")
                 Spacer()
-                if store.selectedImageData != nil {
+                if store.selectedImageData != nil || store.existingImagePath != nil {
                     PhotosPicker(selection: $pickerItem, matching: .images) {
                         Text("수정하기")
                             .font(.filterzCaption())
@@ -209,9 +222,11 @@ struct UploadFilterView: View {
                 }
             }
 
-            if store.selectedImageData != nil {
+            if store.selectedImageData != nil || store.existingImagePath != nil {
                 if let uiImage = displayImage {
                     filledPhotoArea(uiImage: uiImage)
+                } else if let existingImagePath = store.existingImagePath {
+                    filledRemotePhotoArea(path: existingImagePath)
                 } else {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color.filterzSurface)
@@ -261,6 +276,21 @@ struct UploadFilterView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    private func filledRemotePhotoArea(path: String) -> some View {
+        VStack(spacing: 0) {
+            AuthenticatedImageView(path: path)
+                .frame(maxWidth: .infinity)
+                .frame(height: 300)
+                .clipped()
+                .contentShape(Rectangle())
+
+            if let meta = store.imageMetadata {
+                metadataCard(meta)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
     @ViewBuilder
     private func metadataLeftView(_ meta: ImageMetadata) -> some View {
         if let uiImage = mapImage {
@@ -268,13 +298,13 @@ struct UploadFilterView: View {
                 .resizable()
                 .scaledToFill()
         } else if meta.latitude != nil {
-            Color.filterzDeepSprout
+            Color.filterzAccent
         } else {
             Image(systemName: "camera.fill")
                 .font(.system(size: 18))
                 .foregroundStyle(Color.filterzGray60)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.filterzDeepSprout)
+                .background(Color.filterzAccent)
         }
     }
 
@@ -292,10 +322,10 @@ struct UploadFilterView: View {
                     Spacer()
                     Text("EXIF")
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzBackground)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.filterzDeepSprout)
+                        .background(Color.filterzAccent)
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
 

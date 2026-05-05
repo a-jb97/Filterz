@@ -24,7 +24,7 @@ enum Router: URLRequestConvertible {
     case getUserFilters(userId: String, query: UserFilterListRequestDTO)
     case createFilter(query: CreateFilterRequestDTO)
     case getFilter(id: String)
-    case editFilter(id: String)
+    case editFilter(id: String, query: CreateFilterRequestDTO)
     case deleteFilter(id: String)
     case likeFilter(id: String, query: FilterLikeRequestDTO)
     case getTodayFilter
@@ -93,7 +93,7 @@ extension Router {
         // Filter
         case .getFilters(_, _), .createFilter:                  return "/filters"
         case .getUserFilters(let userId, _):                return "/filters/users/\(userId)"
-        case .getFilter(let id), .editFilter(let id),
+        case .getFilter(let id), .editFilter(let id, _),
              .deleteFilter(let id):                         return "/filters/\(id)"
         case .likeFilter(let id, _):                        return "/filters/\(id)/like"
         case .getTodayFilter:                               return "/filters/today-filter"
@@ -206,6 +206,8 @@ extension Router {
         case .editMyProfile(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .createFilter(let query):
+            return try JSONParameterEncoder.default.encode(query, into: request)
+        case .editFilter(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .createPost(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)

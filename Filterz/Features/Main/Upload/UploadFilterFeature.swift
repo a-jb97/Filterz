@@ -36,11 +36,30 @@ struct UploadFilterFeature {
 
     static let categories = ["푸드", "인물", "풍경", "야경", "별"]
 
+    struct EditContext: Equatable, Sendable {
+        let filterId: String
+        let files: [String]
+        let photoMetadata: PhotoMetadataDTO?
+        let filterValues: FilterValuesDTO?
+    }
+
+    enum Mode: Equatable, Sendable {
+        case create
+        case edit(EditContext)
+
+        var isEdit: Bool {
+            if case .edit = self { return true }
+            return false
+        }
+    }
+
     @ObservableState
     struct State: Equatable {
+        var mode: Mode = .create
         var filterName: String = ""
         var selectedCategory: String? = nil
         var selectedImageData: Data? = nil
+        var existingImagePath: String? = nil
         var displayThumbnail: Data? = nil
         var mapSnapshotData: Data? = nil
         var imageMetadata: ImageMetadata? = nil
@@ -49,9 +68,27 @@ struct UploadFilterFeature {
         var isUploading: Bool = false
         var errorMessage: String? = nil
         var isSaveSucceeded: Bool = false
+
+        init() {}
+
+        init(editing detail: FilterDetail) {
+            mode = .edit(EditContext(
+                filterId: detail.id,
+                files: detail.imageURLs,
+                photoMetadata: detail.exif.dto,
+                filterValues: detail.presets.dto
+            ))
+            filterName = detail.title
+            selectedCategory = detail.category
+            existingImagePath = detail.imageURLs.first
+            imageMetadata = detail.exif.imageMetadata
+            filterDescription = detail.description
+            price = "\(detail.price)"
+        }
     }
 
     enum Action: Sendable {
+        case onAppear
         case filterNameChanged(String)
         case categorySelected(String)
         case imageSelected(Data?)
@@ -65,6 +102,14 @@ struct UploadFilterFeature {
         case successAlertDismissed
         case locationResolved(String)
         case reset
+        case backTapped
+        case delegate(Delegate)
+
+        @CasePathable
+        enum Delegate: Sendable {
+            case backTapped
+            case editCompleted(FilterResponseDTO)
+        }
     }
 
     @Dependency(\.filterClient) var filterClient
@@ -72,6 +117,15 @@ struct UploadFilterFeature {
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                guard state.mode.isEdit,
+                      state.mapSnapshotData == nil,
+                      let lat = state.imageMetadata?.latitude,
+                      let lon = state.imageMetadata?.longitude
+                else { return .none }
+                return .run { send in
+                    await send(.mapSnapshotGenerated(makeMapSnapshot(lat: lat, lon: lon)))
+                }
 
             case .filterNameChanged(let name):
                 state.filterName = name
@@ -83,6 +137,9 @@ struct UploadFilterFeature {
 
             case .imageSelected(let data):
                 state.selectedImageData = data
+                if data != nil {
+                    state.existingImagePath = nil
+                }
                 state.displayThumbnail = nil
                 state.mapSnapshotData = nil
                 state.imageMetadata = nil
@@ -130,7 +187,8 @@ struct UploadFilterFeature {
                     state.errorMessage = "카테고리를 선택해주세요."
                     return .none
                 }
-                guard let imageData = state.selectedImageData else {
+                let mode = state.mode
+                guard state.selectedImageData != nil || !mode.existingFiles.isEmpty else {
                     state.errorMessage = "대표 사진을 등록해주세요."
                     return .none
                 }
@@ -147,40 +205,54 @@ struct UploadFilterFeature {
 
                 state.isUploading = true
 
-                return .run { [filterClient] send in
-                    let jpegData = compressUnder2MB(imageData)
-                    let photoMeta = buildPhotoMetadataDTO(from: imageData)
-
-                    // Step 1: 이미지 업로드
-                    let fileResponse: FileResponseDTO = try await filterClient.uploadFile([jpegData])
-
-                    // Step 2: 필터 생성
+                return .run { [filterClient, imageData = state.selectedImageData] send in
+                    let files: [String]
+                    let photoMeta: PhotoMetadataDTO?
+                    if let imageData {
+                        let jpegData = compressUnder2MB(imageData)
+                        let fileResponse: FileResponseDTO = try await filterClient.uploadFile([jpegData])
+                        files = fileResponse.files
+                        photoMeta = buildPhotoMetadataDTO(from: imageData)
+                    } else {
+                        files = mode.existingFiles
+                        photoMeta = mode.existingPhotoMetadata
+                    }
                     let query = CreateFilterRequestDTO(
                         category: category,
                         title: name,
                         description: desc,
-                        files: fileResponse.files,
+                        files: files,
                         price: price,
                         photoMetadata: photoMeta,
-                        filterValues: FilterValuesDTO(
+                        filterValues: mode.existingFilterValues ?? FilterValuesDTO(
                             brightness: 0, exposure: 0, contrast: 0,
                             saturation: 0, sharpness: 0, blur: 0,
                             vignette: 0, noiseReduction: 0, highlights: 0,
                             shadows: 0, temperature: 0, blackPoint: 0
                         )
                     )
-                    let result: FilterResponseDTO = try await filterClient.createFilter(query)
+                    let result: FilterResponseDTO
+                    switch mode {
+                    case .create:
+                        result = try await filterClient.createFilter(query)
+                    case .edit(let context):
+                        result = try await filterClient.editFilter(context.filterId, query)
+                    }
                     await send(.createFilterResponse(.success(result)))
                 } catch: { error, send in
                     await send(.createFilterResponse(.failure(error)))
                 }
 
-            case .createFilterResponse(.success):
+            case .createFilterResponse(.success(let dto)):
                 state.isUploading = false
+                if state.mode.isEdit {
+                    return .send(.delegate(.editCompleted(dto)))
+                }
                 state.isSaveSucceeded = true
                 state.filterName = ""
                 state.selectedCategory = nil
                 state.selectedImageData = nil
+                state.existingImagePath = nil
                 state.displayThumbnail = nil
                 state.mapSnapshotData = nil
                 state.imageMetadata = nil
@@ -209,8 +281,84 @@ struct UploadFilterFeature {
             case .reset:
                 state = .init()
                 return .none
+
+            case .backTapped:
+                return .send(.delegate(.backTapped))
+
+            case .delegate:
+                return .none
             }
         }
+    }
+}
+
+private extension UploadFilterFeature.Mode {
+    nonisolated var existingFiles: [String] {
+        guard case .edit(let context) = self else { return [] }
+        return context.files
+    }
+
+    nonisolated var existingPhotoMetadata: PhotoMetadataDTO? {
+        guard case .edit(let context) = self else { return nil }
+        return context.photoMetadata
+    }
+
+    nonisolated var existingFilterValues: FilterValuesDTO? {
+        guard case .edit(let context) = self else { return nil }
+        return context.filterValues
+    }
+}
+
+private extension FilterExifData {
+    var dto: PhotoMetadataDTO {
+        PhotoMetadataDTO(
+            camera: camera,
+            lensInfo: lensInfo,
+            focalLength: focalLength,
+            aperture: aperture,
+            iso: iso,
+            shutterSpeed: shutterSpeed,
+            pixelWidth: pixelWidth,
+            pixelHeight: pixelHeight,
+            fileSize: fileSize,
+            format: format,
+            dateTimeOriginal: dateTimeOriginal,
+            latitude: latitude,
+            longitude: longitude
+        )
+    }
+
+    var imageMetadata: ImageMetadata {
+        var metadata = ImageMetadata()
+        metadata.cameraModel = camera
+        metadata.lensSpec = lensInfo
+        metadata.format = format
+        metadata.megapixels = megapixels
+        metadata.resolution = dimensionsFormatted
+        metadata.fileSize = fileSizeFormatted
+        metadata.latitude = latitude.map(Double.init)
+        metadata.longitude = longitude.map(Double.init)
+        metadata.dateTimeOriginal = dateTimeOriginal
+        return metadata
+    }
+}
+
+private extension FilterPresetValues {
+    var dto: FilterValuesDTO {
+        FilterValuesDTO(
+            brightness: brightness,
+            exposure: exposure,
+            contrast: contrast,
+            saturation: saturation,
+            sharpness: sharpness,
+            blur: blur,
+            vignette: vignette,
+            noiseReduction: noiseReduction,
+            highlights: highlights,
+            shadows: shadows,
+            temperature: temperature,
+            blackPoint: blackPoint
+        )
     }
 }
 

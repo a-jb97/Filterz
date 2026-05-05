@@ -164,7 +164,7 @@ nonisolated struct TodayFilterResponseDTO: Decodable, Sendable {
 
 // MARK: - Request DTOs
 
-nonisolated struct CreateFilterRequestDTO: Encodable, Sendable {
+nonisolated struct CreateFilterRequestDTO: Encodable, Equatable, Sendable {
     let category: String
     let title: String
     let description: String
@@ -180,7 +180,7 @@ nonisolated struct CreateFilterRequestDTO: Encodable, Sendable {
     }
 }
 
-nonisolated struct PhotoMetadataDTO: Codable, Sendable {
+nonisolated struct PhotoMetadataDTO: Codable, Equatable, Sendable {
     let camera: String?
     let lensInfo: String?
     let focalLength: Float?
@@ -210,7 +210,7 @@ nonisolated struct PhotoMetadataDTO: Codable, Sendable {
     }
 }
 
-nonisolated struct FilterValuesDTO: Codable, Sendable {
+nonisolated struct FilterValuesDTO: Codable, Equatable, Sendable {
     let brightness: Float?
     let exposure: Float?
     let contrast: Float?

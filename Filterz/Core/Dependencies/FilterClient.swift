@@ -10,6 +10,8 @@ struct FilterClient: Sendable {
     var likeFilter: @Sendable (_ id: String, _ status: Bool) async throws -> Void
     var uploadFile: @Sendable (_ images: [Data]) async throws -> FileResponseDTO
     var createFilter: @Sendable (_ query: CreateFilterRequestDTO) async throws -> FilterResponseDTO
+    var editFilter: @Sendable (_ id: String, _ query: CreateFilterRequestDTO) async throws -> FilterResponseDTO
+    var deleteFilter: @Sendable (_ id: String) async throws -> Void
 }
 
 extension FilterClient: DependencyKey {
@@ -38,6 +40,12 @@ extension FilterClient: DependencyKey {
             },
             createFilter: { query in
                 try await NetworkManager.shared.request(.createFilter(query: query))
+            },
+            editFilter: { id, query in
+                try await NetworkManager.shared.request(.editFilter(id: id, query: query))
+            },
+            deleteFilter: { id in
+                try await NetworkManager.shared.requestVoid(.deleteFilter(id: id))
             }
         )
     }
@@ -113,7 +121,9 @@ extension FilterClient: DependencyKey {
             getFilterDetail: { _ in mockDetail },
             likeFilter: { _, _ in },
             uploadFile: { _ in FileResponseDTO(files: []) },
-            createFilter: { _ in mockDetail }
+            createFilter: { _ in mockDetail },
+            editFilter: { _, _ in mockDetail },
+            deleteFilter: { _ in }
         )
     }
 }
