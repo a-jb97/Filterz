@@ -6,6 +6,7 @@
 //
 
 import Testing
+import Foundation
 @testable import Filterz
 
 struct FilterzTests {
@@ -122,6 +123,24 @@ struct FilterzTests {
         )
 
         #expect(exif.fileSizeFormatted == "2.2MB")
+    }
+
+    @Test func rootFilterCommentRequestOmitsParentComment() throws {
+        let query = FilterCommentRequestDTO(content: "hello", parentComment: nil)
+        let data = try JSONEncoder().encode(query)
+        let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: String])
+
+        #expect(object["content"] == "hello")
+        #expect(object["parent_comment_id"] == nil)
+    }
+
+    @Test func replyFilterCommentRequestEncodesParentComment() throws {
+        let query = FilterCommentRequestDTO(content: "reply", parentComment: "parent-1")
+        let data = try JSONEncoder().encode(query)
+        let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: String])
+
+        #expect(object["content"] == "reply")
+        #expect(object["parent_comment_id"] == "parent-1")
     }
 
 }
