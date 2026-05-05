@@ -338,7 +338,7 @@ private extension FilterExifData {
         metadata.fileSize = fileSizeFormatted
         metadata.latitude = latitude.map(Double.init)
         metadata.longitude = longitude.map(Double.init)
-        metadata.dateTimeOriginal = dateTimeOriginal
+        metadata.dateTimeOriginal = dateTimeOriginalFormatted
         return metadata
     }
 }
@@ -426,7 +426,8 @@ nonisolated private func extractDisplayMetadata(from data: Data) -> ImageMetadat
 
     // dateTimeOriginal: "YYYY:MM:DD HH:MM:SS" → 사용자 친화적 표시
     if let exifDate = exif?[kCGImagePropertyExifDateTimeOriginal as String] as? String {
-        meta.dateTimeOriginal = formatExifDate(exifDate)
+        let offset = exif?[kCGImagePropertyExifOffsetTimeOriginal as String] as? String
+        meta.dateTimeOriginal = formatExifDate(exifDate, offsetTimeOriginal: offset)
     }
 
     return meta
@@ -537,7 +538,8 @@ nonisolated private func buildPhotoMetadataDTO(from data: Data) -> PhotoMetadata
 
     let dateTimeOriginal: String?
     if let exifDate = exif?[kCGImagePropertyExifDateTimeOriginal as String] as? String {
-        dateTimeOriginal = exifDateToISO8601(exifDate)
+        let offset = exif?[kCGImagePropertyExifOffsetTimeOriginal as String] as? String
+        dateTimeOriginal = exifDateToISO8601(exifDate, offsetTimeOriginal: offset)
     } else {
         dateTimeOriginal = nil
     }
@@ -600,10 +602,10 @@ private func reverseGeocode(lat: Double, lon: Double) async -> String? {
 }
 
 // EXIF "YYYY:MM:DD HH:MM:SS" → ISO 8601 서버 전송용
-nonisolated private func exifDateToISO8601(_ exifDate: String) -> String {
+nonisolated private func exifDateToISO8601(_ exifDate: String, offsetTimeOriginal: String?) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
-    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.timeZone = exifTimeZone(from: offsetTimeOriginal) ?? .current
     guard let date = formatter.date(from: exifDate) else { return exifDate }
     let iso = ISO8601DateFormatter()
     iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -611,14 +613,30 @@ nonisolated private func exifDateToISO8601(_ exifDate: String) -> String {
 }
 
 // EXIF "YYYY:MM:DD HH:MM:SS" → 표시용 로컬 날짜 문자열
-nonisolated private func formatExifDate(_ exifDate: String) -> String {
+nonisolated private func formatExifDate(_ exifDate: String, offsetTimeOriginal: String?) -> String {
+    let capturedTimeZone = exifTimeZone(from: offsetTimeOriginal)
     let inFormatter = DateFormatter()
     inFormatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
-    inFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+    inFormatter.timeZone = capturedTimeZone ?? .current
     guard let date = inFormatter.date(from: exifDate) else { return exifDate }
     let outFormatter = DateFormatter()
     outFormatter.locale = Locale(identifier: "ko_KR")
     outFormatter.dateFormat = "yyyy. MM. dd. a hh:mm"
-    outFormatter.timeZone = TimeZone.current
+    outFormatter.timeZone = capturedTimeZone ?? .current
     return outFormatter.string(from: date)
+}
+
+nonisolated private func exifTimeZone(from offset: String?) -> TimeZone? {
+    guard let offset,
+          offset.range(of: #"^[+-]\d{2}:\d{2}$"#, options: .regularExpression) != nil
+    else { return nil }
+
+    let sign = offset.first == "-" ? -1 : 1
+    let parts = offset.dropFirst().split(separator: ":")
+    guard parts.count == 2,
+          let hours = Int(parts[0]),
+          let minutes = Int(parts[1])
+    else { return nil }
+
+    return TimeZone(secondsFromGMT: sign * ((hours * 60 + minutes) * 60))
 }

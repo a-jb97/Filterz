@@ -33,7 +33,7 @@ struct EXIFSection: View {
                 .font(.pretendard(13, weight: .semibold))
                 .foregroundColor(.filterzGray45)
             Spacer()
-            Text("EXIF")
+            Text(exif.format ?? "EXIF")
                 .font(.pretendard(11, weight: .bold))
                 .foregroundColor(.black)
                 .padding(.horizontal, 8)
@@ -82,7 +82,7 @@ struct EXIFSection: View {
                     .foregroundColor(.filterzGray60)
             }
 
-            if let date = exif.dateTimeOriginal {
+            if let date = exif.dateTimeOriginalFormatted {
                 Text(date)
                     .font(.pretendard(12, weight: .medium))
                     .foregroundColor(.filterzGray60)

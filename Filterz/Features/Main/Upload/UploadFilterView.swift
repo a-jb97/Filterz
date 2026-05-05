@@ -302,7 +302,7 @@ struct UploadFilterView: View {
         } else {
             Image(systemName: "camera.fill")
                 .font(.system(size: 18))
-                .foregroundStyle(Color.filterzGray60)
+                .foregroundStyle(Color.filterzBackground)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.filterzAccent)
         }
@@ -320,13 +320,14 @@ struct UploadFilterView: View {
                         .font(.filterzCaption())
                         .foregroundStyle(Color.filterzGray30)
                     Spacer()
-                    Text("EXIF")
+                    Text(meta.format ?? "EXIF")
                         .font(.filterzCaption())
                         .foregroundStyle(Color.filterzBackground)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.filterzAccent)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .background(
+                            Capsule().fill(Color.filterzAccent)
+                        )
                 }
 
                 if let spec = meta.lensSpec {
