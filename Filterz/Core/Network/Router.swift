@@ -58,7 +58,7 @@ enum Router: URLRequestConvertible {
     case validatePayment(query: PaymentValidationRequestDTO)
 
     // MARK: - Video
-    case getVideos
+    case getVideos(query: VideoListRequestDTO)
     case getVideo(id: String)
     case getStreamURL(id: String)
     case likeVideo(id: String, query: VideoLikeRequestDTO)
@@ -183,6 +183,12 @@ extension Router {
             if let next = query.next { items.append(URLQueryItem(name: "next", value: next)) }
             if let limit = query.limit { items.append(URLQueryItem(name: "limit", value: String(limit))) }
             if let category = query.category { items.append(URLQueryItem(name: "category", value: category)) }
+            if !items.isEmpty { urlComponents.queryItems = items }
+        }
+        if case .getVideos(let query) = self {
+            var items: [URLQueryItem] = []
+            if let next = query.next { items.append(URLQueryItem(name: "next", value: next)) }
+            if let limit = query.limit { items.append(URLQueryItem(name: "limit", value: String(limit))) }
             if !items.isEmpty { urlComponents.queryItems = items }
         }
         if case .searchUsers(let nick) = self, let nick {
