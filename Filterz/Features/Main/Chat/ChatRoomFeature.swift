@@ -19,6 +19,9 @@ struct ChatRoomFeature {
         var isSending: Bool = false
         var isSyncing: Bool = false
         var isSocketConnected: Bool = false
+        var isNetworkReachable: Bool = true
+        var isReconnectingSocket: Bool = false
+        var hasStartedEffects: Bool = false
         var errorMessage: String? = nil
         var currentUserId: String = KeychainHelper.load(forKey: "userId") ?? ""
     }
@@ -26,6 +29,9 @@ struct ChatRoomFeature {
     enum Action: Sendable {
         case onAppear
         case onDisappear
+        case connectSocketRequested
+        case networkStatusChanged(Bool)
+        case reconnectSocketRequested
         case loadedLocal([ChatMessage])
         case syncedRemote([ChatMessage])
         case syncFailed(String)
@@ -52,40 +58,78 @@ struct ChatRoomFeature {
     @Dependency(\.chatClient) var chatClient
     @Dependency(\.chatLocalStore) var chatLocalStore
     @Dependency(\.chatSocketClient) var chatSocketClient
+    @Dependency(\.networkStatusClient) var networkStatusClient
+    @Dependency(\.continuousClock) var clock
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                guard !state.isSyncing else { return .none }
+                guard !state.hasStartedEffects else { return .none }
+                state.hasStartedEffects = true
                 state.isSyncing = true
                 let roomId = state.room.roomId
-                return .run { send in
-                    let local = try await chatLocalStore.fetchMessages(roomId)
-                    await send(.loadedLocal(local))
-
-                    let nextParam = local.last?.createdAt.iso8601UTC
-                    let remote = try await chatClient.getMessages(roomId, nextParam)
-                    if !remote.isEmpty {
-                        try await chatLocalStore.upsertMessages(remote, roomId)
-                    }
-                    let merged = try await chatLocalStore.fetchMessages(roomId)
-                    await send(.syncedRemote(merged))
-
-                    let stream = await chatSocketClient.connect(roomId)
-                    for await event in stream {
-                        await send(.socketEvent(event))
-                    }
-                } catch: { error, send in
-                    await send(.syncFailed(error.localizedDescription))
-                }
-                .cancellable(id: "chatRoomSocket-\(roomId)", cancelInFlight: true)
+                return .merge(
+                    syncMessagesEffect(roomId: roomId, includeLocal: true),
+                    connectSocketEffect(roomId: roomId),
+                    observeNetworkEffect(roomId: roomId)
+                )
 
             case .onDisappear:
                 let roomId = state.room.roomId
+                state.hasStartedEffects = false
+                state.isSocketConnected = false
+                state.isReconnectingSocket = false
                 return .merge(
-                    .cancel(id: "chatRoomSocket-\(roomId)"),
+                    .cancel(id: socketCancelID(roomId)),
+                    .cancel(id: networkCancelID(roomId)),
+                    .cancel(id: reconnectCancelID(roomId)),
+                    .cancel(id: syncCancelID(roomId)),
                     .run { _ in await chatSocketClient.disconnect() }
+                )
+
+            case .connectSocketRequested:
+                return connectSocketEffect(roomId: state.room.roomId)
+
+            case .networkStatusChanged(let isReachable):
+                let wasReachable = state.isNetworkReachable
+                state.isNetworkReachable = isReachable
+                guard isReachable,
+                      !wasReachable,
+                      state.hasStartedEffects,
+                      !state.isSocketConnected,
+                      !state.isReconnectingSocket else {
+                    return .none
+                }
+                return .send(.reconnectSocketRequested)
+
+            case .reconnectSocketRequested:
+                guard !state.isReconnectingSocket else { return .none }
+                state.isReconnectingSocket = true
+                let roomId = state.room.roomId
+                return .concatenate(
+                    .cancel(id: socketCancelID(roomId)),
+                    .run { send in
+                        while !Task.isCancelled {
+                            await chatSocketClient.disconnect()
+                            do {
+                                let local = try await chatLocalStore.fetchMessages(roomId)
+                                let nextParam = local.last?.createdAt.iso8601UTC
+                                let remote = try await chatClient.getMessages(roomId, nextParam)
+                                if !remote.isEmpty {
+                                    try await chatLocalStore.upsertMessages(remote, roomId)
+                                }
+                                let merged = try await chatLocalStore.fetchMessages(roomId)
+                                await send(.syncedRemote(merged))
+                            } catch {
+                                // Keep retrying silently while the room is visible.
+                            }
+
+                            await send(.connectSocketRequested)
+                            try await clock.sleep(for: .seconds(3))
+                        }
+                    }
+                    .cancellable(id: reconnectCancelID(roomId), cancelInFlight: true)
                 )
 
             case .loadedLocal(let messages):
@@ -104,11 +148,17 @@ struct ChatRoomFeature {
 
             case .socketEvent(.connected):
                 state.isSocketConnected = true
-                return .none
+                state.isReconnectingSocket = false
+                let roomId = state.room.roomId
+                return .merge(
+                    .cancel(id: reconnectCancelID(roomId)),
+                    syncMessagesEffect(roomId: roomId, includeLocal: false, reportsFailure: false)
+                )
 
             case .socketEvent(.disconnected):
                 state.isSocketConnected = false
-                return .none
+                guard state.hasStartedEffects else { return .none }
+                return .send(.reconnectSocketRequested)
 
             case .socketEvent(.message(let message)):
                 state.messages[id: message.id] = message
@@ -133,11 +183,19 @@ struct ChatRoomFeature {
             case .socketEvent(.authError(let message)):
                 state.errorMessage = message
                 state.isSocketConnected = false
-                return .run { _ in await chatSocketClient.disconnect() }
+                state.isReconnectingSocket = false
+                return .merge(
+                    .cancel(id: reconnectCancelID(state.room.roomId)),
+                    .run { _ in await chatSocketClient.disconnect() }
+                )
 
             case .socketEvent(.error(let message)):
-                state.errorMessage = message
-                return .none
+                state.isSocketConnected = false
+                guard state.hasStartedEffects else {
+                    state.errorMessage = message
+                    return .none
+                }
+                return .send(.reconnectSocketRequested)
 
             case .draftChanged(let value):
                 state.draft = value
@@ -210,5 +268,67 @@ struct ChatRoomFeature {
                 return .none
             }
         }
+    }
+
+    private func syncMessagesEffect(
+        roomId: String,
+        includeLocal: Bool,
+        reportsFailure: Bool = true
+    ) -> Effect<Action> {
+        .run { send in
+            let local = try await chatLocalStore.fetchMessages(roomId)
+            if includeLocal {
+                await send(.loadedLocal(local))
+            }
+
+            let nextParam = local.last?.createdAt.iso8601UTC
+            let remote = try await chatClient.getMessages(roomId, nextParam)
+            if !remote.isEmpty {
+                try await chatLocalStore.upsertMessages(remote, roomId)
+            }
+            let merged = try await chatLocalStore.fetchMessages(roomId)
+            await send(.syncedRemote(merged))
+        } catch: { error, send in
+            if reportsFailure {
+                await send(.syncFailed(error.localizedDescription))
+            }
+        }
+        .cancellable(id: syncCancelID(roomId), cancelInFlight: true)
+    }
+
+    private func connectSocketEffect(roomId: String) -> Effect<Action> {
+        .run { send in
+            let stream = await chatSocketClient.connect(roomId)
+            for await event in stream {
+                await send(.socketEvent(event))
+            }
+        }
+        .cancellable(id: socketCancelID(roomId), cancelInFlight: true)
+    }
+
+    private func observeNetworkEffect(roomId: String) -> Effect<Action> {
+        let stream = networkStatusClient.observe()
+        return .run { send in
+            for await isReachable in stream {
+                await send(.networkStatusChanged(isReachable))
+            }
+        }
+        .cancellable(id: networkCancelID(roomId), cancelInFlight: true)
+    }
+
+    private func syncCancelID(_ roomId: String) -> String {
+        "chatRoomSync-\(roomId)"
+    }
+
+    private func socketCancelID(_ roomId: String) -> String {
+        "chatRoomSocket-\(roomId)"
+    }
+
+    private func networkCancelID(_ roomId: String) -> String {
+        "chatRoomNetwork-\(roomId)"
+    }
+
+    private func reconnectCancelID(_ roomId: String) -> String {
+        "chatRoomReconnect-\(roomId)"
     }
 }
