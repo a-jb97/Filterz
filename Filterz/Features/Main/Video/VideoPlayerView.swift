@@ -44,6 +44,9 @@ struct VideoPlayerView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .filterzSwipeBack {
+            store.send(.backTapped)
+        }
         .task(id: store.stream.streamURL) {
             preparePlayer(urlString: store.stream.streamURL)
         }

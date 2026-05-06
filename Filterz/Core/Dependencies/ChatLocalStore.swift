@@ -28,12 +28,15 @@ actor ChatLocalStoreActor {
             let updatedAt = Date.parseUTCISO8601(dto.updatedAt) ?? .now
             let lastContent: String?
             let lastAt: Date?
+            let lastSenderId: String?
             if let last = dto.lastChat {
                 lastContent = last.content ?? (last.files.isEmpty ? nil : "사진")
                 lastAt = Date.parseUTCISO8601(last.createdAt)
+                lastSenderId = last.sender.userID
             } else {
                 lastContent = nil
                 lastAt = nil
+                lastSenderId = nil
             }
 
             if let entity = existing {
@@ -44,6 +47,7 @@ actor ChatLocalStoreActor {
                 if let lastAt {
                     entity.lastMessageContent = lastContent
                     entity.lastMessageAt = lastAt
+                    entity.lastMessageSenderId = lastSenderId
                 }
             } else {
                 let entity = ChatRoomEntity(
@@ -54,7 +58,8 @@ actor ChatLocalStoreActor {
                     opponentNick: opponent.nick,
                     opponentProfilePath: opponent.profileImage,
                     lastMessageContent: lastContent,
-                    lastMessageAt: lastAt
+                    lastMessageAt: lastAt,
+                    lastMessageSenderId: lastSenderId
                 )
                 modelContext.insert(entity)
             }
@@ -77,7 +82,7 @@ actor ChatLocalStoreActor {
         )
         let room = try modelContext.fetch(roomDescriptor).first
 
-        var latest: (content: String?, at: Date)? = nil
+        var latest: (content: String?, at: Date, senderId: String)? = nil
 
         for dto in dtos {
             let id = dto.chatId
@@ -109,7 +114,7 @@ actor ChatLocalStoreActor {
             }
 
             if latest == nil || latest!.at < createdAt {
-                latest = (dto.content ?? (dto.files.isEmpty ? nil : "사진"), createdAt)
+                latest = (dto.content ?? (dto.files.isEmpty ? nil : "사진"), createdAt, dto.sender.userID)
             }
         }
 
@@ -117,6 +122,7 @@ actor ChatLocalStoreActor {
             if room.lastMessageAt == nil || room.lastMessageAt! < latest.at {
                 room.lastMessageContent = latest.content
                 room.lastMessageAt = latest.at
+                room.lastMessageSenderId = latest.senderId
             }
         }
 
@@ -144,6 +150,29 @@ actor ChatLocalStoreActor {
             try modelContext.save()
         }
     }
+
+    func incrementUnreadCount(roomId: String, by count: Int = 1) throws {
+        guard count > 0 else { return }
+        let descriptor = FetchDescriptor<ChatRoomEntity>(
+            predicate: #Predicate { $0.roomId == roomId }
+        )
+
+        if let room = try modelContext.fetch(descriptor).first {
+            room.unreadCount += count
+            try modelContext.save()
+        }
+    }
+
+    func markRoomRead(roomId: String) throws {
+        let descriptor = FetchDescriptor<ChatRoomEntity>(
+            predicate: #Predicate { $0.roomId == roomId }
+        )
+
+        if let room = try modelContext.fetch(descriptor).first, room.unreadCount != 0 {
+            room.unreadCount = 0
+            try modelContext.save()
+        }
+    }
 }
 
 struct ChatLocalStore: Sendable {
@@ -153,6 +182,8 @@ struct ChatLocalStore: Sendable {
     var upsertMessages: @Sendable (_ dtos: [ChatResponseDTO], _ roomId: String) async throws -> Void
     var hideRoom: @Sendable (_ roomId: String) async throws -> Void
     var unhideRoom: @Sendable (_ roomId: String) async throws -> Void
+    var incrementUnreadCount: @Sendable (_ roomId: String, _ count: Int) async throws -> Void
+    var markRoomRead: @Sendable (_ roomId: String) async throws -> Void
 }
 
 extension ChatLocalStore: DependencyKey {
@@ -174,6 +205,12 @@ extension ChatLocalStore: DependencyKey {
             },
             unhideRoom: { roomId in
                 try await actor.unhideRoom(roomId: roomId)
+            },
+            incrementUnreadCount: { roomId, count in
+                try await actor.incrementUnreadCount(roomId: roomId, by: count)
+            },
+            markRoomRead: { roomId in
+                try await actor.markRoomRead(roomId: roomId)
             }
         )
     }
@@ -185,7 +222,9 @@ extension ChatLocalStore: DependencyKey {
             fetchMessages: { _ in [] },
             upsertMessages: { _, _ in },
             hideRoom: { _ in },
-            unhideRoom: { _ in }
+            unhideRoom: { _ in },
+            incrementUnreadCount: { _, _ in },
+            markRoomRead: { _ in }
         )
     }
 }

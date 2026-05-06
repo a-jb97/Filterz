@@ -9,6 +9,8 @@ struct ChatRoom: Equatable, Sendable, Identifiable {
     let opponentProfilePath: String?
     let lastMessageContent: String?
     let lastMessageAt: Date?
+    let lastMessageSenderId: String?
+    var unreadCount: Int = 0
 
     var id: String { roomId }
 }
@@ -43,10 +45,13 @@ extension ChatRoom {
         if let last = dto.lastChat, let lastDate = Date.parseUTCISO8601(last.createdAt) {
             self.lastMessageContent = last.content ?? (last.files.isEmpty ? nil : "사진")
             self.lastMessageAt = lastDate
+            self.lastMessageSenderId = last.sender.userID
         } else {
             self.lastMessageContent = nil
             self.lastMessageAt = nil
+            self.lastMessageSenderId = nil
         }
+        self.unreadCount = 0
     }
 
     nonisolated init(entity: ChatRoomEntity) {
@@ -58,6 +63,8 @@ extension ChatRoom {
         self.opponentProfilePath = entity.opponentProfilePath
         self.lastMessageContent = entity.lastMessageContent
         self.lastMessageAt = entity.lastMessageAt
+        self.lastMessageSenderId = entity.lastMessageSenderId
+        self.unreadCount = entity.unreadCount
     }
 }
 

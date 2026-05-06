@@ -46,6 +46,9 @@ struct LikedFiltersView: View {
             }
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
+        .filterzSwipeBack {
+            store.send(.backTapped)
+        }
         .onAppear { store.send(.onAppear) }
         .alert("오류", isPresented: Binding(
             get: { store.errorMessage != nil },

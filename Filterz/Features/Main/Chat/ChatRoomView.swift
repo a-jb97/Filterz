@@ -22,6 +22,9 @@ struct ChatRoomView: View {
             )
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
+        .filterzSwipeBack {
+            store.send(.backTapped)
+        }
         .fullScreenCover(
             isPresented: Binding(
                 get: { store.imagePreview != nil },

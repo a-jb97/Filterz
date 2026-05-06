@@ -56,10 +56,10 @@ private struct CategoryItemView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.filterzTranslucent)
+                .fill(Color.filterzBlackAccent)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                        .stroke(Color.filterzDeepSprout, lineWidth: 1)
                 )
                 .frame(width: 56, height: 56)
 
@@ -68,11 +68,11 @@ private struct CategoryItemView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzAccent)
 
                 Text(category.title)
                     .font(.pretendard(10, weight: .semibold))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzAccent)
             }
         }
     }

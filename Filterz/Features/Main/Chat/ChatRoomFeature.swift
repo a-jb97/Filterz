@@ -34,7 +34,6 @@ struct ChatRoomFeature {
         case imagesPicked([Data])
         case sendTapped
         case sendResponse(Result<ChatMessage, any Error>)
-        case pushNotificationFailed(String)
         case errorMessageDismissed
         case imageTapped(paths: [String], index: Int)
         case imagePreviewDismissed
@@ -156,8 +155,6 @@ struct ChatRoomFeature {
                 state.isSending = true
                 state.errorMessage = nil
                 let roomId = state.room.roomId
-                let opponentUserId = state.room.opponentUserId
-                let opponentNick = state.room.opponentNick
                 let content: String? = trimmed.isEmpty ? nil : trimmed
                 return .run { send in
                     do {
@@ -167,17 +164,6 @@ struct ChatRoomFeature {
                         }
                         let dto = try await chatClient.sendMessage(roomId, content, filePaths)
                         try? await chatLocalStore.upsertMessages([dto], roomId)
-                        let pushBody = notificationBody(content: content, fileCount: filePaths?.count ?? 0)
-                        do {
-                            try await chatClient.sendPushNotification(
-                                opponentUserId,
-                                dto.sender.nick,
-                                opponentNick,
-                                pushBody
-                            )
-                        } catch {
-                            await send(.pushNotificationFailed(error.localizedDescription))
-                        }
                         if let message = ChatMessage(dto: dto) {
                             await send(.sendResponse(.success(message)))
                         }
@@ -196,10 +182,6 @@ struct ChatRoomFeature {
             case .sendResponse(.failure(let error)):
                 state.isSending = false
                 state.errorMessage = error.localizedDescription
-                return .none
-
-            case .pushNotificationFailed(let message):
-                state.errorMessage = "푸시 알림 전송 실패: \(message)"
                 return .none
 
             case .errorMessageDismissed:
@@ -229,14 +211,4 @@ struct ChatRoomFeature {
             }
         }
     }
-}
-
-nonisolated private func notificationBody(content: String?, fileCount: Int) -> String {
-    if let content, !content.isEmpty {
-        return content
-    }
-    if fileCount > 0 {
-        return "사진을 보냈습니다."
-    }
-    return "새 메시지가 도착했습니다."
 }

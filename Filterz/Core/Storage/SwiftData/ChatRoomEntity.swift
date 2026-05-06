@@ -11,6 +11,8 @@ final class ChatRoomEntity {
     var opponentProfilePath: String?
     var lastMessageContent: String?
     var lastMessageAt: Date?
+    var lastMessageSenderId: String?
+    var unreadCount: Int = 0
     var isHidden: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessageEntity.room)
@@ -24,7 +26,8 @@ final class ChatRoomEntity {
         opponentNick: String,
         opponentProfilePath: String?,
         lastMessageContent: String?,
-        lastMessageAt: Date?
+        lastMessageAt: Date?,
+        lastMessageSenderId: String?
     ) {
         self.roomId = roomId
         self.createdAt = createdAt
@@ -34,6 +37,8 @@ final class ChatRoomEntity {
         self.opponentProfilePath = opponentProfilePath
         self.lastMessageContent = lastMessageContent
         self.lastMessageAt = lastMessageAt
+        self.lastMessageSenderId = lastMessageSenderId
+        self.unreadCount = 0
         self.isHidden = false
     }
 }

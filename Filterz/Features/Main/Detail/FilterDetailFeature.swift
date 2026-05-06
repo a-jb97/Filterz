@@ -208,7 +208,7 @@ struct FilterDetail: Equatable, Sendable, Identifiable {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         let numStr = formatter.string(from: NSNumber(value: price)) ?? "\(price)"
-        return "\(numStr) Coin"
+        return "\(numStr) KRW"
     }
 
     var hashtags: [String] {

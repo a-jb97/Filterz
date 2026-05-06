@@ -27,6 +27,9 @@ struct VideoListView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .filterzSwipeBack {
+            store.send(.backTapped)
+        }
         .onAppear { store.send(.onAppear) }
         .alert(
             "오류",

@@ -67,7 +67,6 @@ enum Router: URLRequestConvertible {
     case uploadFile
     case getBanners
     case getLogs
-    case sendPushNotification(query: PushNotificationRequestDTO)
 }
 
 // MARK: - URLRequestConvertible
@@ -130,7 +129,6 @@ extension Router {
         case .uploadFile:                                   return "/filters/files"
         case .getBanners:                                   return "/banners/main"
         case .getLogs:                                      return "/logs"
-        case .sendPushNotification:                         return "/notifications/push"
         }
     }
 
@@ -243,8 +241,6 @@ extension Router {
         case .likeFilter(_, let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         case .likeVideo(_, let query):
-            return try JSONParameterEncoder.default.encode(query, into: request)
-        case .sendPushNotification(let query):
             return try JSONParameterEncoder.default.encode(query, into: request)
         default:
             return request
