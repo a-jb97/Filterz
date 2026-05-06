@@ -241,7 +241,7 @@ nonisolated struct FilterValuesDTO: Codable, Equatable, Sendable {
     let blackPoint: Double?
 
     enum CodingKeys: String, CodingKey {
-        case brightness, exposure, contrast, saturation, sharpness/
+        case brightness, exposure, contrast, saturation, sharpness
         case blur, vignette
         case noiseReduction = "noise_reduction"
         case highlights, shadows, temperature

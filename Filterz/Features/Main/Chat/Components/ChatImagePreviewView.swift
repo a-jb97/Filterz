@@ -6,6 +6,7 @@ struct ChatImagePreviewView: View {
     var onDismiss: () -> Void
 
     @State private var selectedIndex: Int
+    @State private var dragOffset: CGFloat = 0
 
     init(paths: [String], initialIndex: Int, onDismiss: @escaping () -> Void) {
         self.paths = paths
@@ -16,31 +17,37 @@ struct ChatImagePreviewView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.black
+                .opacity(backgroundOpacity)
+                .ignoresSafeArea()
 
-            TabView(selection: $selectedIndex) {
-                ForEach(Array(paths.enumerated()), id: \.offset) { index, path in
-                    ZoomableChatImage(path: path)
-                        .tag(index)
+            ZStack {
+                TabView(selection: $selectedIndex) {
+                    ForEach(Array(paths.enumerated()), id: \.offset) { index, path in
+                        ZoomableChatImage(path: path)
+                            .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .ignoresSafeArea()
+
+                VStack {
+                    topBar
+                    Spacer()
+                    if paths.count > 1 {
+                        Text("\(selectedIndex + 1) / \(paths.count)")
+                            .font(.pretendard(13, weight: .regular))
+                            .foregroundColor(.white.opacity(0.8))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Color.black.opacity(0.45)))
+                            .padding(.bottom, 18)
+                    }
                 }
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .ignoresSafeArea()
-
-            VStack {
-                topBar
-                Spacer()
-                if paths.count > 1 {
-                    Text("\(selectedIndex + 1) / \(paths.count)")
-                        .font(.pretendard(13, weight: .regular))
-                        .foregroundColor(.white.opacity(0.8))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(Color.black.opacity(0.45)))
-                        .padding(.bottom, 18)
-                }
-            }
+            .offset(y: dragOffset)
         }
+        .simultaneousGesture(dismissDragGesture)
     }
 
     private var topBar: some View {
@@ -67,6 +74,52 @@ struct ChatImagePreviewView: View {
             .frame(height: 96),
             alignment: .top
         )
+    }
+
+    private var dismissDragGesture: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .global)
+            .onChanged { value in
+                guard isDownwardDismissDrag(value) else { return }
+                dragOffset = max(0, value.translation.height)
+            }
+            .onEnded { value in
+                guard isDownwardDismissDrag(value) else {
+                    resetDragOffset()
+                    return
+                }
+
+                if shouldDismiss(for: value) {
+                    withAnimation(.easeOut(duration: 0.18)) {
+                        dragOffset = 520
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                        onDismiss()
+                    }
+                } else {
+                    resetDragOffset()
+                }
+            }
+    }
+
+    private var backgroundOpacity: Double {
+        max(0.35, 1 - Double(dragOffset / 420))
+    }
+
+    private func isDownwardDismissDrag(_ value: DragGesture.Value) -> Bool {
+        let verticalDistance = value.translation.height
+        let horizontalDistance = abs(value.translation.width)
+
+        return verticalDistance > 0 && verticalDistance > horizontalDistance * 1.25
+    }
+
+    private func shouldDismiss(for value: DragGesture.Value) -> Bool {
+        value.translation.height > 120 || value.predictedEndTranslation.height > 220
+    }
+
+    private func resetDragOffset() {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+            dragOffset = 0
+        }
     }
 }
 
