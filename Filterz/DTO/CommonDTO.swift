@@ -55,17 +55,3 @@ nonisolated struct LogListResponseDTO: Decodable, Sendable {
 nonisolated struct FileResponseDTO: Decodable, Sendable {
     let files: [String]
 }
-
-// MARK: - Notification Request
-
-nonisolated struct PushNotificationRequestDTO: Encodable, Sendable {
-    let userId: String
-    let title: String
-    let subtitle: String?
-    let body: String
-
-    enum CodingKeys: String, CodingKey {
-        case userId = "user_id"
-        case title, subtitle, body
-    }
-}

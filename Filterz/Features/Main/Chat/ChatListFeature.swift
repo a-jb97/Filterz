@@ -34,6 +34,8 @@ struct ChatListFeature {
 
     enum Action: Sendable {
         case onAppear
+        case onDisappear
+        case refreshRooms
         case loadedLocal([ChatRoom])
         case loadedRemote([ChatRoom])
         case loadFailed(String)
@@ -48,6 +50,9 @@ struct ChatListFeature {
         case deleteButtonTapped(ChatRoom)
         case deleteConfirmed(roomId: String)
         case deleteResponse(Result<String, any Error>)
+        case chatPushReceived(ChatPushPayload)
+        case roomRead(roomId: String)
+        case refreshedAfterPush([ChatRoom])
         case alert(PresentationAction<Alert>)
         case delegate(Delegate)
 
@@ -73,19 +78,23 @@ struct ChatListFeature {
             case .onAppear:
                 state.isLoading = true
                 let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
-                return .run { send in
-                    let local = try await chatLocalStore.fetchRooms()
-                    await send(.loadedLocal(local))
-
-                    let remote = try await chatClient.getChatRooms()
-                    if !remote.isEmpty {
-                        try await chatLocalStore.upsertRooms(remote, currentUserId)
+                return .merge(
+                    loadRoomsEffect(currentUserId: currentUserId),
+                    .run { send in
+                        while !Task.isCancelled {
+                            try await clock.sleep(for: .seconds(3))
+                            await send(.refreshRooms)
+                        }
                     }
-                    let merged = try await chatLocalStore.fetchRooms()
-                    await send(.loadedRemote(merged))
-                } catch: { error, send in
-                    await send(.loadFailed(error.localizedDescription))
-                }
+                    .cancellable(id: "chatListPolling", cancelInFlight: true)
+                )
+
+            case .onDisappear:
+                return .cancel(id: "chatListPolling")
+
+            case .refreshRooms:
+                let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
+                return loadRoomsEffect(currentUserId: currentUserId, includeLocal: false)
 
             case .loadedLocal(let rooms):
                 state.rooms = IdentifiedArray(uniqueElements: rooms)
@@ -158,6 +167,41 @@ struct ChatListFeature {
                 } message: {
                     TextState(error.localizedDescription)
                 }
+                return .none
+
+            case .chatPushReceived(let payload):
+                let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
+                guard payload.senderId != currentUserId else { return .none }
+
+                if var room = state.rooms[id: payload.roomId] {
+                    room.unreadCount += 1
+                    state.rooms[id: payload.roomId] = room
+                }
+
+                return .run { send in
+                    let remote = try await chatClient.getChatRooms()
+                    if !remote.isEmpty {
+                        try await chatLocalStore.upsertRooms(remote, currentUserId)
+                    }
+                    try await chatLocalStore.incrementUnreadCount(payload.roomId, 1)
+                    let rooms = try await chatLocalStore.fetchRooms()
+                    await send(.refreshedAfterPush(rooms))
+                } catch: { error, send in
+                    await send(.loadFailed(error.localizedDescription))
+                }
+
+            case .roomRead(let roomId):
+                if var room = state.rooms[id: roomId] {
+                    room.unreadCount = 0
+                    state.rooms[id: roomId] = room
+                }
+                return .run { _ in
+                    try? await chatLocalStore.markRoomRead(roomId)
+                }
+
+            case .refreshedAfterPush(let rooms):
+                state.isLoading = false
+                state.rooms = IdentifiedArray(uniqueElements: rooms)
                 return .none
 
             case .searchButtonTapped:
@@ -246,5 +290,64 @@ struct ChatListFeature {
             }
         }
         .ifLet(\.$alert, action: \.alert)
+    }
+
+    private func loadRoomsEffect(
+        currentUserId: String,
+        includeLocal: Bool = true
+    ) -> Effect<Action> {
+        .run { send in
+            if includeLocal {
+                let local = try await chatLocalStore.fetchRooms()
+                await send(.loadedLocal(local))
+            }
+
+            let previousRooms = try await chatLocalStore.fetchRooms()
+            let remote = try await chatClient.getChatRooms()
+            if !remote.isEmpty {
+                try await chatLocalStore.upsertRooms(remote, currentUserId)
+            }
+            for increment in try await unreadIncrements(
+                previousRooms: previousRooms,
+                remoteRooms: remote,
+                currentUserId: currentUserId
+            ) {
+                try await chatLocalStore.incrementUnreadCount(increment.roomId, increment.count)
+            }
+            let merged = try await chatLocalStore.fetchRooms()
+            await send(.loadedRemote(merged))
+        } catch: { error, send in
+            await send(.loadFailed(error.localizedDescription))
+        }
+    }
+
+    private func unreadIncrements(
+        previousRooms: [ChatRoom],
+        remoteRooms: [ChatRoomResponseDTO],
+        currentUserId: String
+    ) async throws -> [(roomId: String, count: Int)] {
+        let previousById = Dictionary(uniqueKeysWithValues: previousRooms.map { ($0.id, $0) })
+        var increments: [(roomId: String, count: Int)] = []
+
+        for dto in remoteRooms {
+            guard let previous = previousById[dto.roomId],
+                  let previousLastAt = previous.lastMessageAt,
+                  let lastChat = dto.lastChat,
+                  let lastAt = Date.parseUTCISO8601(lastChat.createdAt),
+                  previousLastAt < lastAt,
+                  lastChat.sender.userID != currentUserId else {
+                continue
+            }
+
+            let messages = try await chatClient.getMessages(dto.roomId, previousLastAt.iso8601UTC)
+                .compactMap(ChatMessage.init(dto:))
+            let unreadCount = messages.filter {
+                $0.senderId != currentUserId && previousLastAt < $0.createdAt
+            }.count
+
+            increments.append((dto.roomId, max(unreadCount, 1)))
+        }
+
+        return increments
     }
 }
