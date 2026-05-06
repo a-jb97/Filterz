@@ -46,6 +46,24 @@ struct FilterExifData: Equatable, Sendable {
     }
 }
 
+extension FilterExifData {
+    static let empty = FilterExifData(
+        camera: nil,
+        lensInfo: nil,
+        focalLength: nil,
+        aperture: nil,
+        iso: nil,
+        shutterSpeed: nil,
+        pixelWidth: nil,
+        pixelHeight: nil,
+        fileSize: nil,
+        format: nil,
+        dateTimeOriginal: nil,
+        latitude: nil,
+        longitude: nil
+    )
+}
+
 private nonisolated func formatPhotoMetadataDate(_ dateString: String) -> String {
     let isoWithFraction = ISO8601DateFormatter()
     isoWithFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -87,11 +105,11 @@ private nonisolated func parsePhotoMetadataDate(_ dateString: String) -> Date? {
 }
 
 extension FilterExifData {
-    init(dto: PhotoMetadataDTO) {
+    nonisolated init(dto: PhotoMetadataDTO) {
         camera = dto.camera
         lensInfo = dto.lensInfo
-        focalLength = dto.focalLength
-        aperture = dto.aperture
+        focalLength = dto.focalLength.map(Float.init)
+        aperture = dto.aperture.map(Float.init)
         iso = dto.iso
         shutterSpeed = dto.shutterSpeed
         pixelWidth = dto.pixelWidth
@@ -99,12 +117,27 @@ extension FilterExifData {
         fileSize = dto.fileSize
         format = dto.format
         dateTimeOriginal = dto.dateTimeOriginal
-        latitude = dto.latitude
-        longitude = dto.longitude
+        latitude = dto.latitude.map(Float.init)
+        longitude = dto.longitude.map(Float.init)
     }
 }
 
 struct FilterPresetValues: Equatable, Sendable {
+    static let empty = FilterPresetValues(
+        brightness: nil,
+        exposure: nil,
+        contrast: nil,
+        saturation: nil,
+        sharpness: nil,
+        blur: nil,
+        vignette: nil,
+        noiseReduction: nil,
+        highlights: nil,
+        shadows: nil,
+        temperature: nil,
+        blackPoint: nil
+    )
+
     let brightness: Float?
     let exposure: Float?
     let contrast: Float?
@@ -138,19 +171,19 @@ struct FilterPresetValues: Equatable, Sendable {
 }
 
 extension FilterPresetValues {
-    init(dto: FilterValuesDTO) {
-        brightness = dto.brightness
-        exposure = dto.exposure
-        contrast = dto.contrast
-        saturation = dto.saturation
-        sharpness = dto.sharpness
-        blur = dto.blur
-        vignette = dto.vignette
-        noiseReduction = dto.noiseReduction
-        highlights = dto.highlights
-        shadows = dto.shadows
-        temperature = dto.temperature
-        blackPoint = dto.blackPoint
+    nonisolated init(dto: FilterValuesDTO) {
+        brightness = dto.brightness.map(Float.init)
+        exposure = dto.exposure.map(Float.init)
+        contrast = dto.contrast.map(Float.init)
+        saturation = dto.saturation.map(Float.init)
+        sharpness = dto.sharpness.map(Float.init)
+        blur = dto.blur.map(Float.init)
+        vignette = dto.vignette.map(Float.init)
+        noiseReduction = dto.noiseReduction.map(Float.init)
+        highlights = dto.highlights.map(Float.init)
+        shadows = dto.shadows.map(Float.init)
+        temperature = dto.temperature.map(Float.init)
+        blackPoint = dto.blackPoint.map(Float.init)
     }
 }
 
@@ -263,8 +296,8 @@ extension FilterDetail {
             nick: dto.creator.nick,
             profileImagePath: dto.creator.profileImage
         )
-        exif = FilterExifData(dto: dto.photoMetadata)
-        presets = FilterPresetValues(dto: dto.filterValues)
+        exif = dto.photoMetadata.map(FilterExifData.init(dto:)) ?? .empty
+        presets = dto.filterValues.map(FilterPresetValues.init(dto:)) ?? .empty
         isLiked = dto.isLiked
         isDownloaded = dto.isDownloaded || dto.creator.userID == currentUserId
         likeCount = dto.likeCount

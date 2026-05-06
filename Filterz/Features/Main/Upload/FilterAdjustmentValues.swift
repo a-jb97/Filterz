@@ -56,18 +56,18 @@ struct FilterAdjustmentValues: Equatable, Sendable {
 
     nonisolated var dto: FilterValuesDTO {
         FilterValuesDTO(
-            brightness: brightness,
-            exposure: exposure,
-            contrast: contrast,
-            saturation: saturation,
-            sharpness: sharpness,
-            blur: blur,
-            vignette: vignette,
-            noiseReduction: noiseReduction,
-            highlights: highlights,
-            shadows: shadows,
-            temperature: temperature,
-            blackPoint: blackPoint
+            brightness: Double(brightness),
+            exposure: Double(exposure),
+            contrast: Double(contrast),
+            saturation: Double(saturation),
+            sharpness: Double(sharpness),
+            blur: Double(blur),
+            vignette: Double(vignette),
+            noiseReduction: Double(noiseReduction),
+            highlights: Double(highlights),
+            shadows: Double(shadows),
+            temperature: Double(temperature),
+            blackPoint: Double(blackPoint)
         )
     }
 
@@ -87,18 +87,18 @@ extension FilterAdjustmentValues {
         if dto.isLegacyZeroPreset {
             return
         }
-        brightness = dto.brightness ?? brightness
-        exposure = dto.exposure ?? exposure
-        contrast = dto.contrast ?? contrast
-        saturation = dto.saturation ?? saturation
-        sharpness = dto.sharpness ?? sharpness
-        blur = dto.blur ?? blur
-        vignette = dto.vignette ?? vignette
-        noiseReduction = dto.noiseReduction ?? noiseReduction
-        highlights = dto.highlights ?? highlights
-        shadows = dto.shadows ?? shadows
-        temperature = normalizedTemperature(dto.temperature)
-        blackPoint = dto.blackPoint ?? blackPoint
+        brightness = dto.brightness.map(Float.init) ?? brightness
+        exposure = dto.exposure.map(Float.init) ?? exposure
+        contrast = dto.contrast.map(Float.init) ?? contrast
+        saturation = dto.saturation.map(Float.init) ?? saturation
+        sharpness = dto.sharpness.map(Float.init) ?? sharpness
+        blur = dto.blur.map(Float.init) ?? blur
+        vignette = dto.vignette.map(Float.init) ?? vignette
+        noiseReduction = dto.noiseReduction.map(Float.init) ?? noiseReduction
+        highlights = dto.highlights.map(Float.init) ?? highlights
+        shadows = dto.shadows.map(Float.init) ?? shadows
+        temperature = normalizedTemperature(dto.temperature.map(Float.init))
+        blackPoint = dto.blackPoint.map(Float.init) ?? blackPoint
         self = clamped()
     }
 

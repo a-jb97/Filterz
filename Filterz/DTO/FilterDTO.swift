@@ -12,8 +12,8 @@ nonisolated struct FilterResponseDTO: Decodable, Sendable {
     let files: [String]
     let price: Int
     let creator: UserInfoResponseDTO
-    let photoMetadata: PhotoMetadataDTO
-    let filterValues: FilterValuesDTO
+    let photoMetadata: PhotoMetadataDTO?
+    let filterValues: FilterValuesDTO?
     let isLiked: Bool
     let isDownloaded: Bool
     let likeCount: Int
@@ -199,8 +199,8 @@ nonisolated struct CreateFilterRequestDTO: Encodable, Equatable, Sendable {
 nonisolated struct PhotoMetadataDTO: Codable, Equatable, Sendable {
     let camera: String?
     let lensInfo: String?
-    let focalLength: Float?
-    let aperture: Float?
+    let focalLength: Double?
+    let aperture: Double?
     let iso: Int?
     let shutterSpeed: String?
     let pixelWidth: Int?
@@ -208,8 +208,8 @@ nonisolated struct PhotoMetadataDTO: Codable, Equatable, Sendable {
     let fileSize: Double?
     let format: String?
     let dateTimeOriginal: String?
-    let latitude: Float?
-    let longitude: Float?
+    let latitude: Double?
+    let longitude: Double?
 
     enum CodingKeys: String, CodingKey {
         case camera
@@ -227,18 +227,18 @@ nonisolated struct PhotoMetadataDTO: Codable, Equatable, Sendable {
 }
 
 nonisolated struct FilterValuesDTO: Codable, Equatable, Sendable {
-    let brightness: Float?
-    let exposure: Float?
-    let contrast: Float?
-    let saturation: Float?
-    let sharpness: Float?
-    let blur: Float?
-    let vignette: Float?
-    let noiseReduction: Float?
-    let highlights: Float?
-    let shadows: Float?
-    let temperature: Float?
-    let blackPoint: Float?
+    let brightness: Double?
+    let exposure: Double?
+    let contrast: Double?
+    let saturation: Double?
+    let sharpness: Double?
+    let blur: Double?
+    let vignette: Double?
+    let noiseReduction: Double?
+    let highlights: Double?
+    let shadows: Double?
+    let temperature: Double?
+    let blackPoint: Double?
 
     enum CodingKeys: String, CodingKey {
         case brightness, exposure, contrast, saturation, sharpness
