@@ -56,6 +56,6 @@ nonisolated struct CreateChatRoomRequestDTO: Encodable, Sendable {
 }
 
 nonisolated struct SendMessageRequestDTO: Encodable, Sendable {
-    let content: String?
-    let files: [String]?
+    let content: String
+    let files: [String]
 }

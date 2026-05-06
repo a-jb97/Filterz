@@ -22,6 +22,41 @@ struct ChatRoomView: View {
             )
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
+        .fullScreenCover(
+            isPresented: Binding(
+                get: { store.imagePreview != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        store.send(.imagePreviewDismissed)
+                    }
+                }
+            )
+        ) {
+            if let preview = store.imagePreview {
+                ChatImagePreviewView(
+                    paths: preview.paths,
+                    initialIndex: preview.selectedIndex,
+                    onDismiss: { store.send(.imagePreviewDismissed) }
+                )
+            }
+        }
+        .alert(
+            "메시지 전송 실패",
+            isPresented: Binding(
+                get: { store.errorMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        store.send(.errorMessageDismissed)
+                    }
+                }
+            )
+        ) {
+            Button("확인") {
+                store.send(.errorMessageDismissed)
+            }
+        } message: {
+            Text(store.errorMessage ?? "")
+        }
         .onAppear { store.send(.onAppear) }
         .onDisappear { store.send(.onDisappear) }
     }
@@ -88,6 +123,9 @@ struct ChatRoomView: View {
                             endsGroup: endsGroup,
                             onProfileTapped: {
                                 store.send(.messageProfileTapped(userId: message.senderId))
+                            },
+                            onImageTapped: { paths, index in
+                                store.send(.imageTapped(paths: paths, index: index))
                             }
                         )
                         .id(message.id)
