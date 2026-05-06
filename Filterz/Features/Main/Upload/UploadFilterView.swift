@@ -48,6 +48,9 @@ struct UploadFilterView: View {
             }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
+        .filterzSwipeBack(isEnabled: store.mode.isEdit) {
+            store.send(.backTapped)
+        }
         .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
         .background(Color.filterzBlackBase.ignoresSafeArea())
         .onAppear {

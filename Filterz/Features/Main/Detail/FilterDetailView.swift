@@ -58,6 +58,9 @@ struct FilterDetailView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
+        .filterzSwipeBack {
+            store.send(.backTapped)
+        }
         .onAppear { store.send(.onAppear) }
         .fullScreenCover(
             item: Binding(

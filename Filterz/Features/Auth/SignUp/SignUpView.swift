@@ -41,6 +41,9 @@ struct SignUpView: View {
             }
         }
         .navigationBarHidden(true)
+        .filterzSwipeBack {
+            store.send(.backTapped)
+        }
         .alert($store.scope(state: \.alert, action: \.alert))
     }
 

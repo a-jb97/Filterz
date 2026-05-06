@@ -24,6 +24,9 @@ struct FilterMakerView: View {
             }
         }
         .onAppear { store.send(.onAppear) }
+        .filterzSwipeBack {
+            store.send(.backTapped)
+        }
         .task { preparePreviewSource() }
         .onDisappear { renderTask?.cancel() }
         .onChange(of: store.sourceImageData) { _, _ in preparePreviewSource() }
