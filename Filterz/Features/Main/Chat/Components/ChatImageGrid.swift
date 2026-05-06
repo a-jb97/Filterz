@@ -2,6 +2,11 @@ import SwiftUI
 
 struct ChatImageGrid: View {
     let paths: [String]
+    var onImageTapped: (_ index: Int) -> Void = { _ in }
+
+    private let spacing: CGFloat = 4
+    private let cellSize: CGFloat = 120
+    private let gridCornerRadius: CGFloat = 12
 
     var body: some View {
         switch paths.count {
@@ -11,34 +16,54 @@ struct ChatImageGrid: View {
             AuthenticatedImageView(path: paths[0], contentMode: .fit)
                 .frame(maxWidth: 240, maxHeight: 320)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .contentShape(Rectangle())
+                .onTapGesture { onImageTapped(0) }
         case 2:
             HStack(spacing: 4) {
-                ForEach(paths, id: \.self) { path in
+                ForEach(Array(paths.enumerated()), id: \.offset) { index, path in
                     AuthenticatedImageView(path: path, contentMode: .fill)
                         .frame(width: 120, height: 120)
                         .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .contentShape(Rectangle())
+                        .onTapGesture { onImageTapped(index) }
                 }
             }
         default:
-            let columns = [GridItem(.flexible(), spacing: 4), GridItem(.flexible(), spacing: 4)]
-            LazyVGrid(columns: columns, spacing: 4) {
-                ForEach(Array(paths.prefix(4).enumerated()), id: \.offset) { index, path in
-                    ZStack {
-                        AuthenticatedImageView(path: path, contentMode: .fill)
-                            .aspectRatio(1, contentMode: .fill)
-                            .clipped()
-                        if index == 3 && paths.count > 4 {
-                            Color.black.opacity(0.45)
-                            Text("+\(paths.count - 4)")
-                                .font(.pretendard(20, weight: .semibold))
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            let displayPaths = Array(paths.prefix(4))
+            let rows = CGFloat((displayPaths.count + 1) / 2)
+            let gridWidth = cellSize * 2 + spacing
+            let gridHeight = cellSize * rows + spacing * max(rows - 1, 0)
+            let columns = [
+                GridItem(.fixed(cellSize), spacing: spacing),
+                GridItem(.fixed(cellSize), spacing: spacing)
+            ]
+
+            LazyVGrid(columns: columns, spacing: spacing) {
+                ForEach(Array(displayPaths.enumerated()), id: \.offset) { index, path in
+                    imageCell(path: path, index: index)
                 }
             }
-            .frame(maxWidth: 244)
+            .frame(width: gridWidth, height: gridHeight, alignment: .topLeading)
         }
+    }
+
+    private func imageCell(path: String, index: Int) -> some View {
+        ZStack {
+            AuthenticatedImageView(path: path, contentMode: .fill)
+                .frame(width: cellSize, height: cellSize)
+                .clipped()
+
+            if index == 3 && paths.count > 4 {
+                Color.black.opacity(0.45)
+                Text("+\(paths.count - 4)")
+                    .font(.pretendard(20, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+        }
+        .frame(width: cellSize, height: cellSize)
+        .clipShape(RoundedRectangle(cornerRadius: gridCornerRadius, style: .continuous))
+        .contentShape(Rectangle())
+        .onTapGesture { onImageTapped(index) }
     }
 }

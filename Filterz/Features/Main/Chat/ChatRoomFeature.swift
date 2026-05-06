@@ -6,10 +6,16 @@ struct ChatRoomFeature {
 
     @ObservableState
     struct State: Equatable {
+        struct ImagePreview: Equatable, Sendable {
+            let paths: [String]
+            let selectedIndex: Int
+        }
+
         let room: ChatRoom
         var messages: IdentifiedArrayOf<ChatMessage> = []
         var draft: String = ""
         var pickedImages: [Data] = []
+        var imagePreview: ImagePreview? = nil
         var isSending: Bool = false
         var isSyncing: Bool = false
         var isSocketConnected: Bool = false
@@ -29,6 +35,9 @@ struct ChatRoomFeature {
         case sendTapped
         case sendResponse(Result<ChatMessage, any Error>)
         case pushNotificationFailed(String)
+        case errorMessageDismissed
+        case imageTapped(paths: [String], index: Int)
+        case imagePreviewDismissed
         case opponentProfileTapped
         case messageProfileTapped(userId: String)
         case backTapped
@@ -145,8 +154,7 @@ struct ChatRoomFeature {
                 let images = state.pickedImages
                 guard !trimmed.isEmpty || !images.isEmpty else { return .none }
                 state.isSending = true
-                state.draft = ""
-                state.pickedImages = []
+                state.errorMessage = nil
                 let roomId = state.room.roomId
                 let opponentUserId = state.room.opponentUserId
                 let opponentNick = state.room.opponentNick
@@ -180,6 +188,8 @@ struct ChatRoomFeature {
 
             case .sendResponse(.success(let message)):
                 state.isSending = false
+                state.draft = ""
+                state.pickedImages = []
                 state.messages[id: message.id] = message
                 return .none
 
@@ -190,6 +200,19 @@ struct ChatRoomFeature {
 
             case .pushNotificationFailed(let message):
                 state.errorMessage = "푸시 알림 전송 실패: \(message)"
+                return .none
+
+            case .errorMessageDismissed:
+                state.errorMessage = nil
+                return .none
+
+            case .imageTapped(let paths, let index):
+                guard paths.indices.contains(index) else { return .none }
+                state.imagePreview = State.ImagePreview(paths: paths, selectedIndex: index)
+                return .none
+
+            case .imagePreviewDismissed:
+                state.imagePreview = nil
                 return .none
 
             case .opponentProfileTapped:

@@ -25,7 +25,13 @@ extension ChatClient: DependencyKey {
             },
             sendMessage: { roomId, content, files in
                 try await NetworkManager.shared.request(
-                    .sendMessage(roomId: roomId, query: SendMessageRequestDTO(content: content, files: files))
+                    .sendMessage(
+                        roomId: roomId,
+                        query: SendMessageRequestDTO(
+                            content: content ?? "",
+                            files: files ?? []
+                        )
+                    )
                 )
             },
             createChatRoom: { opponentId in

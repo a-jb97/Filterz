@@ -332,8 +332,8 @@ private extension FilterExifData {
         PhotoMetadataDTO(
             camera: camera,
             lensInfo: lensInfo,
-            focalLength: focalLength,
-            aperture: aperture,
+            focalLength: focalLength.map(Double.init),
+            aperture: aperture.map(Double.init),
             iso: iso,
             shutterSpeed: shutterSpeed,
             pixelWidth: pixelWidth,
@@ -341,8 +341,8 @@ private extension FilterExifData {
             fileSize: fileSize,
             format: format,
             dateTimeOriginal: dateTimeOriginal,
-            latitude: latitude,
-            longitude: longitude
+            latitude: latitude.map(Double.init),
+            longitude: longitude.map(Double.init)
         )
     }
 
@@ -364,18 +364,18 @@ private extension FilterExifData {
 private extension FilterPresetValues {
     var dto: FilterValuesDTO {
         FilterValuesDTO(
-            brightness: brightness,
-            exposure: exposure,
-            contrast: contrast,
-            saturation: saturation,
-            sharpness: sharpness,
-            blur: blur,
-            vignette: vignette,
-            noiseReduction: noiseReduction,
-            highlights: highlights,
-            shadows: shadows,
-            temperature: temperature,
-            blackPoint: blackPoint
+            brightness: brightness.map(Double.init),
+            exposure: exposure.map(Double.init),
+            contrast: contrast.map(Double.init),
+            saturation: saturation.map(Double.init),
+            sharpness: sharpness.map(Double.init),
+            blur: blur.map(Double.init),
+            vignette: vignette.map(Double.init),
+            noiseReduction: noiseReduction.map(Double.init),
+            highlights: highlights.map(Double.init),
+            shadows: shadows.map(Double.init),
+            temperature: temperature.map(Double.init),
+            blackPoint: blackPoint.map(Double.init)
         )
     }
 }
@@ -526,7 +526,7 @@ nonisolated private func buildPhotoMetadataDTO(from data: Data) -> PhotoMetadata
 
     let camera      = tiff?[kCGImagePropertyTIFFModel as String] as? String
     let lensInfo    = exif?[kCGImagePropertyExifLensModel as String] as? String
-    let focalLength = (exif?[kCGImagePropertyExifFocalLength as String] as? NSNumber).map { Float($0.floatValue) }
+    let focalLength = (exif?[kCGImagePropertyExifFocalLength as String] as? NSNumber).map { $0.doubleValue }
 
     let uti = (CGImageSourceGetType(source) as String?) ?? ""
     let format: String?
@@ -535,7 +535,7 @@ nonisolated private func buildPhotoMetadataDTO(from data: Data) -> PhotoMetadata
     else if uti.contains("png") { format = "PNG" }
     else { format = nil }
 
-    let aperture = (exif?[kCGImagePropertyExifFNumber as String] as? NSNumber).map { Float($0.floatValue) }
+    let aperture = (exif?[kCGImagePropertyExifFNumber as String] as? NSNumber).map { $0.doubleValue }
 
     let iso: Int?
     if let isoRaw = exif?[kCGImagePropertyExifISOSpeedRatings as String] as? [Any],
@@ -566,14 +566,14 @@ nonisolated private func buildPhotoMetadataDTO(from data: Data) -> PhotoMetadata
     let pixelHeight = (props[kCGImagePropertyPixelHeight as String] as? NSNumber)?.intValue
     let fileSize    = Double(data.count) / 1_048_576.0
 
-    let latitude: Float?
-    let longitude: Float?
+    let latitude: Double?
+    let longitude: Double?
     if let latRef = gps?[kCGImagePropertyGPSLatitudeRef  as String] as? String,
        let lat    = gps?[kCGImagePropertyGPSLatitude     as String] as? Double,
        let lonRef = gps?[kCGImagePropertyGPSLongitudeRef as String] as? String,
        let lon    = gps?[kCGImagePropertyGPSLongitude    as String] as? Double {
-        latitude  = Float(latRef == "S" ? -lat : lat)
-        longitude = Float(lonRef == "W" ? -lon : lon)
+        latitude  = latRef == "S" ? -lat : lat
+        longitude = lonRef == "W" ? -lon : lon
     } else {
         latitude  = nil
         longitude = nil
