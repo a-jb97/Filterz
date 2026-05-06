@@ -22,6 +22,7 @@ struct ChatListView: View {
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
         .onAppear { store.send(.onAppear) }
+        .onDisappear { store.send(.onDisappear) }
         .onChange(of: store.isSearchPresented) { _, isPresented in
             isSearchFocused = isPresented
         }

@@ -84,9 +84,15 @@ struct MainFeature {
 
             case .chatPushReceived(let payload):
                 state.chatUnreadCount = payload.unreadCount
-                return .run { _ in
-                    await PushNotificationBridge.setApplicationBadge(payload.unreadCount)
+                var effects: [Effect<Action>] = [
+                    .run { _ in
+                        await PushNotificationBridge.setApplicationBadge(payload.unreadCount)
+                    }
+                ]
+                if state.currentChatRoomId != payload.roomId {
+                    effects.append(.send(.chatList(.chatPushReceived(payload))))
                 }
+                return .merge(effects)
 
             case .chatPushTapped(let payload):
                 state.chatUnreadCount = payload.unreadCount
@@ -101,8 +107,9 @@ struct MainFeature {
                 state.selectedTab = .chat
                 guard state.currentChatRoomId != roomId else { return .none }
                 if let room = state.chatList.rooms[id: roomId] {
+                    state.chatList.rooms[id: roomId]?.unreadCount = 0
                     state.path.append(.chatRoom(.init(room: room)))
-                    return .none
+                    return .send(.chatList(.roomRead(roomId: roomId)))
                 }
                 let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
                 return .run { send in
@@ -123,9 +130,12 @@ struct MainFeature {
 
             case .openChatFromPushResponse(.success(let room)):
                 state.chatList.rooms.updateOrAppend(room)
-                guard state.currentChatRoomId != room.roomId else { return .none }
+                state.chatList.rooms[id: room.roomId]?.unreadCount = 0
+                guard state.currentChatRoomId != room.roomId else {
+                    return .send(.chatList(.roomRead(roomId: room.roomId)))
+                }
                 state.path.append(.chatRoom(.init(room: room)))
-                return .none
+                return .send(.chatList(.roomRead(roomId: room.roomId)))
 
             case .openChatFromPushResponse(.failure):
                 return .none
@@ -235,8 +245,9 @@ struct MainFeature {
                 return .none
 
             case .chatList(.delegate(.roomTapped(let room))):
+                state.chatList.rooms[id: room.roomId]?.unreadCount = 0
                 state.path.append(.chatRoom(.init(room: room)))
-                return .none
+                return .send(.chatList(.roomRead(roomId: room.roomId)))
 
             case .chatList(.delegate(.userProfileTapped(let userId))):
                 return presentUserProfile(&state, userId: userId)
@@ -262,11 +273,15 @@ struct MainFeature {
                 }
                 let roomId = chatRoomState.room.roomId
                 state.currentChatRoomId = roomId
-                return .run { _ in
-                    await MainActor.run {
-                        PushNotificationBridge.currentChatRoomId = roomId
+                state.chatList.rooms[id: roomId]?.unreadCount = 0
+                return .merge(
+                    .send(.chatList(.roomRead(roomId: roomId))),
+                    .run { _ in
+                        await MainActor.run {
+                            PushNotificationBridge.currentChatRoomId = roomId
+                        }
                     }
-                }
+                )
 
             case .path(.element(let id, .chatRoom(.onDisappear))):
                 guard case let .chatRoom(chatRoomState)? = state.path[id: id],

@@ -32,11 +32,24 @@ struct ChatRoomCell: View {
 
                     Spacer(minLength: 12)
 
-                    if let date = room.lastMessageAt {
-                        Text(date.chatDisplay)
-                            .font(.pretendard(11, weight: .regular))
-                            .foregroundColor(.filterzGray75)
+                    VStack(alignment: .trailing, spacing: 6) {
+                        if let date = room.lastMessageAt {
+                            Text(date.chatDisplay)
+                                .font(.pretendard(11, weight: .regular))
+                                .foregroundColor(.filterzGray75)
+                        }
+
+                        if room.unreadCount > 0 {
+                            Text(unreadBadgeText)
+                                .font(.pretendard(11, weight: .semibold))
+                                .foregroundColor(.filterzBlackAccent)
+                                .frame(minWidth: 20, minHeight: 20)
+                                .padding(.horizontal, room.unreadCount > 9 ? 6 : 0)
+                                .background(Capsule().fill(Color.filterzAccent))
+                                .accessibilityLabel("읽지 않은 메시지 \(room.unreadCount)개")
+                        }
                     }
+
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.filterzGray75)
@@ -47,5 +60,9 @@ struct ChatRoomCell: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .contentShape(Rectangle())
+    }
+
+    private var unreadBadgeText: String {
+        room.unreadCount > 99 ? "99+" : "\(room.unreadCount)"
     }
 }
