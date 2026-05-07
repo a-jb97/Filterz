@@ -4,6 +4,14 @@ import Alamofire
 import Foundation
 import os
 
+// MARK: - UploadableFile
+
+struct UploadableFile: Sendable {
+    let data: Data
+    let mimeType: String
+    let fileName: String
+}
+
 // MARK: - AuthInterceptor
 
 private final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
@@ -134,6 +142,34 @@ final class NetworkManager: @unchecked Sendable {
             multipart.append(data, withName: "files",
                              fileName: "image\(i).jpg",
                              mimeType: "image/jpeg")
+        }
+
+        let encoded = try multipart.encode()
+        urlRequest.setValue(multipart.contentType, forHTTPHeaderField: "Content-Type")
+
+        let response = await session
+            .upload(encoded, with: urlRequest)
+            .validate(statusCode: 200..<300)
+            .serializingData()
+            .response
+
+        switch response.result {
+        case .success(let data):
+            do { return try decoder.decode(T.self, from: data) }
+            catch { throw NetworkError.decodingFailed }
+        case .failure(let error):
+            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
+        }
+    }
+
+    func uploadFiles<T: Decodable>(_ router: Router, files: [UploadableFile]) async throws -> T {
+        var urlRequest = try router.asURLRequest()
+
+        let multipart = MultipartFormData()
+        for file in files {
+            multipart.append(file.data, withName: "files",
+                             fileName: file.fileName,
+                             mimeType: file.mimeType)
         }
 
         let encoded = try multipart.encode()

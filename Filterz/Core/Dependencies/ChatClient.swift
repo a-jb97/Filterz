@@ -6,7 +6,7 @@ struct ChatClient: Sendable {
     var getMessages: @Sendable (_ roomId: String, _ next: String?) async throws -> [ChatResponseDTO]
     var sendMessage: @Sendable (_ roomId: String, _ content: String?, _ files: [String]?) async throws -> ChatResponseDTO
     var createChatRoom: @Sendable (_ opponentId: String) async throws -> ChatRoomResponseDTO
-    var uploadFiles: @Sendable (_ roomId: String, _ images: [Data]) async throws -> [String]
+    var uploadFiles: @Sendable (_ roomId: String, _ files: [UploadableFile]) async throws -> [String]
 }
 
 extension ChatClient: DependencyKey {
@@ -38,9 +38,9 @@ extension ChatClient: DependencyKey {
                     .createChatRoom(query: CreateChatRoomRequestDTO(opponentId: opponentId))
                 )
             },
-            uploadFiles: { roomId, images in
+            uploadFiles: { roomId, files in
                 let response: ChatFileResponseDTO = try await NetworkManager.shared.uploadFiles(
-                    .sendChatFiles(roomId: roomId), images: images
+                    .sendChatFiles(roomId: roomId), files: files
                 )
                 return response.files
             }
@@ -71,7 +71,7 @@ extension ChatClient: DependencyKey {
                     lastChat: nil
                 )
             },
-            uploadFiles: { _, _ in [] }
+            uploadFiles: { _, _ in [] as [String] }
         )
     }
 }

@@ -12,6 +12,18 @@ struct PickedImage: Equatable, Sendable, Identifiable {
     }
 }
 
+struct PickedFile: Equatable, Sendable, Identifiable {
+    let id: UUID
+    let name: String
+    let data: Data
+
+    init(name: String, data: Data) {
+        self.id = UUID()
+        self.name = name
+        self.data = data
+    }
+}
+
 struct ChatRoom: Equatable, Sendable, Identifiable {
     let roomId: String
     let createdAt: Date
@@ -105,5 +117,16 @@ extension ChatMessage {
         self.senderNick = entity.senderNick
         self.senderProfilePath = entity.senderProfilePath
         self.files = entity.files
+    }
+}
+
+extension ChatMessage {
+    var imageFiles: [String] {
+        files.filter {
+            ["jpg", "jpeg", "png", "gif"].contains(($0 as NSString).pathExtension.lowercased())
+        }
+    }
+    var pdfFiles: [String] {
+        files.filter { ($0 as NSString).pathExtension.lowercased() == "pdf" }
     }
 }
