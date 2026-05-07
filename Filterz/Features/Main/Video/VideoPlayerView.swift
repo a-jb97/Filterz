@@ -40,6 +40,7 @@ struct VideoPlayerView: View {
             preparePlayer(urlString: store.stream.streamURL)
         }
         .onAppear {
+            store.send(.onAppear)
             isSceneInactiveOrBackground = false
             OrientationBridge.setSupportedOrientations(.allButUpsideDown)
         }
