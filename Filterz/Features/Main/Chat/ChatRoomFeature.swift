@@ -15,6 +15,9 @@ struct ChatRoomFeature {
         var messages: IdentifiedArrayOf<ChatMessage> = []
         var draft: String = ""
         var pickedImages: [PickedImage] = []
+        var pickedFiles: [PickedFile] = []
+        var attachmentAlert: String? = nil
+        var pdfPreviewURL: URL? = nil
         var imagePreview: ImagePreview? = nil
         var isSending: Bool = false
         var isSyncing: Bool = false
@@ -45,6 +48,13 @@ struct ChatRoomFeature {
         case errorMessageDismissed
         case imageTapped(paths: [String], index: Int)
         case imagePreviewDismissed
+        case filesPicked([PickedFile])
+        case fileRemoved(Int)
+        case attachmentAlertDismissed
+        case invalidAttachmentDetected(String)
+        case pdfTapped(path: String)
+        case pdfPreviewDismissed
+        case pdfDownloaded(Result<URL, any Error>)
         case opponentProfileTapped
         case messageProfileTapped(userId: String)
         case backTapped
@@ -223,8 +233,14 @@ struct ChatRoomFeature {
             case .sendTapped:
                 guard !state.isSending else { return .none }
                 let trimmed = state.draft.trimmingCharacters(in: .whitespacesAndNewlines)
-                let images = state.pickedImages.compactMap(\.uploadData)
-                guard !trimmed.isEmpty || !images.isEmpty else { return .none }
+                let imageUploadables = state.pickedImages.compactMap(\.uploadData)
+                    .enumerated()
+                    .map { i, data in UploadableFile(data: data, mimeType: "image/jpeg", fileName: "image\(i).jpg") }
+                let fileUploadables = state.pickedFiles
+                    .enumerated()
+                    .map { i, file in UploadableFile(data: file.data, mimeType: "application/pdf", fileName: "doc\(i).pdf") }
+                let allFiles = imageUploadables + fileUploadables
+                guard !trimmed.isEmpty || !allFiles.isEmpty else { return .none }
                 state.isSending = true
                 state.errorMessage = nil
                 let roomId = state.room.roomId
@@ -232,8 +248,8 @@ struct ChatRoomFeature {
                 return .run { send in
                     do {
                         var filePaths: [String]? = nil
-                        if !images.isEmpty {
-                            filePaths = try await chatClient.uploadFiles(roomId, images)
+                        if !allFiles.isEmpty {
+                            filePaths = try await chatClient.uploadFiles(roomId, allFiles)
                         }
                         let dto = try await chatClient.sendMessage(roomId, content, filePaths)
                         try? await chatLocalStore.upsertMessages([dto], roomId)
@@ -249,6 +265,7 @@ struct ChatRoomFeature {
                 state.isSending = false
                 state.draft = ""
                 state.pickedImages = []
+                state.pickedFiles = []
                 state.messages[id: message.id] = message
                 return .none
 
@@ -268,6 +285,45 @@ struct ChatRoomFeature {
 
             case .imagePreviewDismissed:
                 state.imagePreview = nil
+                return .none
+
+            case .filesPicked(let files):
+                state.pickedFiles = files
+                return .none
+
+            case .fileRemoved(let index):
+                guard state.pickedFiles.indices.contains(index) else { return .none }
+                state.pickedFiles.remove(at: index)
+                return .none
+
+            case .attachmentAlertDismissed:
+                state.attachmentAlert = nil
+                return .none
+
+            case .invalidAttachmentDetected(let message):
+                state.attachmentAlert = message
+                return .none
+
+            case .pdfTapped(let path):
+                return .run { send in
+                    do {
+                        let url = try await downloadPDFToTemp(path: path)
+                        await send(.pdfDownloaded(.success(url)))
+                    } catch {
+                        await send(.pdfDownloaded(.failure(error)))
+                    }
+                }
+
+            case .pdfDownloaded(.success(let url)):
+                state.pdfPreviewURL = url
+                return .none
+
+            case .pdfDownloaded(.failure):
+                state.errorMessage = "PDF를 열 수 없습니다."
+                return .none
+
+            case .pdfPreviewDismissed:
+                state.pdfPreviewURL = nil
                 return .none
 
             case .opponentProfileTapped:
@@ -345,5 +401,20 @@ struct ChatRoomFeature {
 
     private func reconnectCancelID(_ roomId: String) -> String {
         "chatRoomReconnect-\(roomId)"
+    }
+
+    private func downloadPDFToTemp(path: String) async throws -> URL {
+        let urlString = path.hasPrefix("http") ? path : APIKey.baseURL + "/" + path
+        guard let fullURL = URL(string: urlString) else {
+            throw URLError(.badURL)
+        }
+        var request = URLRequest(url: fullURL)
+        request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
+        request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let fileName = (path as NSString).lastPathComponent
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try data.write(to: tempURL)
+        return tempURL
     }
 }
