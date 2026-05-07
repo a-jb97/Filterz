@@ -1,5 +1,6 @@
 import SwiftUI
 import ComposableArchitecture
+import PhotosUI
 import UIKit
 import WebKit
 import iamport_ios
@@ -7,6 +8,7 @@ import Then
 
 struct FilterDetailView: View {
     @Bindable var store: StoreOf<FilterDetailFeature>
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -57,11 +59,51 @@ struct FilterDetailView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .overlay {
+            if store.isFilterRendering {
+                ZStack {
+                    Color.black.opacity(0.45)
+                        .ignoresSafeArea()
+
+                    ProgressView()
+                        .tint(.filterzAccent)
+                        .scaleEffect(1.1)
+                }
+            }
+        }
         .background(Color.filterzBlackBase.ignoresSafeArea())
         .filterzSwipeBack {
             store.send(.backTapped)
         }
         .onAppear { store.send(.onAppear) }
+        .photosPicker(
+            isPresented: Binding(
+                get: { store.isPhotoPickerPresented },
+                set: { isPresented in
+                    if !isPresented {
+                        store.send(.photoPickerDismissed)
+                    }
+                }
+            ),
+            selection: $selectedPhotoItem,
+            matching: .images
+        )
+        .onChange(of: selectedPhotoItem) { _, item in
+            guard let item else { return }
+            Task {
+                guard let data = try? await item.loadTransferable(type: Data.self) else {
+                    await MainActor.run {
+                        selectedPhotoItem = nil
+                        store.send(.photoPickerDismissed)
+                    }
+                    return
+                }
+                await MainActor.run {
+                    selectedPhotoItem = nil
+                    store.send(.photoSelected(data))
+                }
+            }
+        }
         .fullScreenCover(
             item: Binding(
                 get: { store.paymentRequest },
@@ -76,6 +118,25 @@ struct FilterDetailView: View {
                 store.send(.portOnePaymentFinished(result))
             }
             .ignoresSafeArea()
+        }
+        .fullScreenCover(
+            isPresented: Binding(
+                get: { store.appliedPreviewImageData != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        store.send(.applyPreviewDismissed)
+                    }
+                }
+            )
+        ) {
+            if let imageData = store.appliedPreviewImageData {
+                AppliedFilterPreviewView(
+                    imageData: imageData,
+                    isSaving: store.isAppliedPhotoSaving,
+                    onApply: { store.send(.saveAppliedPhotoTapped) },
+                    onDismiss: { store.send(.applyPreviewDismissed) }
+                )
+            }
         }
         .alert($store.scope(state: \.alert, action: \.alert))
     }
@@ -177,18 +238,34 @@ struct FilterDetailView: View {
     }
 
     private func purchaseButton(detail: FilterDetail) -> some View {
-        Button {
-            if !detail.isDownloaded {
+        let canApplyFilter = detail.isDownloaded || detail.creator.id == store.currentUserId
+
+        return Button {
+            if canApplyFilter {
+                selectedPhotoItem = nil
+                store.send(.applyFilterTapped)
+            } else {
                 store.send(.purchaseTapped)
             }
         } label: {
-            Text(detail.isDownloaded ? "구매완료" : "결제하기")
+            ZStack {
+                Text(canApplyFilter ? "적용하기" : "결제하기")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(canApplyFilter ? .filterzTextPrimary : .black)
+                    .opacity(store.isPurchaseLoading || store.isFilterRendering ? 0 : 1)
+
+                if store.isPurchaseLoading || store.isFilterRendering {
+                    ProgressView()
+                        .tint(canApplyFilter ? .filterzTextPrimary : .black)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .background(canApplyFilter ? Color.filterzDeepSprout : Color.filterzAccent)
+            .clipShape(Capsule())
         }
-        .buttonStyle(CapsulePrimaryButtonStyle(
-            isLoading: store.isPurchaseLoading,
-            isDisabled: detail.isDownloaded
-        ))
-        .disabled(detail.isDownloaded || store.isPurchaseLoading)
+        .buttonStyle(.plain)
+        .disabled(store.isPurchaseLoading || store.isFilterRendering || store.isAppliedPhotoSaving)
     }
 
     private func hashtagsSection(detail: FilterDetail) -> some View {

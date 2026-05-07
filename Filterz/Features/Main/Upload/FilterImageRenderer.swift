@@ -41,6 +41,17 @@ enum FilterImageRenderer {
         return image.jpegData(compressionQuality: 0.9)
     }
 
+    nonisolated static func renderedData(
+        from sourceData: Data,
+        values: FilterAdjustmentValues,
+        compressionQuality: CGFloat = 0.92
+    ) -> Data? {
+        guard let source = makePreviewSource(from: sourceData, maxSide: .greatestFiniteMagnitude),
+              let image = previewImage(from: source, values: values)
+        else { return nil }
+        return image.jpegData(compressionQuality: compressionQuality)
+    }
+
     nonisolated private static func apply(
         values: FilterAdjustmentValues,
         to image: CIImage,
