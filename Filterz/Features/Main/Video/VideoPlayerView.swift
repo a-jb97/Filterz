@@ -1,12 +1,17 @@
 import AVKit
+import MediaPlayer
 import SwiftUI
 import ComposableArchitecture
 
 struct VideoPlayerView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Bindable var store: StoreOf<VideoPlayerFeature>
     @State private var player: AVPlayer?
     @State private var statusObserver: NSKeyValueObservation?
-    @State private var isFullScreenPresented = false
+    @State private var playbackURLs: [URL] = []
+    @State private var isSceneInactiveOrBackground = false
+    @State private var nowPlayingArtworkTask: Task<Void, Never>?
+    @State private var remoteCommandTargets: [Any] = []
 
     var body: some View {
         ZStack {
@@ -20,26 +25,10 @@ struct VideoPlayerView: View {
                     ProgressView().tint(.filterzGray45)
                     Spacer()
                 } else if let player {
-                    ZStack(alignment: .topTrailing) {
-                        VideoPlayer(player: player)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.black)
-                            .onAppear { player.play() }
-
-                        Button {
-                            isFullScreenPresented = true
-                        } label: {
-                            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundColor(.filterzGray30)
-                                .frame(width: 44, height: 44)
-                                .background(Circle().fill(Color.black.opacity(0.48)))
-                                .contentShape(Circle())
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.top, 16)
-                        .padding(.trailing, 16)
-                    }
+                    FilterzVideoPlayer(player: player)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black)
+                        .onAppear { player.play() }
                 }
             }
         }
@@ -51,11 +40,31 @@ struct VideoPlayerView: View {
             preparePlayer(urlString: store.stream.streamURL)
         }
         .onAppear {
+            store.send(.onAppear)
+            isSceneInactiveOrBackground = false
             OrientationBridge.setSupportedOrientations(.allButUpsideDown)
         }
+        .onChange(of: scenePhase) { _, phase in
+            isSceneInactiveOrBackground = phase != .active
+            if phase != .active, let player {
+                configureNowPlayingInfo(for: player)
+            }
+            if phase == .active {
+                OrientationBridge.setSupportedOrientations(.allButUpsideDown)
+            }
+        }
         .onDisappear {
+            guard !isSceneInactiveOrBackground else {
+                return
+            }
             statusObserver?.invalidate()
             statusObserver = nil
+            nowPlayingArtworkTask?.cancel()
+            nowPlayingArtworkTask = nil
+            removeRemoteCommandTargets()
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+            MPNowPlayingInfoCenter.default().playbackState = .stopped
+            UIApplication.shared.endReceivingRemoteControlEvents()
             player?.pause()
             OrientationBridge.setSupportedOrientations(.portrait)
             OrientationBridge.requestPortrait()
@@ -70,14 +79,6 @@ struct VideoPlayerView: View {
             Button("확인") { store.send(.errorDismissed) }
         } message: {
             Text(store.errorMessage ?? "")
-        }
-        .fullScreenCover(isPresented: $isFullScreenPresented) {
-            if let player {
-                FullScreenVideoPlayer(player: player) {
-                    isFullScreenPresented = false
-                }
-                .ignoresSafeArea()
-            }
         }
     }
 
@@ -108,21 +109,45 @@ struct VideoPlayerView: View {
     }
 
     private func preparePlayer(urlString: String) {
-        guard let url = store.stream.playbackURL else {
+        let urls = store.stream.playbackURLs
+        guard !urls.isEmpty else {
             store.send(.playbackFailed("재생 URL 형식이 올바르지 않습니다."))
             return
         }
+        configurePlaybackAudioSession()
+        playbackURLs = urls
+        playURL(at: 0)
+    }
+
+    private func playURL(at index: Int) {
+        guard playbackURLs.indices.contains(index) else {
+            store.send(.playbackFailed("재생 가능한 스트림 URL을 찾을 수 없습니다."))
+            return
+        }
+
+        statusObserver?.invalidate()
+        statusObserver = nil
+
+        let url = playbackURLs[index]
         let item = AVPlayerItem(url: url)
+        item.externalMetadata = externalMetadata()
         let player = AVPlayer(playerItem: item)
         statusObserver = item.observe(\.status, options: [.new]) { item, _ in
             if item.status == .failed {
                 Task { @MainActor in
-                    store.send(.playbackFailed(playbackFailureMessage(for: item, url: url)))
+                    if playbackURLs.indices.contains(index + 1) {
+                        playURL(at: index + 1)
+                    } else {
+                        store.send(.playbackFailed(playbackFailureMessage(for: item, url: url)))
+                    }
                 }
             }
         }
         self.player = player
+        configureRemoteCommands(for: player)
+        configureNowPlayingInfo(for: player)
         player.play()
+        updateNowPlayingPlaybackState(for: player)
     }
 
     private func playbackFailureMessage(for item: AVPlayerItem, url: URL) -> String {
@@ -138,38 +163,186 @@ struct VideoPlayerView: View {
 
         return url.absoluteString
     }
+
+    private func configurePlaybackAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .moviePlayback)
+            try session.setActive(true)
+        } catch {
+#if DEBUG
+            print("Failed to configure playback audio session: \(error.localizedDescription)")
+#endif
+        }
+    }
+
+    private func configureNowPlayingInfo(for player: AVPlayer) {
+        let elapsedTime = player.currentTime().seconds
+        var info: [String: Any] = [
+            MPMediaItemPropertyTitle: store.video.title,
+            MPMediaItemPropertyArtist: "Filterz",
+            MPNowPlayingInfoPropertyPlaybackRate: 1.0
+        ]
+
+        if store.video.duration > 0 {
+            info[MPMediaItemPropertyPlaybackDuration] = store.video.duration
+        }
+        if elapsedTime.isFinite {
+            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsedTime
+        }
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        updateNowPlayingPlaybackState(for: player)
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+
+        nowPlayingArtworkTask?.cancel()
+        guard let thumbnailURL = store.video.thumbnailURL else {
+            nowPlayingArtworkTask = nil
+            return
+        }
+
+        nowPlayingArtworkTask = Task {
+            guard let image = await loadNowPlayingArtwork(from: thumbnailURL),
+                  !Task.isCancelled else {
+                return
+            }
+
+            await MainActor.run {
+                var updatedInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? info
+                updatedInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in
+                    image
+                }
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = updatedInfo
+                player.currentItem?.externalMetadata = externalMetadata(artwork: image)
+            }
+        }
+    }
+
+    private func loadNowPlayingArtwork(from path: String) async -> UIImage? {
+        let urlString = path.hasPrefix("http") ? path : APIKey.baseURL + path
+        guard let url = URL(string: urlString) else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
+        request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
+
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else {
+            return nil
+        }
+        return UIImage(data: data)
+    }
+
+    private func configureRemoteCommands(for player: AVPlayer) {
+        removeRemoteCommandTargets()
+
+        let commandCenter = MPRemoteCommandCenter.shared()
+        commandCenter.playCommand.isEnabled = true
+        commandCenter.pauseCommand.isEnabled = true
+        commandCenter.togglePlayPauseCommand.isEnabled = true
+        commandCenter.stopCommand.isEnabled = false
+        commandCenter.nextTrackCommand.isEnabled = false
+        commandCenter.previousTrackCommand.isEnabled = false
+
+        let playTarget = commandCenter.playCommand.addTarget { _ in
+            Task { @MainActor in
+                configurePlaybackAudioSession()
+                player.play()
+                updateNowPlayingPlaybackState(for: player)
+            }
+            return .success
+        }
+
+        let pauseTarget = commandCenter.pauseCommand.addTarget { _ in
+            Task { @MainActor in
+                player.pause()
+                updateNowPlayingPlaybackState(for: player)
+            }
+            return .success
+        }
+
+        let toggleTarget = commandCenter.togglePlayPauseCommand.addTarget { _ in
+            Task { @MainActor in
+                if player.rate == 0 {
+                    configurePlaybackAudioSession()
+                    player.play()
+                } else {
+                    player.pause()
+                }
+                updateNowPlayingPlaybackState(for: player)
+            }
+            return .success
+        }
+
+        remoteCommandTargets = [playTarget, pauseTarget, toggleTarget]
+    }
+
+    private func removeRemoteCommandTargets() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        for target in remoteCommandTargets {
+            commandCenter.playCommand.removeTarget(target)
+            commandCenter.pauseCommand.removeTarget(target)
+            commandCenter.togglePlayPauseCommand.removeTarget(target)
+        }
+        remoteCommandTargets = []
+    }
+
+    private func updateNowPlayingPlaybackState(for player: AVPlayer) {
+        let isPlaying = player.rate > 0
+        MPNowPlayingInfoCenter.default().playbackState = isPlaying ? .playing : .paused
+
+        var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+        let elapsedTime = player.currentTime().seconds
+        if elapsedTime.isFinite {
+            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsedTime
+        }
+        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+    }
+
+    private func externalMetadata(artwork: UIImage? = nil) -> [AVMetadataItem] {
+        var metadata: [AVMetadataItem] = [
+            metadataItem(identifier: .commonIdentifierTitle, value: store.video.title as NSString),
+            metadataItem(identifier: .commonIdentifierArtist, value: "Filterz" as NSString)
+        ]
+
+        if let artwork, let data = artwork.pngData() {
+            metadata.append(metadataItem(identifier: .commonIdentifierArtwork, value: data as NSData))
+        }
+
+        return metadata
+    }
+
+    private func metadataItem(identifier: AVMetadataIdentifier, value: any NSCopying & NSObjectProtocol) -> AVMetadataItem {
+        let item = AVMutableMetadataItem()
+        item.identifier = identifier
+        item.value = value
+        item.extendedLanguageTag = "und"
+        return item.copy() as! AVMetadataItem
+    }
 }
 
-private struct FullScreenVideoPlayer: UIViewControllerRepresentable {
+private struct FilterzVideoPlayer: UIViewControllerRepresentable {
     let player: AVPlayer
-    let onDismiss: () -> Void
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let viewController = AVPlayerViewController()
-        viewController.player = player
-        viewController.showsPlaybackControls = true
-        viewController.delegate = context.coordinator
+        viewController.configureFilterzPlayback(with: player)
         return viewController
     }
 
     func updateUIViewController(_ viewController: AVPlayerViewController, context: Context) {
-        viewController.player = player
-        player.play()
+        viewController.configureFilterzPlayback(with: player)
     }
+}
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onDismiss: onDismiss)
-    }
-
-    final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
-        let onDismiss: () -> Void
-
-        init(onDismiss: @escaping () -> Void) {
-            self.onDismiss = onDismiss
-        }
-
-        func playerViewControllerWillEndFullScreenPresentation(_ playerViewController: AVPlayerViewController) {
-            onDismiss()
-        }
+private extension AVPlayerViewController {
+    func configureFilterzPlayback(with player: AVPlayer) {
+        self.player = player
+        showsPlaybackControls = true
+        updatesNowPlayingInfoCenter = false
+        allowsPictureInPicturePlayback = AVPictureInPictureController.isPictureInPictureSupported()
+        canStartPictureInPictureAutomaticallyFromInline = true
     }
 }

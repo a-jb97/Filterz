@@ -25,6 +25,9 @@ struct AppFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
+                guard state.isCheckingSession, state.auth == nil, state.main == nil else {
+                    return .none
+                }
                 state.isCheckingSession = true
                 return .run { send in
                     async let isAuthenticated = authClient.checkSession()

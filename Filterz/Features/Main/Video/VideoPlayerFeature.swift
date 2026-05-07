@@ -8,11 +8,15 @@ struct VideoPlayerFeature {
         let video: VideoItem
         let stream: VideoStream
         var errorMessage: String? = nil
+        var segmentInfo: HLSSegmentInfo? = nil
+        var segmentInfoError: String? = nil
     }
 
     enum Action: Sendable {
+        case onAppear
         case backTapped
         case playbackFailed(String?)
+        case segmentInfoResponse(Result<HLSSegmentInfo, any Error>)
         case errorDismissed
         case delegate(Delegate)
 
@@ -22,9 +26,22 @@ struct VideoPlayerFeature {
         }
     }
 
+    @Dependency(\.hlsPlaylistClient) var hlsPlaylistClient
+
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                guard let url = state.stream.playbackURLs.first else {
+                    state.segmentInfoError = "재생 URL 형식이 올바르지 않습니다."
+                    return .none
+                }
+                return .run { send in
+                    await send(.segmentInfoResponse(
+                        Result { try await hlsPlaylistClient.fetchSegmentInfo(url) }
+                    ))
+                }
+
             case .backTapped:
                 return .send(.delegate(.backTapped))
 
@@ -36,6 +53,22 @@ struct VideoPlayerFeature {
                 }
                 return .none
 
+            case .segmentInfoResponse(.success(let info)):
+                state.segmentInfo = info
+                state.segmentInfoError = nil
+#if DEBUG
+                print("HLS segments: target=\(info.targetDurationText), count=\(info.segmentCount), avg=\(info.averageDurationText), min=\(info.minDurationText), max=\(info.maxDurationText)")
+#endif
+                return .none
+
+            case .segmentInfoResponse(.failure(let error)):
+                state.segmentInfo = nil
+                state.segmentInfoError = error.localizedDescription
+#if DEBUG
+                print("Failed to load HLS segment info: \(error.localizedDescription)")
+#endif
+                return .none
+
             case .errorDismissed:
                 state.errorMessage = nil
                 return .none
@@ -44,5 +77,23 @@ struct VideoPlayerFeature {
                 return .none
             }
         }
+    }
+}
+
+private extension HLSSegmentInfo {
+    var targetDurationText: String {
+        targetDuration.map { String(format: "%.2fs", $0) } ?? "nil"
+    }
+
+    var averageDurationText: String {
+        averageDuration.map { String(format: "%.2fs", $0) } ?? "nil"
+    }
+
+    var minDurationText: String {
+        minDuration.map { String(format: "%.2fs", $0) } ?? "nil"
+    }
+
+    var maxDurationText: String {
+        maxDuration.map { String(format: "%.2fs", $0) } ?? "nil"
     }
 }

@@ -202,4 +202,59 @@ struct FilterzTests {
         #expect(stream.playbackURL?.absoluteString == "http://filter.sesac.kr:42598/v1/videos/video-1/master.m3u8?token=abc")
     }
 
+    @Test func videoStreamPlaybackURLsIncludesUniqueQualityURLs() throws {
+        let stream = VideoStream(dto: StreamUrlResponseDTO(
+            videoId: "video-1",
+            streamUrl: "/v1/videos/video-1/master.m3u8?token=abc",
+            qualities: [
+                VideoQualityDTO(quality: "1080p", streamUrl: "/v1/videos/video-1/master.m3u8?token=abc"),
+                VideoQualityDTO(quality: "720p", streamUrl: "/v1/videos/video-1/720/index.m3u8?token=abc")
+            ],
+            subtitles: []
+        ))
+
+        #expect(stream.playbackURLs.map(\.absoluteString) == [
+            "http://filter.sesac.kr:42598/v1/videos/video-1/master.m3u8?token=abc",
+            "http://filter.sesac.kr:42598/v1/videos/video-1/720/index.m3u8?token=abc"
+        ])
+    }
+
+    @Test func hlsMediaPlaylistParsesSegmentDurations() throws {
+        let playlist = """
+        #EXTM3U
+        #EXT-X-TARGETDURATION:6
+        #EXTINF:5.984,
+        segment0.ts
+        #EXTINF:6.000,
+        segment1.ts
+        #EXTINF:4.500,
+        segment2.ts
+        #EXT-X-ENDLIST
+        """
+
+        let info = try HLSPlaylistParser.parseMediaPlaylist(playlist)
+
+        #expect(info.targetDuration == 6)
+        #expect(info.segmentDurations == [5.984, 6.000, 4.500])
+        #expect(info.segmentCount == 3)
+        #expect(info.averageDuration == (5.984 + 6.000 + 4.500) / 3)
+        #expect(info.minDuration == 4.500)
+        #expect(info.maxDuration == 6.000)
+    }
+
+    @Test func hlsMasterPlaylistResolvesFirstVariantURL() throws {
+        let playlist = """
+        #EXTM3U
+        #EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1280x720
+        720/index.m3u8?token=abc
+        #EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080
+        https://cdn.example.com/1080/index.m3u8?token=abc
+        """
+        let baseURL = try #require(URL(string: "https://cdn.example.com/videos/master.m3u8?token=abc"))
+
+        let variantURL = HLSPlaylistParser.firstVariantURL(in: playlist, baseURL: baseURL)
+
+        #expect(variantURL?.absoluteString == "https://cdn.example.com/videos/720/index.m3u8?token=abc")
+    }
+
 }
