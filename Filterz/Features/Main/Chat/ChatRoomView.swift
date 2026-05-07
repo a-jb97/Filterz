@@ -1,5 +1,6 @@
 import SwiftUI
 import ComposableArchitecture
+import QuickLook
 
 struct ChatRoomView: View {
     @Bindable var store: StoreOf<ChatRoomFeature>
@@ -16,11 +17,15 @@ struct ChatRoomView: View {
                     set: { store.send(.draftChanged($0)) }
                 ),
                 pendingImages: store.pickedImages,
+                pendingFiles: store.pickedFiles,
                 isSending: store.isSending,
                 onSend: { store.send(.sendTapped) },
                 onImagesPicked: { store.send(.imagesPicked($0)) },
                 onImageRemoved: { store.send(.imageRemoved($0)) },
-                onImagePrepared: { store.send(.imagePrepared(id: $0, uploadData: $1, thumbnail: $2)) }
+                onImagePrepared: { store.send(.imagePrepared(id: $0, uploadData: $1, thumbnail: $2)) },
+                onFilesPicked: { store.send(.filesPicked($0)) },
+                onFileRemoved: { store.send(.fileRemoved($0)) },
+                onInvalidAttachment: { store.send(.invalidAttachmentDetected($0)) }
             )
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
@@ -62,6 +67,23 @@ struct ChatRoomView: View {
         } message: {
             Text(store.errorMessage ?? "")
         }
+        .alert(
+            "첨부 불가",
+            isPresented: Binding(
+                get: { store.attachmentAlert != nil },
+                set: { if !$0 { store.send(.attachmentAlertDismissed) } }
+            )
+        ) {
+            Button("확인") { store.send(.attachmentAlertDismissed) }
+        } message: {
+            Text(store.attachmentAlert ?? "")
+        }
+        .quickLookPreview(
+            Binding(
+                get: { store.pdfPreviewURL },
+                set: { if $0 == nil { store.send(.pdfPreviewDismissed) } }
+            )
+        )
         .onAppear { store.send(.onAppear) }
         .onDisappear { store.send(.onDisappear) }
     }
@@ -131,6 +153,9 @@ struct ChatRoomView: View {
                             },
                             onImageTapped: { paths, index in
                                 store.send(.imageTapped(paths: paths, index: index))
+                            },
+                            onPDFTapped: { path in
+                                store.send(.pdfTapped(path: path))
                             }
                         )
                         .id(message.id)
