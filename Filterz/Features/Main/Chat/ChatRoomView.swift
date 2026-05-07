@@ -15,10 +15,12 @@ struct ChatRoomView: View {
                     get: { store.draft },
                     set: { store.send(.draftChanged($0)) }
                 ),
-                pickedImageCount: store.pickedImages.count,
+                pendingImages: store.pickedImages,
                 isSending: store.isSending,
                 onSend: { store.send(.sendTapped) },
-                onImagesPicked: { store.send(.imagesPicked($0)) }
+                onImagesPicked: { store.send(.imagesPicked($0)) },
+                onImageRemoved: { store.send(.imageRemoved($0)) },
+                onImagePrepared: { store.send(.imagePrepared(id: $0, uploadData: $1, thumbnail: $2)) }
             )
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())

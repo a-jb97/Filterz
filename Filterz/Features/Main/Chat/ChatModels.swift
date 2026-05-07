@@ -1,5 +1,17 @@
 import Foundation
 
+struct PickedImage: Equatable, Sendable, Identifiable {
+    let id: UUID
+    var thumbnail: Data
+    var uploadData: Data?
+
+    init(thumbnail: Data, uploadData: Data? = nil) {
+        self.id = UUID()
+        self.thumbnail = thumbnail
+        self.uploadData = uploadData
+    }
+}
+
 struct ChatRoom: Equatable, Sendable, Identifiable {
     let roomId: String
     let createdAt: Date
