@@ -283,6 +283,14 @@ struct PortOnePaymentResult: Equatable, Sendable {
     let errorMessage: String?
 }
 
+private enum FilterApplyError: LocalizedError {
+    case renderFailed
+
+    var errorDescription: String? {
+        "필터가 적용된 이미지를 만들 수 없습니다."
+    }
+}
+
 extension FilterDetail {
     init(dto: FilterResponseDTO, currentUserId: String = "") {
         id = dto.filterId
@@ -328,6 +336,11 @@ struct FilterDetailFeature {
         var deletingComment: FilterCommentTarget? = nil
         var isCommentSubmitting: Bool = false
         var paymentRequest: PortOnePaymentRequest? = nil
+        var isPhotoPickerPresented: Bool = false
+        var selectedPhotoData: Data? = nil
+        var appliedPreviewImageData: Data? = nil
+        var isFilterRendering: Bool = false
+        var isAppliedPhotoSaving: Bool = false
         var errorMessage: String? = nil
         @Presents var alert: AlertState<Action.Alert>?
     }
@@ -344,6 +357,13 @@ struct FilterDetailFeature {
         case portOnePaymentFinished(PortOnePaymentResult)
         case paymentValidationResponse(Result<PaymentResponseDTO, any Error>)
         case paymentSheetDismissed
+        case applyFilterTapped
+        case photoPickerDismissed
+        case photoSelected(Data)
+        case filterPreviewRenderResponse(Result<Data, any Error>)
+        case applyPreviewDismissed
+        case saveAppliedPhotoTapped
+        case saveAppliedPhotoResponse(Result<Void, any Error>)
         case creatorProfileTapped
         case dmCreatorTapped
         case editTapped
@@ -380,6 +400,7 @@ struct FilterDetailFeature {
 
     @Dependency(\.filterClient) var filterClient
     @Dependency(\.paymentClient) var paymentClient
+    @Dependency(\.photoLibraryClient) var photoLibraryClient
 
     private func makeAlert(title: String, message: String?) -> AlertState<Action.Alert> {
         AlertState {
@@ -593,6 +614,84 @@ struct FilterDetailFeature {
                     state.isPurchaseLoading = false
                     state.alert = makeAlert(title: "결제 취소", message: "결제가 완료되지 않았습니다.")
                 }
+                return .none
+
+            case .applyFilterTapped:
+                guard let detail = state.detail,
+                      detail.isDownloaded || detail.creator.id == state.currentUserId,
+                      !state.isFilterRendering,
+                      !state.isAppliedPhotoSaving else {
+                    return .none
+                }
+                state.isPhotoPickerPresented = true
+                return .none
+
+            case .photoPickerDismissed:
+                state.isPhotoPickerPresented = false
+                return .none
+
+            case .photoSelected(let data):
+                guard let detail = state.detail,
+                      detail.isDownloaded || detail.creator.id == state.currentUserId else {
+                    return .none
+                }
+                state.isPhotoPickerPresented = false
+                state.selectedPhotoData = data
+                state.appliedPreviewImageData = nil
+                state.isFilterRendering = true
+                let values = FilterAdjustmentValues(presets: detail.presets)
+                return .run { send in
+                    let result = await Task.detached(priority: .userInitiated) {
+                        Result<Data, any Error> {
+                            guard let data = FilterImageRenderer.renderedData(from: data, values: values) else {
+                                throw FilterApplyError.renderFailed
+                            }
+                            return data
+                        }
+                    }.value
+                    await send(.filterPreviewRenderResponse(result))
+                }
+
+            case .filterPreviewRenderResponse(.success(let imageData)):
+                state.isFilterRendering = false
+                state.appliedPreviewImageData = imageData
+                return .none
+
+            case .filterPreviewRenderResponse(.failure(let error)):
+                state.isFilterRendering = false
+                state.selectedPhotoData = nil
+                state.appliedPreviewImageData = nil
+                state.alert = makeAlert(title: "필터 적용 실패", message: error.localizedDescription)
+                return .none
+
+            case .applyPreviewDismissed:
+                guard !state.isAppliedPhotoSaving else { return .none }
+                state.appliedPreviewImageData = nil
+                state.selectedPhotoData = nil
+                return .none
+
+            case .saveAppliedPhotoTapped:
+                guard let imageData = state.appliedPreviewImageData,
+                      !state.isAppliedPhotoSaving else {
+                    return .none
+                }
+                state.isAppliedPhotoSaving = true
+                return .run { send in
+                    await send(.saveAppliedPhotoResponse(
+                        Result { try await photoLibraryClient.saveImageData(imageData) }
+                    ))
+                }
+
+            case .saveAppliedPhotoResponse(.success):
+                state.isAppliedPhotoSaving = false
+                state.appliedPreviewImageData = nil
+                state.selectedPhotoData = nil
+                state.alert = makeAlert(title: "저장 완료", message: "필터가 적용된 사진이 사진앱에 저장되었습니다.")
+                return .none
+
+            case .saveAppliedPhotoResponse(.failure(let error)):
+                state.isAppliedPhotoSaving = false
+                state.alert = makeAlert(title: "사진 저장 실패", message: error.localizedDescription)
                 return .none
 
             case .creatorProfileTapped:
