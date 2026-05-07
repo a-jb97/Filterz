@@ -32,6 +32,10 @@ private actor SocketBox {
                 config: [
                     .compress,
                     .forceWebsockets(true),
+                    .reconnects(true),
+                    .reconnectAttempts(-1),
+                    .reconnectWait(2),
+                    .reconnectWaitMax(10),
                     .extraHeaders([
                         "SeSACKey": APIKey.apiKey,
                         "Authorization": APIKey.accessToken
