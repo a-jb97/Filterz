@@ -12,6 +12,8 @@ struct VideoPlayerView: View {
     @State private var isSceneInactiveOrBackground = false
     @State private var nowPlayingArtworkTask: Task<Void, Never>?
     @State private var remoteCommandTargets: [Any] = []
+    @State private var subtitleText: String? = nil
+    @State private var subtitleObserver: (player: AVPlayer, token: Any)?
 
     var body: some View {
         ZStack {
@@ -25,10 +27,27 @@ struct VideoPlayerView: View {
                     ProgressView().tint(.filterzGray45)
                     Spacer()
                 } else if let player {
-                    FilterzVideoPlayer(player: player)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black)
-                        .onAppear { player.play() }
+                    ZStack(alignment: .bottom) {
+                        FilterzVideoPlayer(player: player)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.black)
+                            .onAppear { player.play() }
+
+                        if let text = subtitleText {
+                            Text(text)
+                                .font(.pretendard(16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
+                                .background(Color.black.opacity(0.65))
+                                .cornerRadius(4)
+                                .padding(.bottom, 64)
+                        }
+                    }
+                    .onChange(of: store.subtitleCues) { _, cues in
+                        setupSubtitleObserver(for: player, cues: cues)
+                    }
                 }
             }
         }
@@ -62,6 +81,7 @@ struct VideoPlayerView: View {
             nowPlayingArtworkTask?.cancel()
             nowPlayingArtworkTask = nil
             removeRemoteCommandTargets()
+            tearDownSubtitleObserver()
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
             MPNowPlayingInfoCenter.default().playbackState = .stopped
             UIApplication.shared.endReceivingRemoteControlEvents()
@@ -102,6 +122,30 @@ struct VideoPlayerView: View {
                 .minimumScaleFactor(0.75)
 
             Spacer()
+
+            if let tracks = store.segmentInfo?.subtitleTracks, !tracks.isEmpty {
+                Menu {
+                    Button {
+                        store.send(.subtitleSelected(nil))
+                    } label: {
+                        Label("끄기", systemImage: "xmark")
+                    }
+                    ForEach(tracks, id: \.language) { track in
+                        Button {
+                            store.send(.subtitleSelected(track))
+                        } label: {
+                            Text(track.language)
+                        }
+                    }
+                } label: {
+                    Image(systemName: store.selectedSubtitle != nil ? "captions.bubble.fill" : "captions.bubble")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.filterzGray30)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(.horizontal, 8)
         .frame(height: 56)
@@ -129,7 +173,13 @@ struct VideoPlayerView: View {
         statusObserver = nil
 
         let url = playbackURLs[index]
-        let item = AVPlayerItem(url: url)
+        let asset = AVURLAsset(url: url, options: [
+            "AVURLAssetHTTPHeaderFieldsKey": [
+                "SeSACKey": APIKey.apiKey,
+                "Authorization": APIKey.accessToken
+            ]
+        ])
+        let item = AVPlayerItem(asset: asset)
         item.externalMetadata = externalMetadata()
         let player = AVPlayer(playerItem: item)
         statusObserver = item.observe(\.status, options: [.new]) { item, _ in
@@ -148,6 +198,33 @@ struct VideoPlayerView: View {
         configureNowPlayingInfo(for: player)
         player.play()
         updateNowPlayingPlaybackState(for: player)
+        if !store.subtitleCues.isEmpty {
+            setupSubtitleObserver(for: player, cues: store.subtitleCues)
+        }
+    }
+
+    private func setupSubtitleObserver(for player: AVPlayer, cues: [VTTCue]) {
+        if let prev = subtitleObserver {
+            prev.player.removeTimeObserver(prev.token)
+            subtitleObserver = nil
+        }
+        subtitleText = nil
+        guard !cues.isEmpty else { return }
+
+        let interval = CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        let token = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
+            let seconds = time.seconds
+            subtitleText = cues.first { $0.start <= seconds && seconds < $0.end }?.text
+        }
+        subtitleObserver = (player: player, token: token)
+    }
+
+    private func tearDownSubtitleObserver() {
+        if let prev = subtitleObserver {
+            prev.player.removeTimeObserver(prev.token)
+            subtitleObserver = nil
+        }
+        subtitleText = nil
     }
 
     private func playbackFailureMessage(for item: AVPlayerItem, url: URL) -> String {
