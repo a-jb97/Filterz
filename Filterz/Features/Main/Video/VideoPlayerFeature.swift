@@ -10,6 +10,9 @@ struct VideoPlayerFeature {
         var errorMessage: String? = nil
         var segmentInfo: HLSSegmentInfo? = nil
         var segmentInfoError: String? = nil
+
+        var selectedSubtitle: HLSSubtitleTrack? = nil
+        var subtitleCues: [VTTCue] = []
     }
 
     enum Action: Sendable {
@@ -18,6 +21,8 @@ struct VideoPlayerFeature {
         case playbackFailed(String?)
         case segmentInfoResponse(Result<HLSSegmentInfo, any Error>)
         case errorDismissed
+        case subtitleSelected(HLSSubtitleTrack?)
+        case subtitleCuesLoaded([VTTCue])
         case delegate(Delegate)
 
         @CasePathable
@@ -71,6 +76,28 @@ struct VideoPlayerFeature {
 
             case .errorDismissed:
                 state.errorMessage = nil
+                return .none
+
+            case .subtitleSelected(let track):
+                state.selectedSubtitle = track
+                state.subtitleCues = []
+                guard let track else { return .none }
+                return .run { send in
+                    var request = URLRequest(url: track.uri)
+                    request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
+                    request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
+                    guard
+                        let (data, _) = try? await URLSession.shared.data(for: request),
+                        let content = String(data: data, encoding: .utf8)
+                    else { return }
+#if DEBUG
+                    print("VTT fetched: \(content.prefix(200))")
+#endif
+                    await send(.subtitleCuesLoaded(VTTParser.parse(content)))
+                }
+
+            case .subtitleCuesLoaded(let cues):
+                state.subtitleCues = cues
                 return .none
 
             case .delegate:
