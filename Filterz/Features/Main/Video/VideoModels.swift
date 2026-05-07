@@ -97,7 +97,31 @@ struct VideoStream: Equatable, Sendable {
     }
 
     nonisolated var playbackURL: URL? {
-        if let absoluteURL = URL(string: streamURL), absoluteURL.scheme != nil {
+        resolvedPlaybackURL(from: streamURL)
+    }
+
+    nonisolated var playbackURLs: [URL] {
+        var seen = Set<String>()
+        return ([streamURL] + qualities.map(\.streamUrl)).compactMap { rawURL in
+            guard let url = resolvedPlaybackURL(from: rawURL) else {
+                return nil
+            }
+            let key = url.absoluteString
+            guard !seen.contains(key) else {
+                return nil
+            }
+            seen.insert(key)
+            return url
+        }
+    }
+
+    private nonisolated func resolvedPlaybackURL(from rawURL: String) -> URL? {
+        let rawURL = rawURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !rawURL.isEmpty else {
+            return nil
+        }
+
+        if let absoluteURL = URL(string: rawURL), absoluteURL.scheme != nil {
             return absoluteURL
         }
 
@@ -113,16 +137,16 @@ struct VideoStream: Equatable, Sendable {
             }
         }
 
-        if streamURL.hasPrefix("/") {
+        if rawURL.hasPrefix("/") {
             let basePath = baseURL.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            if !basePath.isEmpty, !streamURL.hasPrefix("/\(basePath)/") {
-                return URL(string: normalizedBase + streamURL)
+            if !basePath.isEmpty, !rawURL.hasPrefix("/\(basePath)/") {
+                return URL(string: normalizedBase + rawURL)
             }
             if let origin {
-                return URL(string: origin + streamURL)
+                return URL(string: origin + rawURL)
             }
         }
 
-        return URL(string: normalizedBase + "/" + streamURL)
+        return URL(string: normalizedBase + "/" + rawURL)
     }
 }
