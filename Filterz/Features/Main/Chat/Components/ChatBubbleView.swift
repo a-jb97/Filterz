@@ -9,6 +9,8 @@ struct ChatBubbleView: View {
     let endsGroup: Bool
     var onProfileTapped: () -> Void = {}
     var onImageTapped: (_ paths: [String], _ index: Int) -> Void = { _, _ in }
+    var onPDFTapped: (_ path: String) -> Void = { _ in }
+    var onImageLoaded: (() -> Void)? = nil
 
     private var maxWidth: CGFloat {
         UIScreen.main.bounds.width * 0.7
@@ -65,13 +67,18 @@ struct ChatBubbleView: View {
     @ViewBuilder
     private var bubbleContent: some View {
         VStack(alignment: isMine ? .trailing : .leading, spacing: 6) {
-            if !message.files.isEmpty {
+            if !message.imageFiles.isEmpty {
                 ChatImageGrid(
-                    paths: message.files,
+                    paths: message.imageFiles,
                     onImageTapped: { index in
-                        onImageTapped(message.files, index)
-                    }
+                        onImageTapped(message.imageFiles, index)
+                    },
+                    onImageLoaded: onImageLoaded
                 )
+                .frame(maxWidth: maxWidth)
+            }
+            if !message.pdfFiles.isEmpty {
+                ChatPDFListView(paths: message.pdfFiles, onPDFTapped: onPDFTapped)
                     .frame(maxWidth: maxWidth)
             }
             if let content = message.content, !content.isEmpty {

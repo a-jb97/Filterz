@@ -6,17 +6,17 @@ struct ChatRoomCell: View {
     let onProfileTapped: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            Button(action: onProfileTapped) {
-                AuthenticatedImageView(path: room.opponentProfilePath)
-                    .frame(width: 56, height: 56)
-                    .background(Color.filterzBlackAccent)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
-            }
-            .buttonStyle(.plain)
+        Button(action: onRoomTapped) {
+            HStack(spacing: 12) {
+                Button(action: onProfileTapped) {
+                    AuthenticatedImageView(path: room.opponentProfilePath)
+                        .frame(width: 56, height: 56)
+                        .background(Color.filterzBlackAccent)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
 
-            Button(action: onRoomTapped) {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(room.opponentNick)
@@ -55,11 +55,11 @@ struct ChatRoomCell: View {
                         .foregroundColor(.filterzGray75)
                 }
             }
-            .buttonStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .contentShape(Rectangle())
+        .buttonStyle(.plain)
     }
 
     private var unreadBadgeText: String {

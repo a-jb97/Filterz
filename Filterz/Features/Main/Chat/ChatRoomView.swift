@@ -1,8 +1,11 @@
 import SwiftUI
 import ComposableArchitecture
+import QuickLook
 
 struct ChatRoomView: View {
     @Bindable var store: StoreOf<ChatRoomFeature>
+    @State private var scrollToBottomTrigger = UUID()
+    @State private var autoScrollUntil: Date = .distantPast
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,10 +18,16 @@ struct ChatRoomView: View {
                     get: { store.draft },
                     set: { store.send(.draftChanged($0)) }
                 ),
-                pickedImageCount: store.pickedImages.count,
+                pendingImages: store.pickedImages,
+                pendingFiles: store.pickedFiles,
                 isSending: store.isSending,
                 onSend: { store.send(.sendTapped) },
-                onImagesPicked: { store.send(.imagesPicked($0)) }
+                onImagesPicked: { store.send(.imagesPicked($0)) },
+                onImageRemoved: { store.send(.imageRemoved($0)) },
+                onImagePrepared: { store.send(.imagePrepared(id: $0, uploadData: $1, thumbnail: $2)) },
+                onFilesPicked: { store.send(.filesPicked($0)) },
+                onFileRemoved: { store.send(.fileRemoved($0)) },
+                onInvalidAttachment: { store.send(.invalidAttachmentDetected($0)) }
             )
         }
         .background(Color.filterzBlackBase.ignoresSafeArea())
@@ -60,6 +69,23 @@ struct ChatRoomView: View {
         } message: {
             Text(store.errorMessage ?? "")
         }
+        .alert(
+            "첨부 불가",
+            isPresented: Binding(
+                get: { store.attachmentAlert != nil },
+                set: { if !$0 { store.send(.attachmentAlertDismissed) } }
+            )
+        ) {
+            Button("확인") { store.send(.attachmentAlertDismissed) }
+        } message: {
+            Text(store.attachmentAlert ?? "")
+        }
+        .quickLookPreview(
+            Binding(
+                get: { store.pdfPreviewURL },
+                set: { if $0 == nil { store.send(.pdfPreviewDismissed) } }
+            )
+        )
         .onAppear { store.send(.onAppear) }
         .onDisappear { store.send(.onDisappear) }
     }
@@ -129,6 +155,13 @@ struct ChatRoomView: View {
                             },
                             onImageTapped: { paths, index in
                                 store.send(.imageTapped(paths: paths, index: index))
+                            },
+                            onPDFTapped: { path in
+                                store.send(.pdfTapped(path: path))
+                            },
+                            onImageLoaded: {
+                                guard Date() < autoScrollUntil else { return }
+                                scrollToBottomTrigger = UUID()
                             }
                         )
                         .id(message.id)
@@ -138,16 +171,26 @@ struct ChatRoomView: View {
                 }
                 .padding(.vertical, 12)
             }
-            .onChange(of: store.messages.count) { _, _ in
+            .scrollDismissesKeyboard(.immediately)
+            .simultaneousGesture(TapGesture().onEnded {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            })
+            .onChange(of: store.messages.last?.id) { _, _ in
                 if let last = store.messages.last {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+                    proxy.scrollTo(last.id, anchor: .bottom)
+                }
+            }
+            .onChange(of: scrollToBottomTrigger) { _, _ in
+                if let last = store.messages.last {
+                    proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
             .onAppear {
-                if let last = store.messages.last {
-                    proxy.scrollTo(last.id, anchor: .bottom)
+                autoScrollUntil = Date().addingTimeInterval(5)
+                DispatchQueue.main.async {
+                    if let last = store.messages.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
                 }
             }
         }
