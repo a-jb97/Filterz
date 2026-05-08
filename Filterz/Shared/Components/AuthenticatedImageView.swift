@@ -5,6 +5,7 @@ private let imageCache = NSCache<NSString, UIImage>()
 struct AuthenticatedImageView: View {
     let path: String?
     var contentMode: ContentMode = .fill
+    var onLoad: (() -> Void)? = nil
     @State private var image: UIImage? = nil
 
     var body: some View {
@@ -28,6 +29,7 @@ struct AuthenticatedImageView: View {
 
         if let cached = imageCache.object(forKey: path as NSString) {
             image = cached
+            onLoad?()
             return
         }
 
@@ -48,5 +50,6 @@ struct AuthenticatedImageView: View {
 
         imageCache.setObject(loaded, forKey: path as NSString)
         image = loaded
+        onLoad?()
     }
 }

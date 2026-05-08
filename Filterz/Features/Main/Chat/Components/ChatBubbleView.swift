@@ -10,6 +10,7 @@ struct ChatBubbleView: View {
     var onProfileTapped: () -> Void = {}
     var onImageTapped: (_ paths: [String], _ index: Int) -> Void = { _, _ in }
     var onPDFTapped: (_ path: String) -> Void = { _ in }
+    var onImageLoaded: (() -> Void)? = nil
 
     private var maxWidth: CGFloat {
         UIScreen.main.bounds.width * 0.7
@@ -71,7 +72,8 @@ struct ChatBubbleView: View {
                     paths: message.imageFiles,
                     onImageTapped: { index in
                         onImageTapped(message.imageFiles, index)
-                    }
+                    },
+                    onImageLoaded: onImageLoaded
                 )
                 .frame(maxWidth: maxWidth)
             }

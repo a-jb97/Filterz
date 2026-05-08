@@ -4,6 +4,8 @@ import QuickLook
 
 struct ChatRoomView: View {
     @Bindable var store: StoreOf<ChatRoomFeature>
+    @State private var scrollToBottomTrigger = UUID()
+    @State private var autoScrollUntil: Date = .distantPast
 
     var body: some View {
         VStack(spacing: 0) {
@@ -156,6 +158,10 @@ struct ChatRoomView: View {
                             },
                             onPDFTapped: { path in
                                 store.send(.pdfTapped(path: path))
+                            },
+                            onImageLoaded: {
+                                guard Date() < autoScrollUntil else { return }
+                                scrollToBottomTrigger = UUID()
                             }
                         )
                         .id(message.id)
@@ -169,16 +175,22 @@ struct ChatRoomView: View {
             .simultaneousGesture(TapGesture().onEnded {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             })
-            .onChange(of: store.messages.count) { _, _ in
+            .onChange(of: store.messages.last?.id) { _, _ in
                 if let last = store.messages.last {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+                    proxy.scrollTo(last.id, anchor: .bottom)
+                }
+            }
+            .onChange(of: scrollToBottomTrigger) { _, _ in
+                if let last = store.messages.last {
+                    proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
             .onAppear {
-                if let last = store.messages.last {
-                    proxy.scrollTo(last.id, anchor: .bottom)
+                autoScrollUntil = Date().addingTimeInterval(5)
+                DispatchQueue.main.async {
+                    if let last = store.messages.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
                 }
             }
         }
