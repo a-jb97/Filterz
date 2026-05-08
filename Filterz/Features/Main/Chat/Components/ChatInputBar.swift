@@ -358,29 +358,63 @@ nonisolated private func makeChatImageUploadData(from data: Data) -> Data? {
     let limit = 2 * 1024 * 1024
     let maxSide: CGFloat = 1920
 
+    let qualityRaw = UserDefaults.standard.string(forKey: ImageQualityOption.defaultsKey) ?? ""
+    let quality = ImageQualityOption(rawValue: qualityRaw) ?? .original
+
     guard let image = UIImage(data: data) else { return nil }
 
-    let scale = min(maxSide / image.size.width, maxSide / image.size.height, 1.0)
-    let targetSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-    let renderImage: UIImage
+    let pixelWidth = image.size.width * image.scale
+    let pixelHeight = image.size.height * image.scale
+    let pixelScale = min(maxSide / pixelWidth, maxSide / pixelHeight, 1.0)
 
-    if scale < 1.0 {
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        renderImage = renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
+    let renderImage: UIImage
+    if pixelScale < 1.0 {
+        let targetPixels = CGSize(width: pixelWidth * pixelScale, height: pixelHeight * pixelScale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        renderImage = UIGraphicsImageRenderer(size: targetPixels, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetPixels))
         }
     } else {
         renderImage = image
     }
 
-    for quality: CGFloat in [0.85, 0.7, 0.55, 0.4, 0.25, 0.1] {
-        if let compressed = renderImage.jpegData(compressionQuality: quality),
+    switch quality {
+    case .original:
+        for q: CGFloat in [1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.1] {
+            if let compressed = renderImage.jpegData(compressionQuality: q),
+               compressed.count <= limit {
+                return compressed
+            }
+        }
+        return renderImage.jpegData(compressionQuality: 0.1)
+
+    case .high:
+        if let compressed = renderImage.jpegData(compressionQuality: 0.7),
            compressed.count <= limit {
             return compressed
         }
-    }
+        for q: CGFloat in [0.55, 0.4, 0.25, 0.1] {
+            if let compressed = renderImage.jpegData(compressionQuality: q),
+               compressed.count <= limit {
+                return compressed
+            }
+        }
+        return renderImage.jpegData(compressionQuality: 0.1)
 
-    return renderImage.jpegData(compressionQuality: 0.1)
+    case .low:
+        if let compressed = renderImage.jpegData(compressionQuality: 0.4),
+           compressed.count <= limit {
+            return compressed
+        }
+        for q: CGFloat in [0.25, 0.1] {
+            if let compressed = renderImage.jpegData(compressionQuality: q),
+               compressed.count <= limit {
+                return compressed
+            }
+        }
+        return renderImage.jpegData(compressionQuality: 0.1)
+    }
 }
 
 nonisolated private func makeChatThumbnail(from data: Data, maxSide: CGFloat) -> Data? {
