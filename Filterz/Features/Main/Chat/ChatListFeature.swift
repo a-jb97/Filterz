@@ -184,7 +184,7 @@ struct ChatListFeature {
                         try await chatLocalStore.upsertRooms(remote, currentUserId)
                     }
                     try await chatLocalStore.incrementUnreadCount(payload.roomId, 1)
-                    let rooms = try await chatLocalStore.fetchRooms()
+                    let rooms = try await chatLocalStore.fetchRooms(currentUserId)
                     await send(.refreshedAfterPush(rooms))
                 } catch: { error, send in
                     await send(.loadFailed(error.localizedDescription))
@@ -298,11 +298,11 @@ struct ChatListFeature {
     ) -> Effect<Action> {
         .run { send in
             if includeLocal {
-                let local = try await chatLocalStore.fetchRooms()
+                let local = try await chatLocalStore.fetchRooms(currentUserId)
                 await send(.loadedLocal(local))
             }
 
-            let previousRooms = try await chatLocalStore.fetchRooms()
+            let previousRooms = try await chatLocalStore.fetchRooms(currentUserId)
             let remote = try await chatClient.getChatRooms()
             if !remote.isEmpty {
                 try await chatLocalStore.upsertRooms(remote, currentUserId)
@@ -314,7 +314,7 @@ struct ChatListFeature {
             ) {
                 try await chatLocalStore.incrementUnreadCount(increment.roomId, increment.count)
             }
-            let merged = try await chatLocalStore.fetchRooms()
+            let merged = try await chatLocalStore.fetchRooms(currentUserId)
             await send(.loadedRemote(merged))
         } catch: { error, send in
             await send(.loadFailed(error.localizedDescription))

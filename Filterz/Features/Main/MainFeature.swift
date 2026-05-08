@@ -81,7 +81,8 @@ struct MainFeature {
             switch action {
             case .onAppear:
                 let initialLoad = Effect<Action>.run { send in
-                    guard let rooms = try? await chatLocalStore.fetchRooms() else { return }
+                    let currentUserId = KeychainHelper.load(forKey: "userId") ?? ""
+                    guard let rooms = try? await chatLocalStore.fetchRooms(currentUserId) else { return }
                     let total = rooms.reduce(0) { $0 + $1.unreadCount }
                     await send(.badgeSyncedOnLaunch(total))
                 }
@@ -149,7 +150,7 @@ struct MainFeature {
                         if !dtos.isEmpty {
                             try await chatLocalStore.upsertRooms(dtos, currentUserId)
                         }
-                        let rooms = try await chatLocalStore.fetchRooms()
+                        let rooms = try await chatLocalStore.fetchRooms(currentUserId)
                         guard let room = rooms.first(where: { $0.roomId == roomId }) else {
                             throw NetworkError.notFound
                         }
