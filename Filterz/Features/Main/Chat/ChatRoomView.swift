@@ -165,6 +165,10 @@ struct ChatRoomView: View {
                 }
                 .padding(.vertical, 12)
             }
+            .scrollDismissesKeyboard(.immediately)
+            .simultaneousGesture(TapGesture().onEnded {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            })
             .onChange(of: store.messages.count) { _, _ in
                 if let last = store.messages.last {
                     withAnimation(.easeOut(duration: 0.2)) {
