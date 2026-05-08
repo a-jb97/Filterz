@@ -16,6 +16,7 @@ struct MainFeature {
         case chatRoom(ChatRoomFeature)
         case videoList(VideoListFeature)
         case videoPlayer(VideoPlayerFeature)
+        case settings(SettingsFeature)
     }
 
     @ObservableState
@@ -290,6 +291,10 @@ struct MainFeature {
 
             case .mypage(.delegate(.likedFiltersRequested)):
                 state.path.append(.likedFilters(.init()))
+                return .none
+
+            case .mypage(.delegate(.settingsRequested)):
+                state.path.append(.settings(SettingsFeature.State()))
                 return .none
 
             case .mypage(.delegate(.logoutCompleted)):

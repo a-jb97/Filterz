@@ -40,6 +40,8 @@ struct MainView: View {
             case .videoPlayer(let videoPlayerStore):
                 VideoPlayerView(store: videoPlayerStore)
                     .navigationBarHidden(true)
+            case .settings(let settingsStore):
+                SettingsView(store: settingsStore)
             }
         }
         .sheet(item: $store.scope(state: \.userProfile, action: \.userProfile)) { profileStore in
