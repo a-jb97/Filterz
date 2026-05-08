@@ -4,6 +4,7 @@ import SwiftData
 @Model
 final class ChatRoomEntity {
     @Attribute(.unique) var roomId: String
+    var ownerUserId: String = ""
     var createdAt: Date
     var updatedAt: Date
     var opponentUserId: String
@@ -20,6 +21,7 @@ final class ChatRoomEntity {
 
     init(
         roomId: String,
+        ownerUserId: String,
         createdAt: Date,
         updatedAt: Date,
         opponentUserId: String,
@@ -30,6 +32,7 @@ final class ChatRoomEntity {
         lastMessageSenderId: String?
     ) {
         self.roomId = roomId
+        self.ownerUserId = ownerUserId
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.opponentUserId = opponentUserId

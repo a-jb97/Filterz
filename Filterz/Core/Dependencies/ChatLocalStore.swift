@@ -5,9 +5,9 @@ import ComposableArchitecture
 @ModelActor
 actor ChatLocalStoreActor {
 
-    func fetchRooms() throws -> [ChatRoom] {
+    func fetchRooms(ownerUserId: String) throws -> [ChatRoom] {
         let descriptor = FetchDescriptor<ChatRoomEntity>(
-            predicate: #Predicate { !$0.isHidden },
+            predicate: #Predicate { $0.ownerUserId == ownerUserId && !$0.isHidden },
             sortBy: [SortDescriptor(\.lastMessageAt, order: .reverse),
                      SortDescriptor(\.updatedAt, order: .reverse)]
         )
@@ -40,6 +40,7 @@ actor ChatLocalStoreActor {
             }
 
             if let entity = existing {
+                entity.ownerUserId = currentUserId
                 entity.updatedAt = updatedAt
                 entity.opponentUserId = opponent.userID
                 entity.opponentNick = opponent.nick
@@ -52,6 +53,7 @@ actor ChatLocalStoreActor {
             } else {
                 let entity = ChatRoomEntity(
                     roomId: dto.roomId,
+                    ownerUserId: currentUserId,
                     createdAt: createdAt,
                     updatedAt: updatedAt,
                     opponentUserId: opponent.userID,
@@ -176,7 +178,7 @@ actor ChatLocalStoreActor {
 }
 
 struct ChatLocalStore: Sendable {
-    var fetchRooms: @Sendable () async throws -> [ChatRoom]
+    var fetchRooms: @Sendable (_ ownerUserId: String) async throws -> [ChatRoom]
     var upsertRooms: @Sendable (_ dtos: [ChatRoomResponseDTO], _ currentUserId: String) async throws -> Void
     var fetchMessages: @Sendable (_ roomId: String) async throws -> [ChatMessage]
     var upsertMessages: @Sendable (_ dtos: [ChatResponseDTO], _ roomId: String) async throws -> Void
@@ -190,7 +192,7 @@ extension ChatLocalStore: DependencyKey {
     static var liveValue: ChatLocalStore {
         let actor = ChatLocalStoreActor(modelContainer: ChatModelContainer.shared)
         return ChatLocalStore(
-            fetchRooms: { try await actor.fetchRooms() },
+            fetchRooms: { ownerUserId in try await actor.fetchRooms(ownerUserId: ownerUserId) },
             upsertRooms: { dtos, currentUserId in
                 try await actor.upsertRooms(dtos, currentUserId: currentUserId)
             },
@@ -217,7 +219,7 @@ extension ChatLocalStore: DependencyKey {
 
     static var testValue: ChatLocalStore {
         ChatLocalStore(
-            fetchRooms: { [] },
+            fetchRooms: { _ in [] },
             upsertRooms: { _, _ in },
             fetchMessages: { _ in [] },
             upsertMessages: { _, _ in },
