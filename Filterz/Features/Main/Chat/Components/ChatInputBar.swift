@@ -20,6 +20,8 @@ struct ChatInputBar: View {
     @State private var photoSelections: [PhotosPickerItem] = []
     @State private var showFilePicker = false
 
+    private let maxAttachments = 5
+    private var totalAttachments: Int { pendingImages.count + pendingFiles.count }
     private var hasAttachments: Bool { !pendingImages.isEmpty || !pendingFiles.isEmpty }
 
     var body: some View {
@@ -125,7 +127,7 @@ struct ChatInputBar: View {
         HStack(alignment: .center, spacing: 10) {
             PhotosPicker(
                 selection: $photoSelections,
-                maxSelectionCount: 5,
+                maxSelectionCount: max(1, maxAttachments - pendingFiles.count),
                 matching: .images
             ) {
                 Image(systemName: "photo.on.rectangle")
@@ -134,7 +136,7 @@ struct ChatInputBar: View {
                     .frame(width: 22, height: 22)
                     .foregroundColor(.filterzGray45)
             }
-            .disabled(isSending)
+            .disabled(isSending || totalAttachments >= maxAttachments)
             .onChange(of: photoSelections) { _, newValue in
                 Task { await loadSelections(newValue) }
             }
@@ -146,7 +148,7 @@ struct ChatInputBar: View {
                     .frame(width: 22, height: 22)
                     .foregroundColor(.filterzGray45)
             }
-            .disabled(isSending)
+            .disabled(isSending || totalAttachments >= maxAttachments)
             .fileImporter(
                 isPresented: $showFilePicker,
                 allowedContentTypes: [.pdf],
@@ -211,8 +213,12 @@ struct ChatInputBar: View {
             }
         }
 
-        if !picked.isEmpty { onFilesPicked(picked) }
-        if !rejected.isEmpty {
+        let fileLimit = maxAttachments - pendingImages.count
+        let allowedFiles = Array(picked.prefix(max(0, fileLimit)))
+        if !allowedFiles.isEmpty { onFilesPicked(allowedFiles) }
+        if picked.count > allowedFiles.count {
+            onInvalidAttachment("사진과 파일을 합쳐 최대 \(maxAttachments)개까지 첨부할 수 있습니다.")
+        } else if !rejected.isEmpty {
             onInvalidAttachment("첨부할 수 없는 파일 형식입니다: \(rejected.joined(separator: ", "))\n(PDF 파일만 첨부 가능합니다)")
         }
     }
@@ -256,18 +262,23 @@ struct ChatInputBar: View {
             }
         }
         indexed.sort { $0.0 < $1.0 }
-        let placeholders = indexed.map(\.1)
+        let imageLimit = maxAttachments - pendingFiles.count
+        let clampedIndexed = Array(indexed.prefix(max(0, imageLimit)))
+        let trimmedCount = indexed.count - clampedIndexed.count
+        let placeholders = clampedIndexed.map(\.1)
 
         if !placeholders.isEmpty {
             onImagesPicked(placeholders)
         }
-        if rejectedCount > 0 {
+        if trimmedCount > 0 {
+            onInvalidAttachment("사진과 파일을 합쳐 최대 \(maxAttachments)개까지 첨부할 수 있습니다.")
+        } else if rejectedCount > 0 {
             onInvalidAttachment("지원하지 않는 사진 형식이 포함되어 있습니다.\n(jpg, jpeg, png, gif만 첨부 가능합니다)")
         }
 
         // Phase 2: 업로드 데이터 준비 (백그라운드, 병렬)
         // for await 루프(MainActor)에서 콜백 실행 — @MainActor 위반 방지
-        let validItems: [(Int, PhotosPickerItem)] = indexed.map(\.0).enumerated().compactMap { seqIdx, originalIdx in
+        let validItems: [(Int, PhotosPickerItem)] = clampedIndexed.map(\.0).enumerated().compactMap { seqIdx, originalIdx in
             guard originalIdx < items.count else { return nil }
             return (seqIdx, items[originalIdx])
         }
