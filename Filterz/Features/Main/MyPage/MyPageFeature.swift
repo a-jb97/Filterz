@@ -54,6 +54,7 @@ struct MyPageFeature {
         case filtersResponse(Result<FilterSummaryPaginationListResponseDTO, any Error>, append: Bool)
         case filterTapped(id: String)
         case likedFiltersButtonTapped
+        case settingsTapped
         case editButtonTapped
         case editPresentationChanged(Bool)
         case editNickChanged(String)
@@ -73,6 +74,7 @@ struct MyPageFeature {
         enum Delegate: Sendable {
             case filterTapped(id: String)
             case likedFiltersRequested
+            case settingsRequested
             case logoutCompleted
         }
     }
@@ -127,6 +129,9 @@ struct MyPageFeature {
 
             case .likedFiltersButtonTapped:
                 return .send(.delegate(.likedFiltersRequested))
+
+            case .settingsTapped:
+                return .send(.delegate(.settingsRequested))
 
             case .editButtonTapped:
                 guard let profile = state.profile else { return .none }

@@ -60,6 +60,16 @@ struct MyPageView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            Button {
+                store.send(.settingsTapped)
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(Color.filterzGray30)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .frame(height: 56)
