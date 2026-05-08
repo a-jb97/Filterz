@@ -47,6 +47,7 @@ struct MainView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
+        .task { store.send(.onAppear) }
     }
 
     @ViewBuilder
@@ -109,7 +110,7 @@ private struct CustomTabBarView: View {
                 if tab == .chat, chatUnreadCount > 0 {
                     Text(badgeText(chatUnreadCount))
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(.filterzBackground)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .frame(minWidth: 18, minHeight: 18)

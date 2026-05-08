@@ -34,6 +34,8 @@ struct MainFeature {
     }
 
     enum Action: Sendable {
+        case onAppear
+        case badgeSyncedOnLaunch(Int)
         case tabSelected(Tab)
         case chatPushReceived(ChatPushPayload)
         case chatPushTapped(ChatPushPayload)
@@ -77,10 +79,39 @@ struct MainFeature {
         }
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                let initialLoad = Effect<Action>.run { send in
+                    guard let rooms = try? await chatLocalStore.fetchRooms() else { return }
+                    let total = rooms.reduce(0) { $0 + $1.unreadCount }
+                    await send(.badgeSyncedOnLaunch(total))
+                }
+                // Chat tab: ChatListFeature.onAppear가 로컬+원격 로드를 직접 처리
+                guard state.selectedTab != .chat else { return initialLoad }
+                return .merge(
+                    initialLoad,
+                    .send(.chatList(.refreshRooms)),
+                    badgePollingEffect()
+                )
+
+            case .badgeSyncedOnLaunch(let total):
+                state.chatUnreadCount = total
+                return .run { _ in
+                    await PushNotificationBridge.setApplicationBadge(total)
+                }
+
             case .tabSelected(let tab):
                 let returning = tab == .explore && state.selectedTab != .explore
                 state.selectedTab = tab
-                return returning ? .send(.upload(.reset)) : .none
+                if tab == .chat {
+                    return .merge(
+                        returning ? .send(.upload(.reset)) : .none,
+                        .cancel(id: "mainBadgePolling")
+                    )
+                }
+                return .merge(
+                    returning ? .send(.upload(.reset)) : .none,
+                    badgePollingEffect()
+                )
 
             case .chatPushReceived(let payload):
                 state.chatUnreadCount = payload.unreadCount
@@ -327,6 +358,17 @@ struct MainFeature {
                 state.path.append(.filterDetail(.init(filterId: id)))
                 return .none
 
+            case .chatList(.loadedLocal(_)),
+                 .chatList(.loadedRemote(_)),
+                 .chatList(.refreshedAfterPush(_)),
+                 .chatList(.roomRead(roomId: _)),
+                 .chatList(.deleteResponse(.success(_))):
+                let total = state.chatList.rooms.reduce(0) { $0 + $1.unreadCount }
+                state.chatUnreadCount = total
+                return .run { _ in
+                    await PushNotificationBridge.setApplicationBadge(total)
+                }
+
             case .home, .feed, .upload, .chatList, .mypage, .path, .userProfile:
                 return .none
 
@@ -338,6 +380,16 @@ struct MainFeature {
         .ifLet(\.$userProfile, action: \.userProfile) {
             UserProfileFeature()
         }
+    }
+
+    private func badgePollingEffect() -> Effect<Action> {
+        .run { send in
+            while !Task.isCancelled {
+                try await Task.sleep(for: .seconds(30))
+                await send(.chatList(.refreshRooms))
+            }
+        }
+        .cancellable(id: "mainBadgePolling", cancelInFlight: true)
     }
 
     private func presentUserProfile(_ state: inout State, userId: String) -> Effect<Action> {
