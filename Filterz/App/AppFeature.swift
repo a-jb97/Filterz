@@ -13,6 +13,7 @@ struct AppFeature {
     enum Action: Sendable {
         case onAppear
         case sessionCheckResponse(Bool)
+        case scenePhaseChanged(Bool)
         case chatPushReceived(ChatPushPayload)
         case chatPushTapped(ChatPushPayload)
         case auth(AuthFeature.Action)
@@ -51,6 +52,10 @@ struct AppFeature {
                 state.auth = .init()
                 state.main = nil
                 return .none
+
+            case .scenePhaseChanged(let isActive):
+                guard state.main != nil else { return .none }
+                return .send(.main(.scenePhaseChanged(isActive)))
 
             case .auth(.delegate(.authenticationComplete)):
                 state.auth = nil
