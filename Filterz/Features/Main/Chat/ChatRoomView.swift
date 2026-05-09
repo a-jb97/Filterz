@@ -240,6 +240,7 @@ struct ChatRoomView: View {
                             showsProfile: showsProfile,
                             startsGroup: startsGroup,
                             endsGroup: endsGroup,
+                            profileImagePath: isMine ? message.senderProfilePath : store.room.opponentProfilePath,
                             onProfileTapped: {
                                 store.send(.messageProfileTapped(userId: message.senderId))
                             },
