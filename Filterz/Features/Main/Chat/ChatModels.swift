@@ -29,8 +29,8 @@ struct ChatRoom: Equatable, Sendable, Identifiable {
     let createdAt: Date
     let updatedAt: Date
     let opponentUserId: String
-    let opponentNick: String
-    let opponentProfilePath: String?
+    var opponentNick: String
+    var opponentProfilePath: String?
     let lastMessageContent: String?
     let lastMessageAt: Date?
     let lastMessageSenderId: String?
@@ -53,6 +53,12 @@ struct ChatMessage: Equatable, Sendable, Identifiable {
     let files: [String]
 
     var id: String { chatId }
+}
+
+struct ChatOpponentInfo: Equatable, Sendable {
+    let userId: String
+    let nick: String
+    let profilePath: String?
 }
 
 extension ChatRoom {

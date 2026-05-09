@@ -115,6 +115,11 @@ actor ChatLocalStoreActor {
                 modelContext.insert(entity)
             }
 
+            if let room, dto.sender.userID == room.opponentUserId {
+                room.opponentNick = dto.sender.nick
+                room.opponentProfilePath = dto.sender.profileImage
+            }
+
             if latest == nil || latest!.at < createdAt {
                 latest = (dto.content ?? (dto.files.isEmpty ? nil : "사진"), createdAt, dto.sender.userID)
             }

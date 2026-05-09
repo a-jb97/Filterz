@@ -11,7 +11,7 @@ struct ChatRoomFeature {
             let selectedIndex: Int
         }
 
-        let room: ChatRoom
+        var room: ChatRoom
         var messages: IdentifiedArrayOf<ChatMessage> = []
         var draft: String = ""
         var pickedImages: [PickedImage] = []
@@ -47,7 +47,12 @@ struct ChatRoomFeature {
         case networkStatusChanged(Bool)
         case reconnectSocketRequested
         case loadedLocal([ChatMessage])
-        case syncedRemote(messages: [ChatMessage], lastSeenChatId: String?, lastSeenMessageAt: Date?)
+        case syncedRemote(
+            messages: [ChatMessage],
+            lastSeenChatId: String?,
+            lastSeenMessageAt: Date?,
+            opponentInfo: ChatOpponentInfo?
+        )
         case syncFailed(String)
         case socketEvent(ChatSocketEvent)
         case draftChanged(String)
@@ -97,8 +102,9 @@ struct ChatRoomFeature {
                 state.hasStartedEffects = true
                 state.isSyncing = true
                 let roomId = state.room.roomId
+                let currentUserId = state.currentUserId
                 return .merge(
-                    syncMessagesEffect(roomId: roomId, includeLocal: true),
+                    syncMessagesEffect(roomId: roomId, currentUserId: currentUserId, includeLocal: true),
                     connectSocketEffect(roomId: roomId),
                     observeNetworkEffect(roomId: roomId)
                 )
@@ -147,6 +153,7 @@ struct ChatRoomFeature {
                 guard !state.isReconnectingSocket else { return .none }
                 state.isReconnectingSocket = true
                 let roomId = state.room.roomId
+                let currentUserId = state.currentUserId
                 return .concatenate(
                     .cancel(id: socketCancelID(roomId)),
                     .run { send in
@@ -156,6 +163,7 @@ struct ChatRoomFeature {
                                 let local = try await chatLocalStore.fetchMessages(roomId)
                                 let nextParam = local.last?.createdAt.iso8601UTC
                                 let remote = try await chatClient.getMessages(roomId, nextParam)
+                                let opponentInfo = latestOpponentInfo(from: remote, currentUserId: currentUserId)
                                 if !remote.isEmpty {
                                     try await chatLocalStore.upsertMessages(remote, roomId)
                                 }
@@ -164,7 +172,8 @@ struct ChatRoomFeature {
                                 await send(.syncedRemote(
                                     messages: merged,
                                     lastSeenChatId: lastSeen.chatId,
-                                    lastSeenMessageAt: lastSeen.messageAt
+                                    lastSeenMessageAt: lastSeen.messageAt,
+                                    opponentInfo: opponentInfo
                                 ))
                             } catch {
                                 // Keep retrying silently while the room is visible.
@@ -181,9 +190,10 @@ struct ChatRoomFeature {
                 state.messages = IdentifiedArray(uniqueElements: messages)
                 return .none
 
-            case let .syncedRemote(messages, lastSeenChatId, lastSeenMessageAt):
+            case let .syncedRemote(messages, lastSeenChatId, lastSeenMessageAt, opponentInfo):
                 state.isSyncing = false
                 state.messages = IdentifiedArray(uniqueElements: messages)
+                updateOpponentInfo(opponentInfo, state: &state)
                 state.lastSeenChatId = lastSeenChatId
                 state.lastSeenMessageAt = lastSeenMessageAt
                 state.initialScrollTargetId = initialScrollTarget(
@@ -217,7 +227,12 @@ struct ChatRoomFeature {
                 let roomId = state.room.roomId
                 return .merge(
                     .cancel(id: reconnectCancelID(roomId)),
-                    syncMessagesEffect(roomId: roomId, includeLocal: false, reportsFailure: false)
+                    syncMessagesEffect(
+                        roomId: roomId,
+                        currentUserId: state.currentUserId,
+                        includeLocal: false,
+                        reportsFailure: false
+                    )
                 )
 
             case .socketEvent(.disconnected):
@@ -227,6 +242,7 @@ struct ChatRoomFeature {
 
             case .socketEvent(.message(let message)):
                 state.messages[id: message.id] = message
+                updateOpponentInfo(from: [message], state: &state)
                 let roomId = state.room.roomId
                 return .run { _ in
                     let dto = ChatResponseDTO(
@@ -452,6 +468,7 @@ struct ChatRoomFeature {
 
     private func syncMessagesEffect(
         roomId: String,
+        currentUserId: String,
         includeLocal: Bool,
         reportsFailure: Bool = true
     ) -> Effect<Action> {
@@ -463,6 +480,7 @@ struct ChatRoomFeature {
 
             let nextParam = local.last?.createdAt.iso8601UTC
             let remote = try await chatClient.getMessages(roomId, nextParam)
+            let opponentInfo = latestOpponentInfo(from: remote, currentUserId: currentUserId)
             if !remote.isEmpty {
                 try await chatLocalStore.upsertMessages(remote, roomId)
             }
@@ -471,7 +489,8 @@ struct ChatRoomFeature {
             await send(.syncedRemote(
                 messages: merged,
                 lastSeenChatId: lastSeen.chatId,
-                lastSeenMessageAt: lastSeen.messageAt
+                lastSeenMessageAt: lastSeen.messageAt,
+                opponentInfo: opponentInfo
             ))
         } catch: { error, send in
             if reportsFailure {
@@ -541,6 +560,33 @@ struct ChatRoomFeature {
         guard let lastSeenMessageAt else { return [] }
         return messages.filter {
             $0.senderId != currentUserId && $0.createdAt > lastSeenMessageAt
+        }
+    }
+
+    private func updateOpponentInfo(from messages: [ChatMessage], state: inout State) {
+        guard let latestOpponentMessage = messages.last(where: { $0.senderId == state.room.opponentUserId }) else {
+            return
+        }
+        state.room.opponentNick = latestOpponentMessage.senderNick
+        state.room.opponentProfilePath = latestOpponentMessage.senderProfilePath
+    }
+
+    private func updateOpponentInfo(_ opponentInfo: ChatOpponentInfo?, state: inout State) {
+        guard let opponentInfo, opponentInfo.userId == state.room.opponentUserId else { return }
+        state.room.opponentNick = opponentInfo.nick
+        state.room.opponentProfilePath = opponentInfo.profilePath
+    }
+
+    nonisolated private func latestOpponentInfo(
+        from dtos: [ChatResponseDTO],
+        currentUserId: String
+    ) -> ChatOpponentInfo? {
+        dtos.last(where: { $0.sender.userID != currentUserId }).map {
+            ChatOpponentInfo(
+                userId: $0.sender.userID,
+                nick: $0.sender.nick,
+                profilePath: $0.sender.profileImage
+            )
         }
     }
 
