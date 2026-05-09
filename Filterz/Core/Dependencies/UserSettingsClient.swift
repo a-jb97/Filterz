@@ -30,12 +30,19 @@ enum ImageQualityOption: String, CaseIterable, Sendable {
         }
     }
 
-    static let defaultsKey = "imageQualityOption"
+    nonisolated static let defaultsKey = "imageQualityOption"
+}
+
+enum AISummarySetting {
+    nonisolated static let defaultsKey = "isAISummaryEnabled"
+    nonisolated static let defaultValue = true
 }
 
 struct UserSettingsClient: Sendable {
     var imageQuality: @Sendable () -> ImageQualityOption
     var setImageQuality: @Sendable (ImageQualityOption) -> Void
+    var isAISummaryEnabled: @Sendable () -> Bool
+    var setAISummaryEnabled: @Sendable (Bool) -> Void
 }
 
 extension UserSettingsClient: DependencyKey {
@@ -47,6 +54,15 @@ extension UserSettingsClient: DependencyKey {
             },
             setImageQuality: { option in
                 UserDefaults.standard.set(option.rawValue, forKey: ImageQualityOption.defaultsKey)
+            },
+            isAISummaryEnabled: {
+                guard UserDefaults.standard.object(forKey: AISummarySetting.defaultsKey) != nil else {
+                    return AISummarySetting.defaultValue
+                }
+                return UserDefaults.standard.bool(forKey: AISummarySetting.defaultsKey)
+            },
+            setAISummaryEnabled: { isEnabled in
+                UserDefaults.standard.set(isEnabled, forKey: AISummarySetting.defaultsKey)
             }
         )
     }
@@ -54,7 +70,9 @@ extension UserSettingsClient: DependencyKey {
     static var testValue: UserSettingsClient {
         UserSettingsClient(
             imageQuality: { .original },
-            setImageQuality: { _ in }
+            setImageQuality: { _ in },
+            isAISummaryEnabled: { AISummarySetting.defaultValue },
+            setAISummaryEnabled: { _ in }
         )
     }
 }

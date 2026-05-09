@@ -34,6 +34,7 @@ struct ChatRoomFeature {
         var shouldPreserveUnreadPosition: Bool = false
         var unreadSummaryMessages: [ChatMessage] = []
         var showsAISummaryButton: Bool = false
+        var isAISummaryEnabled: Bool = true
         var didOfferSummaryForCurrentVisit: Bool = false
         var isSummarizing: Bool = false
         var summaryText: String? = nil
@@ -91,6 +92,7 @@ struct ChatRoomFeature {
     @Dependency(\.chatLocalStore) var chatLocalStore
     @Dependency(\.chatSocketClient) var chatSocketClient
     @Dependency(\.chatSummaryClient) var chatSummaryClient
+    @Dependency(\.userSettings) var userSettings
     @Dependency(\.networkStatusClient) var networkStatusClient
     @Dependency(\.continuousClock) var clock
 
@@ -101,6 +103,7 @@ struct ChatRoomFeature {
                 guard !state.hasStartedEffects else { return .none }
                 state.hasStartedEffects = true
                 state.isSyncing = true
+                state.isAISummaryEnabled = userSettings.isAISummaryEnabled()
                 let roomId = state.room.roomId
                 let currentUserId = state.currentUserId
                 return .merge(
@@ -207,7 +210,7 @@ struct ChatRoomFeature {
                     currentUserId: state.currentUserId
                 )
                 state.unreadSummaryMessages = unread
-                let shouldOfferSummary = !unread.isEmpty && !state.didOfferSummaryForCurrentVisit
+                let shouldOfferSummary = state.isAISummaryEnabled && !unread.isEmpty && !state.didOfferSummaryForCurrentVisit
                 state.showsAISummaryButton = shouldOfferSummary
                 if shouldOfferSummary {
                     state.didOfferSummaryForCurrentVisit = true
@@ -403,6 +406,10 @@ struct ChatRoomFeature {
 
             case .aiSummaryButtonTapped:
                 guard !state.isSummarizing else { return .none }
+                guard state.isAISummaryEnabled else {
+                    state.showsAISummaryButton = false
+                    return .none
+                }
                 guard !state.unreadSummaryMessages.isEmpty else {
                     state.showsAISummaryButton = false
                     return .none

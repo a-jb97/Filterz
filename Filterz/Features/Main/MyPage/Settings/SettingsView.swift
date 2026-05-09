@@ -37,6 +37,36 @@ struct SettingsView: View {
                     .foregroundColor(.filterzGray60)
                     .textCase(nil)
             }
+
+            Section {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("AI 요약")
+                            .font(.pretendard(15, weight: .regular))
+                            .foregroundColor(.filterzGray30)
+                        Text("읽지 않은 채팅을 요약")
+                            .font(.pretendard(12, weight: .regular))
+                            .foregroundColor(.filterzGray60)
+                    }
+
+                    Spacer()
+
+                    Toggle(
+                        "",
+                        isOn: Binding(
+                            get: { store.isAISummaryEnabled },
+                            set: { store.send(.aiSummaryEnabledChanged($0)) }
+                        )
+                    )
+                    .labelsHidden()
+                    .tint(.filterzAccent)
+                }
+            } header: {
+                Text("채팅")
+                    .font(.pretendard(12, weight: .semibold))
+                    .foregroundColor(.filterzGray60)
+                    .textCase(nil)
+            }
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
