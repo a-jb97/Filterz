@@ -34,6 +34,8 @@ struct ChatRoom: Equatable, Sendable, Identifiable {
     let lastMessageContent: String?
     let lastMessageAt: Date?
     let lastMessageSenderId: String?
+    var lastSeenChatId: String?
+    var lastSeenMessageAt: Date?
     var unreadCount: Int = 0
 
     var id: String { roomId }
@@ -75,6 +77,8 @@ extension ChatRoom {
             self.lastMessageAt = nil
             self.lastMessageSenderId = nil
         }
+        self.lastSeenChatId = nil
+        self.lastSeenMessageAt = nil
         self.unreadCount = 0
     }
 
@@ -88,6 +92,8 @@ extension ChatRoom {
         self.lastMessageContent = entity.lastMessageContent
         self.lastMessageAt = entity.lastMessageAt
         self.lastMessageSenderId = entity.lastMessageSenderId
+        self.lastSeenChatId = entity.lastSeenChatId
+        self.lastSeenMessageAt = entity.lastSeenMessageAt
         self.unreadCount = entity.unreadCount
     }
 }

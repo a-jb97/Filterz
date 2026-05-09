@@ -13,6 +13,8 @@ final class ChatRoomEntity {
     var lastMessageContent: String?
     var lastMessageAt: Date?
     var lastMessageSenderId: String?
+    var lastSeenChatId: String?
+    var lastSeenMessageAt: Date?
     var unreadCount: Int = 0
     var isHidden: Bool = false
 
