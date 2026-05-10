@@ -16,6 +16,7 @@ struct MainFeature {
         case chatRoom(ChatRoomFeature)
         case videoList(VideoListFeature)
         case videoPlayer(VideoPlayerFeature)
+        case settings(SettingsFeature)
     }
 
     @ObservableState
@@ -41,6 +42,7 @@ struct MainFeature {
         case chatPushTapped(ChatPushPayload)
         case openChatFromPush(roomId: String)
         case openChatFromPushResponse(Result<ChatRoom, any Error>)
+        case scenePhaseChanged(Bool)
         case home(HomeFeature.Action)
         case feed(FeedFeature.Action)
         case upload(UploadFilterFeature.Action)
@@ -172,6 +174,26 @@ struct MainFeature {
             case .openChatFromPushResponse(.failure):
                 return .none
 
+            case .scenePhaseChanged(let isActive):
+                guard let current = currentChatRoomState(state) else { return .none }
+                if isActive {
+                    state.currentChatRoomId = current.roomId
+                    return .run { _ in
+                        await MainActor.run {
+                            PushNotificationBridge.currentChatRoomId = current.roomId
+                        }
+                    }
+                }
+                state.currentChatRoomId = nil
+                return .merge(
+                    markLastSeenEffect(roomId: current.roomId, message: current.lastMessage),
+                    .run { _ in
+                        await MainActor.run {
+                            PushNotificationBridge.currentChatRoomId = nil
+                        }
+                    }
+                )
+
             case .home(.delegate(.filterTapped(let id))):
                 state.path.append(.filterDetail(.init(filterId: id)))
                 return .none
@@ -292,6 +314,10 @@ struct MainFeature {
                 state.path.append(.likedFilters(.init()))
                 return .none
 
+            case .mypage(.delegate(.settingsRequested)):
+                state.path.append(.settings(SettingsFeature.State()))
+                return .none
+
             case .mypage(.delegate(.logoutCompleted)):
                 return .send(.delegate(.logoutCompleted))
 
@@ -320,21 +346,35 @@ struct MainFeature {
                       state.currentChatRoomId == chatRoomState.room.roomId else {
                     return .none
                 }
+                let lastMessage = chatRoomState.messages.last
+                let roomId = chatRoomState.room.roomId
                 state.currentChatRoomId = nil
-                return .run { _ in
-                    await MainActor.run {
-                        PushNotificationBridge.currentChatRoomId = nil
+                return .merge(
+                    markLastSeenEffect(roomId: roomId, message: lastMessage),
+                    .run { _ in
+                        await MainActor.run {
+                            PushNotificationBridge.currentChatRoomId = nil
+                        }
                     }
-                }
+                )
 
-            case .path(.element(_, .chatRoom(.delegate(.backTapped)))):
+            case .path(.element(let id, .chatRoom(.delegate(.backTapped)))):
+                let lastSeen: (roomId: String, message: ChatMessage?)?
+                if case let .chatRoom(chatRoomState)? = state.path[id: id] {
+                    lastSeen = (chatRoomState.room.roomId, chatRoomState.messages.last)
+                } else {
+                    lastSeen = nil
+                }
                 state.currentChatRoomId = nil
                 state.path.removeLast()
-                return .run { _ in
-                    await MainActor.run {
-                        PushNotificationBridge.currentChatRoomId = nil
+                return .merge(
+                    lastSeen.map { markLastSeenEffect(roomId: $0.roomId, message: $0.message) } ?? .none,
+                    .run { _ in
+                        await MainActor.run {
+                            PushNotificationBridge.currentChatRoomId = nil
+                        }
                     }
-                }
+                )
 
             case .path(.element(_, .chatRoom(.delegate(.userProfileTapped(let userId))))):
                 return presentUserProfile(&state, userId: userId)
@@ -399,6 +439,26 @@ struct MainFeature {
         guard userId != currentUserId else { return .none }
         state.userProfile = .init(userId: userId)
         return .none
+    }
+
+    private func markLastSeenEffect(roomId: String, message: ChatMessage?) -> Effect<Action> {
+        guard let message else { return .none }
+        return .run { _ in
+            try? await chatLocalStore.markLastSeen(
+                roomId,
+                message.chatId,
+                message.createdAt
+            )
+        }
+    }
+
+    private func currentChatRoomState(_ state: State) -> (roomId: String, lastMessage: ChatMessage?)? {
+        for id in state.path.ids.reversed() {
+            if let chatRoomState = state.path[id: id, case: \.chatRoom] {
+                return (chatRoomState.room.roomId, chatRoomState.messages.last)
+            }
+        }
+        return nil
     }
 }
 

@@ -3,6 +3,7 @@ import ComposableArchitecture
 
 struct AppView: View {
     @Bindable var store: StoreOf<AppFeature>
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -15,6 +16,9 @@ struct AppView: View {
             }
         }
         .onAppear { store.send(.onAppear) }
+        .onChange(of: scenePhase) { _, phase in
+            store.send(.scenePhaseChanged(phase == .active))
+        }
         .task {
             if let payload = await PushNotificationBridge.consumePendingTappedPayload() {
                 store.send(.chatPushTapped(payload))

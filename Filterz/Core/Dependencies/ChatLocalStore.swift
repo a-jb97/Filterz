@@ -115,6 +115,11 @@ actor ChatLocalStoreActor {
                 modelContext.insert(entity)
             }
 
+            if let room, dto.sender.userID == room.opponentUserId {
+                room.opponentNick = dto.sender.nick
+                room.opponentProfilePath = dto.sender.profileImage
+            }
+
             if latest == nil || latest!.at < createdAt {
                 latest = (dto.content ?? (dto.files.isEmpty ? nil : "사진"), createdAt, dto.sender.userID)
             }
@@ -175,6 +180,28 @@ actor ChatLocalStoreActor {
             try modelContext.save()
         }
     }
+
+    func fetchLastSeen(roomId: String) throws -> (chatId: String?, messageAt: Date?) {
+        let descriptor = FetchDescriptor<ChatRoomEntity>(
+            predicate: #Predicate { $0.roomId == roomId }
+        )
+        guard let room = try modelContext.fetch(descriptor).first else {
+            return (nil, nil)
+        }
+        return (room.lastSeenChatId, room.lastSeenMessageAt)
+    }
+
+    func markLastSeen(roomId: String, chatId: String, messageAt: Date) throws {
+        let descriptor = FetchDescriptor<ChatRoomEntity>(
+            predicate: #Predicate { $0.roomId == roomId }
+        )
+
+        if let room = try modelContext.fetch(descriptor).first {
+            room.lastSeenChatId = chatId
+            room.lastSeenMessageAt = messageAt
+            try modelContext.save()
+        }
+    }
 }
 
 struct ChatLocalStore: Sendable {
@@ -186,6 +213,8 @@ struct ChatLocalStore: Sendable {
     var unhideRoom: @Sendable (_ roomId: String) async throws -> Void
     var incrementUnreadCount: @Sendable (_ roomId: String, _ count: Int) async throws -> Void
     var markRoomRead: @Sendable (_ roomId: String) async throws -> Void
+    var fetchLastSeen: @Sendable (_ roomId: String) async throws -> (chatId: String?, messageAt: Date?)
+    var markLastSeen: @Sendable (_ roomId: String, _ chatId: String, _ messageAt: Date) async throws -> Void
 }
 
 extension ChatLocalStore: DependencyKey {
@@ -213,6 +242,12 @@ extension ChatLocalStore: DependencyKey {
             },
             markRoomRead: { roomId in
                 try await actor.markRoomRead(roomId: roomId)
+            },
+            fetchLastSeen: { roomId in
+                try await actor.fetchLastSeen(roomId: roomId)
+            },
+            markLastSeen: { roomId, chatId, messageAt in
+                try await actor.markLastSeen(roomId: roomId, chatId: chatId, messageAt: messageAt)
             }
         )
     }
@@ -226,7 +261,9 @@ extension ChatLocalStore: DependencyKey {
             hideRoom: { _ in },
             unhideRoom: { _ in },
             incrementUnreadCount: { _, _ in },
-            markRoomRead: { _ in }
+            markRoomRead: { _ in },
+            fetchLastSeen: { _ in (nil, nil) },
+            markLastSeen: { _, _, _ in }
         )
     }
 }

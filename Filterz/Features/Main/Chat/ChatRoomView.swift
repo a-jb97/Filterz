@@ -13,6 +13,10 @@ struct ChatRoomView: View {
 
             messagesList
 
+            if store.showsAISummaryButton || store.isSummarizing {
+                aiSummaryButton
+            }
+
             ChatInputBar(
                 text: Binding(
                     get: { store.draft },
@@ -53,7 +57,7 @@ struct ChatRoomView: View {
             }
         }
         .alert(
-            "메시지 전송 실패",
+            store.errorTitle,
             isPresented: Binding(
                 get: { store.errorMessage != nil },
                 set: { isPresented in
@@ -86,6 +90,21 @@ struct ChatRoomView: View {
                 set: { if $0 == nil { store.send(.pdfPreviewDismissed) } }
             )
         )
+        .sheet(
+            isPresented: Binding(
+                get: { store.isSummarySheetPresented },
+                set: { isPresented in
+                    if !isPresented {
+                        store.send(.summarySheetDismissed)
+                    }
+                }
+            )
+        ) {
+            summarySheet
+                .presentationDetents([.fraction(0.33)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color.filterzBlackAccent)
+        }
         .onAppear { store.send(.onAppear) }
         .onDisappear { store.send(.onDisappear) }
     }
@@ -123,6 +142,77 @@ struct ChatRoomView: View {
         .background(Color.filterzBlackBase)
     }
 
+    private var aiSummaryButton: some View {
+        HStack {
+            Spacer()
+
+            Button {
+                store.send(.aiSummaryButtonTapped)
+            } label: {
+                HStack(spacing: 7) {
+                    if store.isSummarizing {
+                        ProgressView()
+                            .tint(.filterzAccent)
+                            .scaleEffect(0.72)
+                            .frame(width: 16, height: 16)
+                    } else {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.filterzAccent)
+                    }
+
+                    Text(store.isSummarizing ? "요약 중" : "AI 요약")
+                        .font(.pretendard(13, weight: .semibold))
+                        .foregroundColor(.filterzGray30)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 14)
+                .frame(height: 36)
+                .background(Capsule().fill(Color.filterzBlackAccent))
+                .overlay(
+                    Capsule()
+                        .stroke(Color.filterzAccent.opacity(0.55), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(store.isSummarizing)
+
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color.filterzBlackBase)
+    }
+
+    private var summarySheet: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.filterzAccent)
+
+                Text("AI 요약")
+                    .font(.filterzDisplay(18))
+                    .foregroundColor(.filterzGray30)
+
+                Spacer()
+            }
+
+            ScrollView {
+                Text(store.summaryText ?? "")
+                    .font(.pretendard(14, weight: .regular))
+                    .foregroundColor(.filterzGray45)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineSpacing(4)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 20)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Color.filterzBlackAccent)
+    }
+
     private var messagesList: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -150,6 +240,7 @@ struct ChatRoomView: View {
                             showsProfile: showsProfile,
                             startsGroup: startsGroup,
                             endsGroup: endsGroup,
+                            profileImagePath: isMine ? message.senderProfilePath : store.room.opponentProfilePath,
                             onProfileTapped: {
                                 store.send(.messageProfileTapped(userId: message.senderId))
                             },
@@ -168,6 +259,13 @@ struct ChatRoomView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, changesSender ? 14 : (startsGroup ? 8 : 0))
                     }
+
+                    Color.clear
+                        .frame(height: 1)
+                        .id("chat-bottom")
+                        .onAppear {
+                            store.send(.latestMessagesReached)
+                        }
                 }
                 .padding(.vertical, 12)
             }
@@ -176,11 +274,19 @@ struct ChatRoomView: View {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             })
             .onChange(of: store.messages.last?.id) { _, _ in
+                guard !store.shouldPreserveUnreadPosition else { return }
                 if let last = store.messages.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
+            .onChange(of: store.initialScrollTargetId) { _, target in
+                guard store.shouldPreserveUnreadPosition, let target else { return }
+                DispatchQueue.main.async {
+                    proxy.scrollTo(target, anchor: .bottom)
+                }
+            }
             .onChange(of: scrollToBottomTrigger) { _, _ in
+                guard !store.shouldPreserveUnreadPosition else { return }
                 if let last = store.messages.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
@@ -188,6 +294,11 @@ struct ChatRoomView: View {
             .onAppear {
                 autoScrollUntil = Date().addingTimeInterval(5)
                 DispatchQueue.main.async {
+                    if store.shouldPreserveUnreadPosition,
+                       let target = store.initialScrollTargetId {
+                        proxy.scrollTo(target, anchor: .bottom)
+                        return
+                    }
                     if let last = store.messages.last {
                         proxy.scrollTo(last.id, anchor: .bottom)
                     }

@@ -11,7 +11,7 @@ struct ChatRoomFeature {
             let selectedIndex: Int
         }
 
-        let room: ChatRoom
+        var room: ChatRoom
         var messages: IdentifiedArrayOf<ChatMessage> = []
         var draft: String = ""
         var pickedImages: [PickedImage] = []
@@ -26,7 +26,19 @@ struct ChatRoomFeature {
         var isReconnectingSocket: Bool = false
         var hasStartedEffects: Bool = false
         var errorMessage: String? = nil
+        var errorTitle: String = "채팅 오류"
         var currentUserId: String = KeychainHelper.load(forKey: "userId") ?? ""
+        var lastSeenChatId: String? = nil
+        var lastSeenMessageAt: Date? = nil
+        var initialScrollTargetId: String? = nil
+        var shouldPreserveUnreadPosition: Bool = false
+        var unreadSummaryMessages: [ChatMessage] = []
+        var showsAISummaryButton: Bool = false
+        var isAISummaryEnabled: Bool = true
+        var didOfferSummaryForCurrentVisit: Bool = false
+        var isSummarizing: Bool = false
+        var summaryText: String? = nil
+        var isSummarySheetPresented: Bool = false
     }
 
     enum Action: Sendable {
@@ -36,7 +48,12 @@ struct ChatRoomFeature {
         case networkStatusChanged(Bool)
         case reconnectSocketRequested
         case loadedLocal([ChatMessage])
-        case syncedRemote([ChatMessage])
+        case syncedRemote(
+            messages: [ChatMessage],
+            lastSeenChatId: String?,
+            lastSeenMessageAt: Date?,
+            opponentInfo: ChatOpponentInfo?
+        )
         case syncFailed(String)
         case socketEvent(ChatSocketEvent)
         case draftChanged(String)
@@ -55,6 +72,10 @@ struct ChatRoomFeature {
         case pdfTapped(path: String)
         case pdfPreviewDismissed
         case pdfDownloaded(Result<URL, any Error>)
+        case aiSummaryButtonTapped
+        case aiSummaryResponse(Result<String, any Error>)
+        case summarySheetDismissed
+        case latestMessagesReached
         case opponentProfileTapped
         case messageProfileTapped(userId: String)
         case backTapped
@@ -70,6 +91,8 @@ struct ChatRoomFeature {
     @Dependency(\.chatClient) var chatClient
     @Dependency(\.chatLocalStore) var chatLocalStore
     @Dependency(\.chatSocketClient) var chatSocketClient
+    @Dependency(\.chatSummaryClient) var chatSummaryClient
+    @Dependency(\.userSettings) var userSettings
     @Dependency(\.networkStatusClient) var networkStatusClient
     @Dependency(\.continuousClock) var clock
 
@@ -80,24 +103,38 @@ struct ChatRoomFeature {
                 guard !state.hasStartedEffects else { return .none }
                 state.hasStartedEffects = true
                 state.isSyncing = true
+                state.isAISummaryEnabled = userSettings.isAISummaryEnabled()
                 let roomId = state.room.roomId
+                let currentUserId = state.currentUserId
                 return .merge(
-                    syncMessagesEffect(roomId: roomId, includeLocal: true),
+                    syncMessagesEffect(roomId: roomId, currentUserId: currentUserId, includeLocal: true),
                     connectSocketEffect(roomId: roomId),
                     observeNetworkEffect(roomId: roomId)
                 )
 
             case .onDisappear:
                 let roomId = state.room.roomId
+                let lastMessage = state.messages.last
                 state.hasStartedEffects = false
                 state.isSocketConnected = false
                 state.isReconnectingSocket = false
+                state.didOfferSummaryForCurrentVisit = false
                 return .merge(
                     .cancel(id: socketCancelID(roomId)),
                     .cancel(id: networkCancelID(roomId)),
                     .cancel(id: reconnectCancelID(roomId)),
                     .cancel(id: syncCancelID(roomId)),
-                    .run { _ in await chatSocketClient.disconnect() }
+                    .cancel(id: summaryCancelID(roomId)),
+                    .run { _ in
+                        if let lastMessage {
+                            try? await chatLocalStore.markLastSeen(
+                                roomId,
+                                lastMessage.chatId,
+                                lastMessage.createdAt
+                            )
+                        }
+                        await chatSocketClient.disconnect()
+                    }
                 )
 
             case .connectSocketRequested:
@@ -119,6 +156,7 @@ struct ChatRoomFeature {
                 guard !state.isReconnectingSocket else { return .none }
                 state.isReconnectingSocket = true
                 let roomId = state.room.roomId
+                let currentUserId = state.currentUserId
                 return .concatenate(
                     .cancel(id: socketCancelID(roomId)),
                     .run { send in
@@ -128,11 +166,18 @@ struct ChatRoomFeature {
                                 let local = try await chatLocalStore.fetchMessages(roomId)
                                 let nextParam = local.last?.createdAt.iso8601UTC
                                 let remote = try await chatClient.getMessages(roomId, nextParam)
+                                let opponentInfo = latestOpponentInfo(from: remote, currentUserId: currentUserId)
                                 if !remote.isEmpty {
                                     try await chatLocalStore.upsertMessages(remote, roomId)
                                 }
                                 let merged = try await chatLocalStore.fetchMessages(roomId)
-                                await send(.syncedRemote(merged))
+                                let lastSeen = try await chatLocalStore.fetchLastSeen(roomId)
+                                await send(.syncedRemote(
+                                    messages: merged,
+                                    lastSeenChatId: lastSeen.chatId,
+                                    lastSeenMessageAt: lastSeen.messageAt,
+                                    opponentInfo: opponentInfo
+                                ))
                             } catch {
                                 // Keep retrying silently while the room is visible.
                             }
@@ -148,13 +193,34 @@ struct ChatRoomFeature {
                 state.messages = IdentifiedArray(uniqueElements: messages)
                 return .none
 
-            case .syncedRemote(let messages):
+            case let .syncedRemote(messages, lastSeenChatId, lastSeenMessageAt, opponentInfo):
                 state.isSyncing = false
                 state.messages = IdentifiedArray(uniqueElements: messages)
+                updateOpponentInfo(opponentInfo, state: &state)
+                state.lastSeenChatId = lastSeenChatId
+                state.lastSeenMessageAt = lastSeenMessageAt
+                state.initialScrollTargetId = initialScrollTarget(
+                    messages: messages,
+                    lastSeenChatId: lastSeenChatId,
+                    lastSeenMessageAt: lastSeenMessageAt
+                )
+                let unread = unreadOpponentMessages(
+                    messages: messages,
+                    after: lastSeenMessageAt,
+                    currentUserId: state.currentUserId
+                )
+                state.unreadSummaryMessages = unread
+                let shouldOfferSummary = state.isAISummaryEnabled && !unread.isEmpty && !state.didOfferSummaryForCurrentVisit
+                state.showsAISummaryButton = shouldOfferSummary
+                if shouldOfferSummary {
+                    state.didOfferSummaryForCurrentVisit = true
+                }
+                state.shouldPreserveUnreadPosition = !unread.isEmpty && state.initialScrollTargetId != nil
                 return .none
 
             case .syncFailed(let message):
                 state.isSyncing = false
+                state.errorTitle = "채팅 동기화 실패"
                 state.errorMessage = message
                 return .none
 
@@ -164,7 +230,12 @@ struct ChatRoomFeature {
                 let roomId = state.room.roomId
                 return .merge(
                     .cancel(id: reconnectCancelID(roomId)),
-                    syncMessagesEffect(roomId: roomId, includeLocal: false, reportsFailure: false)
+                    syncMessagesEffect(
+                        roomId: roomId,
+                        currentUserId: state.currentUserId,
+                        includeLocal: false,
+                        reportsFailure: false
+                    )
                 )
 
             case .socketEvent(.disconnected):
@@ -174,6 +245,7 @@ struct ChatRoomFeature {
 
             case .socketEvent(.message(let message)):
                 state.messages[id: message.id] = message
+                updateOpponentInfo(from: [message], state: &state)
                 let roomId = state.room.roomId
                 return .run { _ in
                     let dto = ChatResponseDTO(
@@ -193,6 +265,7 @@ struct ChatRoomFeature {
                 }
 
             case .socketEvent(.authError(let message)):
+                state.errorTitle = "채팅 연결 실패"
                 state.errorMessage = message
                 state.isSocketConnected = false
                 state.isReconnectingSocket = false
@@ -204,6 +277,7 @@ struct ChatRoomFeature {
             case .socketEvent(.error(let message)):
                 state.isSocketConnected = false
                 guard state.hasStartedEffects else {
+                    state.errorTitle = "채팅 연결 실패"
                     state.errorMessage = message
                     return .none
                 }
@@ -242,6 +316,7 @@ struct ChatRoomFeature {
                 let allFiles = imageUploadables + fileUploadables
                 guard !trimmed.isEmpty || !allFiles.isEmpty else { return .none }
                 state.isSending = true
+                state.errorTitle = "메시지 전송 실패"
                 state.errorMessage = nil
                 let roomId = state.room.roomId
                 let content: String? = trimmed.isEmpty ? nil : trimmed
@@ -267,10 +342,12 @@ struct ChatRoomFeature {
                 state.pickedImages = []
                 state.pickedFiles = []
                 state.messages[id: message.id] = message
+                state.shouldPreserveUnreadPosition = false
                 return .none
 
             case .sendResponse(.failure(let error)):
                 state.isSending = false
+                state.errorTitle = "메시지 전송 실패"
                 state.errorMessage = error.localizedDescription
                 return .none
 
@@ -319,11 +396,66 @@ struct ChatRoomFeature {
                 return .none
 
             case .pdfDownloaded(.failure):
+                state.errorTitle = "파일 열기 실패"
                 state.errorMessage = "PDF를 열 수 없습니다."
                 return .none
 
             case .pdfPreviewDismissed:
                 state.pdfPreviewURL = nil
+                return .none
+
+            case .aiSummaryButtonTapped:
+                guard !state.isSummarizing else { return .none }
+                guard state.isAISummaryEnabled else {
+                    state.showsAISummaryButton = false
+                    return .none
+                }
+                guard !state.unreadSummaryMessages.isEmpty else {
+                    state.showsAISummaryButton = false
+                    return .none
+                }
+                state.isSummarizing = true
+                state.errorTitle = "AI 요약 실패"
+                state.errorMessage = nil
+                let messages = state.unreadSummaryMessages.map {
+                    ChatSummaryMessage(
+                        senderNick: $0.senderNick,
+                        content: $0.content,
+                        files: $0.files,
+                        createdAt: $0.createdAt
+                    )
+                }
+                return .run { send in
+                    do {
+                        let summary = try await chatSummaryClient.summarize(messages)
+                        await send(.aiSummaryResponse(.success(summary)))
+                    } catch {
+                        await send(.aiSummaryResponse(.failure(error)))
+                    }
+                }
+                .cancellable(id: summaryCancelID(state.room.roomId), cancelInFlight: true)
+
+            case .aiSummaryResponse(.success(let summary)):
+                state.isSummarizing = false
+                state.summaryText = summary
+                state.isSummarySheetPresented = true
+                state.showsAISummaryButton = false
+                return .none
+
+            case .aiSummaryResponse(.failure(let error)):
+                state.isSummarizing = false
+                state.errorTitle = "AI 요약 실패"
+                state.errorMessage = error.localizedDescription
+                return .none
+
+            case .summarySheetDismissed:
+                state.isSummarySheetPresented = false
+                return .none
+
+            case .latestMessagesReached:
+                guard state.showsAISummaryButton else { return .none }
+                state.showsAISummaryButton = false
+                state.shouldPreserveUnreadPosition = false
                 return .none
 
             case .opponentProfileTapped:
@@ -343,6 +475,7 @@ struct ChatRoomFeature {
 
     private func syncMessagesEffect(
         roomId: String,
+        currentUserId: String,
         includeLocal: Bool,
         reportsFailure: Bool = true
     ) -> Effect<Action> {
@@ -354,11 +487,18 @@ struct ChatRoomFeature {
 
             let nextParam = local.last?.createdAt.iso8601UTC
             let remote = try await chatClient.getMessages(roomId, nextParam)
+            let opponentInfo = latestOpponentInfo(from: remote, currentUserId: currentUserId)
             if !remote.isEmpty {
                 try await chatLocalStore.upsertMessages(remote, roomId)
             }
             let merged = try await chatLocalStore.fetchMessages(roomId)
-            await send(.syncedRemote(merged))
+            let lastSeen = try await chatLocalStore.fetchLastSeen(roomId)
+            await send(.syncedRemote(
+                messages: merged,
+                lastSeenChatId: lastSeen.chatId,
+                lastSeenMessageAt: lastSeen.messageAt,
+                opponentInfo: opponentInfo
+            ))
         } catch: { error, send in
             if reportsFailure {
                 await send(.syncFailed(error.localizedDescription))
@@ -401,6 +541,60 @@ struct ChatRoomFeature {
 
     private func reconnectCancelID(_ roomId: String) -> String {
         "chatRoomReconnect-\(roomId)"
+    }
+
+    private func summaryCancelID(_ roomId: String) -> String {
+        "chatRoomSummary-\(roomId)"
+    }
+
+    private func initialScrollTarget(
+        messages: [ChatMessage],
+        lastSeenChatId: String?,
+        lastSeenMessageAt: Date?
+    ) -> String? {
+        guard let lastSeenMessageAt else { return nil }
+        if let lastSeenChatId, messages.contains(where: { $0.id == lastSeenChatId }) {
+            return lastSeenChatId
+        }
+        return messages.last(where: { $0.createdAt <= lastSeenMessageAt })?.id
+    }
+
+    private func unreadOpponentMessages(
+        messages: [ChatMessage],
+        after lastSeenMessageAt: Date?,
+        currentUserId: String
+    ) -> [ChatMessage] {
+        guard let lastSeenMessageAt else { return [] }
+        return messages.filter {
+            $0.senderId != currentUserId && $0.createdAt > lastSeenMessageAt
+        }
+    }
+
+    private func updateOpponentInfo(from messages: [ChatMessage], state: inout State) {
+        guard let latestOpponentMessage = messages.last(where: { $0.senderId == state.room.opponentUserId }) else {
+            return
+        }
+        state.room.opponentNick = latestOpponentMessage.senderNick
+        state.room.opponentProfilePath = latestOpponentMessage.senderProfilePath
+    }
+
+    private func updateOpponentInfo(_ opponentInfo: ChatOpponentInfo?, state: inout State) {
+        guard let opponentInfo, opponentInfo.userId == state.room.opponentUserId else { return }
+        state.room.opponentNick = opponentInfo.nick
+        state.room.opponentProfilePath = opponentInfo.profilePath
+    }
+
+    nonisolated private func latestOpponentInfo(
+        from dtos: [ChatResponseDTO],
+        currentUserId: String
+    ) -> ChatOpponentInfo? {
+        dtos.last(where: { $0.sender.userID != currentUserId }).map {
+            ChatOpponentInfo(
+                userId: $0.sender.userID,
+                nick: $0.sender.nick,
+                profilePath: $0.sender.profileImage
+            )
+        }
     }
 
     private func downloadPDFToTemp(path: String) async throws -> URL {

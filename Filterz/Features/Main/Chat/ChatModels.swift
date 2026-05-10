@@ -29,11 +29,13 @@ struct ChatRoom: Equatable, Sendable, Identifiable {
     let createdAt: Date
     let updatedAt: Date
     let opponentUserId: String
-    let opponentNick: String
-    let opponentProfilePath: String?
+    var opponentNick: String
+    var opponentProfilePath: String?
     let lastMessageContent: String?
     let lastMessageAt: Date?
     let lastMessageSenderId: String?
+    var lastSeenChatId: String?
+    var lastSeenMessageAt: Date?
     var unreadCount: Int = 0
 
     var id: String { roomId }
@@ -51,6 +53,12 @@ struct ChatMessage: Equatable, Sendable, Identifiable {
     let files: [String]
 
     var id: String { chatId }
+}
+
+struct ChatOpponentInfo: Equatable, Sendable {
+    let userId: String
+    let nick: String
+    let profilePath: String?
 }
 
 extension ChatRoom {
@@ -75,6 +83,8 @@ extension ChatRoom {
             self.lastMessageAt = nil
             self.lastMessageSenderId = nil
         }
+        self.lastSeenChatId = nil
+        self.lastSeenMessageAt = nil
         self.unreadCount = 0
     }
 
@@ -88,6 +98,8 @@ extension ChatRoom {
         self.lastMessageContent = entity.lastMessageContent
         self.lastMessageAt = entity.lastMessageAt
         self.lastMessageSenderId = entity.lastMessageSenderId
+        self.lastSeenChatId = entity.lastSeenChatId
+        self.lastSeenMessageAt = entity.lastSeenMessageAt
         self.unreadCount = entity.unreadCount
     }
 }

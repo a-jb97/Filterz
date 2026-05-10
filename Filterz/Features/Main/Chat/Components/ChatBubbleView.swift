@@ -7,6 +7,7 @@ struct ChatBubbleView: View {
     let showsProfile: Bool
     let startsGroup: Bool
     let endsGroup: Bool
+    let profileImagePath: String?
     var onProfileTapped: () -> Void = {}
     var onImageTapped: (_ paths: [String], _ index: Int) -> Void = { _, _ in }
     var onPDFTapped: (_ path: String) -> Void = { _ in }
@@ -43,7 +44,7 @@ struct ChatBubbleView: View {
         Group {
             if showsProfile {
                 Button(action: onProfileTapped) {
-                    AuthenticatedImageView(path: message.senderProfilePath)
+                    AuthenticatedImageView(path: profileImagePath)
                         .frame(width: 32, height: 32)
                         .background(Color.filterzBlackAccent)
                         .clipShape(Circle())

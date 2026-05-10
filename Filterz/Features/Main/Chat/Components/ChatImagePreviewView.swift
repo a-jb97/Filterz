@@ -1,4 +1,5 @@
 import SwiftUI
+import Photos
 
 struct ChatImagePreviewView: View {
     let paths: [String]
@@ -7,6 +8,9 @@ struct ChatImagePreviewView: View {
 
     @State private var selectedIndex: Int
     @State private var dragOffset: CGFloat = 0
+    @State private var isSaving = false
+    @State private var showSaveSuccess = false
+    @State private var showSaveError = false
 
     init(paths: [String], initialIndex: Int, onDismiss: @escaping () -> Void) {
         self.paths = paths
@@ -44,10 +48,19 @@ struct ChatImagePreviewView: View {
                             .padding(.bottom, 18)
                     }
                 }
+
+                if showSaveSuccess {
+                    saveSuccessOverlay
+                }
             }
             .offset(y: dragOffset)
         }
         .simultaneousGesture(dismissDragGesture)
+        .alert("저장 실패", isPresented: $showSaveError) {
+            Button("확인") {}
+        } message: {
+            Text("사진을 저장할 수 없습니다.\n사진 접근 권한을 확인해주세요.")
+        }
     }
 
     private var topBar: some View {
@@ -62,6 +75,24 @@ struct ChatImagePreviewView: View {
             .buttonStyle(.plain)
 
             Spacer()
+
+            Button {
+                Task { await saveCurrentImage() }
+            } label: {
+                if isSaving {
+                    ProgressView()
+                        .tint(.white)
+                        .frame(width: 44, height: 44)
+                } else {
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(isSaving)
         }
         .padding(.horizontal, 8)
         .padding(.top, 8)
@@ -74,6 +105,22 @@ struct ChatImagePreviewView: View {
             .frame(height: 96),
             alignment: .top
         )
+    }
+
+    private var saveSuccessOverlay: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 46))
+                .foregroundColor(.white)
+            Text("저장되었습니다")
+                .font(.pretendard(14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 22)
+        .background(Color.black.opacity(0.65))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .transition(.opacity.combined(with: .scale(scale: 0.88)))
     }
 
     private var dismissDragGesture: some Gesture {
@@ -108,7 +155,6 @@ struct ChatImagePreviewView: View {
     private func isDownwardDismissDrag(_ value: DragGesture.Value) -> Bool {
         let verticalDistance = value.translation.height
         let horizontalDistance = abs(value.translation.width)
-
         return verticalDistance > 0 && verticalDistance > horizontalDistance * 1.25
     }
 
@@ -120,6 +166,69 @@ struct ChatImagePreviewView: View {
         withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
             dragOffset = 0
         }
+    }
+
+    private func saveCurrentImage() async {
+        guard !isSaving, paths.indices.contains(selectedIndex) else { return }
+        isSaving = true
+        defer { isSaving = false }
+
+        let path = paths[selectedIndex]
+        guard let image = await fetchImage(for: path) else {
+            showSaveError = true
+            return
+        }
+
+        guard await requestPhotoLibraryAccess() else {
+            showSaveError = true
+            return
+        }
+
+        let success = await withCheckedContinuation { continuation in
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            }) { didSucceed, _ in
+                continuation.resume(returning: didSucceed)
+            }
+        }
+
+        if success {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                showSaveSuccess = true
+            }
+            try? await Task.sleep(for: .seconds(1.5))
+            withAnimation {
+                showSaveSuccess = false
+            }
+        } else {
+            showSaveError = true
+        }
+    }
+
+    private func requestPhotoLibraryAccess() async -> Bool {
+        let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+        switch status {
+        case .authorized, .limited:
+            return true
+        case .notDetermined:
+            let result = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+            return result == .authorized || result == .limited
+        case .denied, .restricted:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+
+    private func fetchImage(for path: String) async -> UIImage? {
+        let urlString = path.hasPrefix("http") ? path : APIKey.baseURL + path
+        guard let url = URL(string: urlString) else { return nil }
+        var request = URLRequest(url: url)
+        request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
+        request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
+        guard let (data, _) = try? await URLSession.shared.data(for: request),
+              let image = UIImage(data: data) else { return nil }
+        return image
     }
 }
 
