@@ -9,6 +9,7 @@ struct UploadFilterView: View {
     @State private var pickerItem: PhotosPickerItem? = nil
     @State private var displayImage: UIImage? = nil
     @State private var mapImage: UIImage? = nil
+    @State private var isCameraPresented = false
     @FocusState private var focusedField: FocusField?
     @State private var keyboardHeight: CGFloat = 0
 
@@ -112,6 +113,20 @@ struct UploadFilterView: View {
             Button("확인") { store.send(.errorDismissed) }
         } message: {
             Text(store.errorMessage ?? "")
+        }
+        .fullScreenCover(isPresented: $isCameraPresented) {
+            CameraView(
+                store: Store(initialState: CameraFeature.State()) {
+                    CameraFeature()
+                },
+                onDismiss: {
+                    isCameraPresented = false
+                },
+                onPhotoSelected: { data in
+                    store.send(.imageSelected(data))
+                    isCameraPresented = false
+                }
+            )
         }
     }
 
@@ -246,18 +261,63 @@ struct UploadFilterView: View {
     }
 
     private var emptyPhotoArea: some View {
-        PhotosPicker(selection: $pickerItem, matching: .images) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.filterzSurface)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 160)
-                Image(systemName: "plus")
-                    .font(.system(size: 26, weight: .light))
-                    .foregroundStyle(Color.filterzGray60)
+        HStack(spacing: 12) {
+            PhotosPicker(selection: $pickerItem, matching: .images) {
+                photoSourceButton(
+                    iconName: "photo.on.rectangle",
+                    title: "앨범"
+                )
             }
+            .buttonStyle(.plain)
+
+            Button {
+                isCameraPresented = true
+            } label: {
+                photoSourceButton(
+                    iconName: "camera",
+                    title: "카메라"
+                )
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .frame(height: 160)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.filterzSurface)
+        )
+    }
+
+    private func photoSourceButton(iconName: String, title: String) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: iconName)
+                .font(.system(size: 25, weight: .medium))
+                .foregroundStyle(Color.filterzAccent)
+                .frame(width: 54, height: 54)
+                .background(
+                    Circle()
+                        .fill(Color.filterzBlackAccent)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.filterzDeepSprout, lineWidth: 1)
+                        )
+                )
+
+            Text(title)
+                .font(.filterzCaption())
+                .foregroundStyle(Color.filterzGray30)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 132)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.filterzBlackAccent)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.filterzBorder, lineWidth: 1)
+                )
+        )
     }
 
     private func filledPhotoArea(uiImage: UIImage) -> some View {
