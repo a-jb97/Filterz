@@ -52,6 +52,14 @@ enum FilterImageRenderer {
         return image.jpegData(compressionQuality: compressionQuality)
     }
 
+    nonisolated static func filteredImage(
+        from image: CIImage,
+        values: FilterAdjustmentValues,
+        extent: CGRect
+    ) -> CIImage {
+        apply(values: values, to: image, extent: extent)
+    }
+
     nonisolated private static func apply(
         values: FilterAdjustmentValues,
         to image: CIImage,
