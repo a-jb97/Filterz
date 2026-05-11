@@ -258,6 +258,7 @@ struct UploadFilterView: View {
                 emptyPhotoArea
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var emptyPhotoArea: some View {
@@ -329,6 +330,7 @@ struct UploadFilterView: View {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .allowsHitTesting(false)
                 )
                 .clipped()
@@ -338,14 +340,20 @@ struct UploadFilterView: View {
                 metadataCard(meta)
             }
         }
+        .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private func filledRemotePhotoArea(path: String) -> some View {
         VStack(spacing: 0) {
-            AuthenticatedImageView(path: path)
+            Color.clear
                 .frame(maxWidth: .infinity)
                 .frame(height: 300)
+                .overlay(
+                    AuthenticatedImageView(path: path)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .allowsHitTesting(false)
+                )
                 .clipped()
                 .contentShape(Rectangle())
 
@@ -353,6 +361,7 @@ struct UploadFilterView: View {
                 metadataCard(meta)
             }
         }
+        .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 

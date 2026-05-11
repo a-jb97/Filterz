@@ -287,12 +287,18 @@ struct MainFeature {
                 let ids = Array(state.path.ids)
                 if let index = ids.firstIndex(of: id), index > 0 {
                     let previousId = ids[index - 1]
-                    state.path[id: previousId, case: \.uploadFilter]?.filterValues = values
+                    state.path.pop(from: id)
+                    guard state.path[id: previousId, case: \.uploadFilter] != nil else {
+                        return .none
+                    }
+                    return .send(.path(.element(
+                        id: previousId,
+                        action: .uploadFilter(.filterValuesUpdated(values))
+                    )))
                 } else {
-                    state.upload.filterValues = values
+                    state.path.pop(from: id)
+                    return .send(.upload(.filterValuesUpdated(values)))
                 }
-                state.path.pop(from: id)
-                return .none
 
             case .path(.element(let id, .filterMaker(.delegate(.backTapped)))):
                 state.path.pop(from: id)

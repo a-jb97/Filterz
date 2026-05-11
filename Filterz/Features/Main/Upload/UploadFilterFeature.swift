@@ -60,6 +60,7 @@ struct UploadFilterFeature {
         var selectedCategory: String? = nil
         var selectedImageData: Data? = nil
         var existingImagePath: String? = nil
+        var existingImageData: Data? = nil
         var displayThumbnail: Data? = nil
         var mapSnapshotData: Data? = nil
         var imageMetadata: ImageMetadata? = nil
@@ -100,6 +101,8 @@ struct UploadFilterFeature {
         case priceChanged(String)
         case saveTapped
         case imageProcessed(thumbnail: Data?, metadata: ImageMetadata?)
+        case existingImageLoaded(Data?)
+        case filteredPreviewGenerated(Data?)
         case mapSnapshotGenerated(Data?)
         case createFilterResponse(Result<FilterResponseDTO, Error>)
         case errorDismissed
@@ -123,14 +126,24 @@ struct UploadFilterFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                guard state.mode.isEdit,
-                      state.mapSnapshotData == nil,
-                      let lat = state.imageMetadata?.latitude,
-                      let lon = state.imageMetadata?.longitude
-                else { return .none }
-                return .run { send in
-                    await send(.mapSnapshotGenerated(makeMapSnapshot(lat: lat, lon: lon)))
+                var effects: [Effect<Action>] = []
+                if state.mode.isEdit,
+                   state.existingImageData == nil,
+                   let path = state.existingImagePath {
+                    effects.append(.run { send in
+                        let data = try? await loadRemoteImageData(path: path)
+                        await send(.existingImageLoaded(data))
+                    })
                 }
+                if state.mode.isEdit,
+                   state.mapSnapshotData == nil,
+                   let lat = state.imageMetadata?.latitude,
+                   let lon = state.imageMetadata?.longitude {
+                    effects.append(.run { send in
+                        await send(.mapSnapshotGenerated(makeMapSnapshot(lat: lat, lon: lon)))
+                    })
+                }
+                return .merge(effects)
 
             case .filterNameChanged(let name):
                 state.filterName = name
@@ -144,16 +157,18 @@ struct UploadFilterFeature {
                 state.selectedImageData = data
                 if data != nil {
                     state.existingImagePath = nil
+                    state.existingImageData = nil
                 }
                 state.displayThumbnail = nil
                 state.mapSnapshotData = nil
                 state.imageMetadata = nil
                 guard let data else { return .none }
+                let values = state.filterValues
                 return .merge(
-                    .send(.delegate(.makeFilterRequested(.local(data), state.filterValues))),
+                    .send(.delegate(.makeFilterRequested(.local(data), values))),
                     .run { send in
                         let thumbTask = Task.detached(priority: .userInitiated) {
-                            makeThumbnail(data, maxSide: 600)
+                            makeFilteredPreview(data, values: values)
                         }
                         let metaTask = Task.detached(priority: .userInitiated) {
                             extractDisplayMetadata(from: data)
@@ -179,11 +194,23 @@ struct UploadFilterFeature {
 
             case .filterValuesUpdated(let values):
                 state.filterValues = values.clamped()
-                return .none
+                return filteredPreviewEffect(for: state)
 
             case .imageProcessed(let thumbnail, let metadata):
                 state.displayThumbnail = thumbnail
                 state.imageMetadata = metadata
+                return .none
+
+            case .existingImageLoaded(let data):
+                state.existingImageData = data
+                guard let data else { return .none }
+                let values = state.filterValues
+                return .run { send in
+                    await send(.filteredPreviewGenerated(makeFilteredPreview(data, values: values)))
+                }
+
+            case .filteredPreviewGenerated(let data):
+                state.displayThumbnail = data
                 return .none
 
             case .mapSnapshotGenerated(let data):
@@ -270,9 +297,11 @@ struct UploadFilterFeature {
                 state.selectedCategory = nil
                 state.selectedImageData = nil
                 state.existingImagePath = nil
+                state.existingImageData = nil
                 state.displayThumbnail = nil
                 state.mapSnapshotData = nil
                 state.imageMetadata = nil
+                state.existingImageData = nil
                 state.filterValues = .init()
                 state.filterDescription = ""
                 state.price = ""
@@ -307,6 +336,25 @@ struct UploadFilterFeature {
                 return .none
             }
         }
+    }
+
+    private func filteredPreviewEffect(for state: State) -> Effect<Action> {
+        let values = state.filterValues
+        if let data = state.selectedImageData ?? state.existingImageData {
+            return .run { send in
+                await send(.filteredPreviewGenerated(makeFilteredPreview(data, values: values)))
+            }
+        }
+        if let path = state.existingImagePath {
+            return .run { send in
+                guard let data = try? await loadRemoteImageData(path: path) else {
+                    await send(.filteredPreviewGenerated(nil))
+                    return
+                }
+                await send(.existingImageLoaded(data))
+            }
+        }
+        return .none
     }
 }
 
@@ -481,6 +529,23 @@ nonisolated private func makeThumbnail(_ data: Data, maxSide: CGFloat) -> Data? 
     let renderer = UIGraphicsImageRenderer(size: size)
     let resized = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
     return resized.jpegData(compressionQuality: 0.85)
+}
+
+nonisolated private func makeFilteredPreview(_ data: Data, values: FilterAdjustmentValues) -> Data? {
+    FilterImageRenderer.previewData(from: data, values: values)
+        ?? makeThumbnail(data, maxSide: 600)
+}
+
+private func loadRemoteImageData(path: String) async throws -> Data {
+    let urlString = path.hasPrefix("http") ? path : APIKey.baseURL + path
+    guard let url = URL(string: urlString) else {
+        throw URLError(.badURL)
+    }
+    var request = URLRequest(url: url)
+    request.setValue(APIKey.apiKey, forHTTPHeaderField: "SeSACKey")
+    request.setValue(APIKey.accessToken, forHTTPHeaderField: "Authorization")
+    let (data, _) = try await URLSession.shared.data(for: request)
+    return data
 }
 
 nonisolated private func compressUnder2MB(_ data: Data) -> Data {
