@@ -65,14 +65,31 @@ nonisolated struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
     let files: [String]
     let price: Int
     let creator: UserInfoResponseDTO
-    let filterValues: FilterValuesDTO
+    let filterValues: FilterValuesDTO?
     let createdAt: String
     let updatedAt: String
 
     enum CodingKeys: String, CodingKey {
-        case id, category, title, description, files, price, creator
+        case id
+        case filterId = "filter_id"
+        case category, title, description, files, price, creator
         case filterValues = "filter_values"
         case createdAt, updatedAt
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id)
+            ?? container.decode(String.self, forKey: .filterId)
+        category = try container.decodeIfPresent(String.self, forKey: .category) ?? ""
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
+        files = try container.decodeIfPresent([String].self, forKey: .files) ?? []
+        price = try container.decodeIfPresent(Int.self, forKey: .price) ?? 0
+        creator = try container.decode(UserInfoResponseDTO.self, forKey: .creator)
+        filterValues = try container.decodeIfPresent(FilterValuesDTO.self, forKey: .filterValues)
+        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? ""
     }
 }
 
