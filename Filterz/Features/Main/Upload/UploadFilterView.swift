@@ -49,7 +49,7 @@ struct UploadFilterView: View {
             }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
-        .filterzSwipeBack(isEnabled: store.mode.isEdit) {
+        .filterzSwipeBack(isEnabled: store.showsBackButton) {
             store.send(.backTapped)
         }
         .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
@@ -134,7 +134,7 @@ struct UploadFilterView: View {
 
     private var navigationHeader: some View {
         HStack {
-            if store.mode.isEdit {
+            if store.showsBackButton {
                 Button { store.send(.backTapped) } label: {
                     Image(systemName: "chevron.left")
                         .resizable()
