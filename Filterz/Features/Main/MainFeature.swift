@@ -24,7 +24,7 @@ struct MainFeature {
         var selectedTab: Tab = .home
         var home: HomeFeature.State = .init()
         var feed: FeedFeature.State = .init()
-        var upload: UploadFilterFeature.State = .init()
+        var filterManagement: FilterManagementFeature.State = .init()
         var chatList: ChatListFeature.State = .init()
         var mypage: MyPageFeature.State = .init()
         var path: StackState<Path.State> = .init()
@@ -45,7 +45,7 @@ struct MainFeature {
         case scenePhaseChanged(Bool)
         case home(HomeFeature.Action)
         case feed(FeedFeature.Action)
-        case upload(UploadFilterFeature.Action)
+        case filterManagement(FilterManagementFeature.Action)
         case chatList(ChatListFeature.Action)
         case mypage(MyPageFeature.Action)
         case path(StackActionOf<Path>)
@@ -70,8 +70,8 @@ struct MainFeature {
         Scope(state: \.feed, action: \.feed) {
             FeedFeature()
         }
-        Scope(state: \.upload, action: \.upload) {
-            UploadFilterFeature()
+        Scope(state: \.filterManagement, action: \.filterManagement) {
+            FilterManagementFeature()
         }
         Scope(state: \.chatList, action: \.chatList) {
             ChatListFeature()
@@ -103,18 +103,11 @@ struct MainFeature {
                 }
 
             case .tabSelected(let tab):
-                let returning = tab == .explore && state.selectedTab != .explore
                 state.selectedTab = tab
                 if tab == .chat {
-                    return .merge(
-                        returning ? .send(.upload(.reset)) : .none,
-                        .cancel(id: "mainBadgePolling")
-                    )
+                    return .cancel(id: "mainBadgePolling")
                 }
-                return .merge(
-                    returning ? .send(.upload(.reset)) : .none,
-                    badgePollingEffect()
-                )
+                return badgePollingEffect()
 
             case .chatPushReceived(let payload):
                 state.chatUnreadCount = payload.unreadCount
@@ -216,6 +209,14 @@ struct MainFeature {
                 state.path.append(.videoList(.init()))
                 return .none
 
+            case .filterManagement(.delegate(.uploadRequested)):
+                state.path.append(.uploadFilter(.init(showsBackButton: true)))
+                return .none
+
+            case .filterManagement(.delegate(.filterDetailRequested(let id))):
+                state.path.append(.filterDetail(.init(filterId: id)))
+                return .none
+
             case .path(.element(_, .filterDetail(.delegate(.backTapped)))):
                 state.path.removeLast()
                 return .none
@@ -297,7 +298,7 @@ struct MainFeature {
                     )))
                 } else {
                     state.path.pop(from: id)
-                    return .send(.upload(.filterValuesUpdated(values)))
+                    return .none
                 }
 
             case .path(.element(let id, .filterMaker(.delegate(.backTapped)))):
@@ -326,10 +327,6 @@ struct MainFeature {
 
             case .mypage(.delegate(.logoutCompleted)):
                 return .send(.delegate(.logoutCompleted))
-
-            case .upload(.delegate(.makeFilterRequested(let source, let values))):
-                state.path.append(.filterMaker(.init(source: source, values: values)))
-                return .none
 
             case .path(.element(let id, .chatRoom(.onAppear))):
                 guard case let .chatRoom(chatRoomState)? = state.path[id: id] else {
@@ -416,7 +413,7 @@ struct MainFeature {
                     await PushNotificationBridge.setApplicationBadge(total)
                 }
 
-            case .home, .feed, .upload, .chatList, .mypage, .path, .userProfile:
+            case .home, .feed, .filterManagement, .chatList, .mypage, .path, .userProfile:
                 return .none
 
             case .delegate:
