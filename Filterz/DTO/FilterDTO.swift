@@ -77,6 +77,30 @@ nonisolated struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
         case createdAt, updatedAt
     }
 
+    init(
+        id: String,
+        category: String,
+        title: String,
+        description: String,
+        files: [String],
+        price: Int,
+        creator: UserInfoResponseDTO,
+        filterValues: FilterValuesDTO?,
+        createdAt: String,
+        updatedAt: String
+    ) {
+        self.id = id
+        self.category = category
+        self.title = title
+        self.description = description
+        self.files = files
+        self.price = price
+        self.creator = creator
+        self.filterValues = filterValues
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(String.self, forKey: .id)

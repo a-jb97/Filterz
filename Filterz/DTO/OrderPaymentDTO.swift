@@ -36,6 +36,22 @@ nonisolated struct OrderResponseDTO: Decodable, Sendable {
         case updatedAtSnake = "updated_at"
     }
 
+    init(
+        orderId: String,
+        orderCode: String,
+        filter: FilterSummaryResponseDTO_Order,
+        paidAt: String?,
+        createdAt: String,
+        updatedAt: String
+    ) {
+        self.orderId = orderId
+        self.orderCode = orderCode
+        self.filter = filter
+        self.paidAt = paidAt
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         orderId = try container.decode(String.self, forKey: .orderId)
