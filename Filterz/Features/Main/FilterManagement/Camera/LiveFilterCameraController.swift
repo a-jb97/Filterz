@@ -56,6 +56,7 @@ final class LiveFilterCameraController: NSObject, ObservableObject {
     private var pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor?
     private var recordingURL: URL?
     private var recordingStartTime: CMTime?
+    private var recordingOrientation: CameraDeviceOrientation?
     private var videoSize: CGSize?
 
     override init() {
@@ -152,6 +153,7 @@ final class LiveFilterCameraController: NSObject, ObservableObject {
 
     func startRecording() {
         guard !isRecording else { return }
+        recordingOrientation = currentCaptureOrientation()
         isRecording = true
         recordingStartTime = nil
         recordingURL = FileManager.default.temporaryDirectory
@@ -170,6 +172,7 @@ final class LiveFilterCameraController: NSObject, ObservableObject {
         audioWriterInput = nil
         pixelBufferAdaptor = nil
         recordingStartTime = nil
+        recordingOrientation = nil
 
         guard let writer, let url = recordingURL else {
             throw LiveFilterCameraError.recordingFailed
@@ -309,7 +312,6 @@ final class LiveFilterCameraController: NSObject, ObservableObject {
     private func publishFilterPreviews(from image: CIImage, extent: CGRect) {
         let visibleFilters = previewFilters
             .filter { visiblePreviewIDs.contains($0.id) }
-            .prefix(6)
         guard !visibleFilters.isEmpty else { return }
 
         var nextImages: [String: UIImage] = [:]
@@ -341,9 +343,10 @@ final class LiveFilterCameraController: NSObject, ObservableObject {
     ) {
         guard isRecording else { return }
         let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        let outputFrame = videoFrameForRecording(image, extent: extent)
         if assetWriter == nil {
             do {
-                try prepareWriterIfNeeded(size: extent.size, startTime: presentationTime)
+                try prepareWriterIfNeeded(size: outputFrame.extent.size, startTime: presentationTime)
             } catch {
                 Task { @MainActor in
                     self.isRecording = false
@@ -364,8 +367,37 @@ final class LiveFilterCameraController: NSObject, ObservableObject {
               let outputBuffer
         else { return }
 
-        ciContext.render(image, to: outputBuffer, bounds: extent, colorSpace: CGColorSpaceCreateDeviceRGB())
+        ciContext.render(outputFrame.image, to: outputBuffer, bounds: outputFrame.extent, colorSpace: CGColorSpaceCreateDeviceRGB())
         adaptor.append(outputBuffer, withPresentationTime: presentationTime)
+    }
+
+    private func videoFrameForRecording(_ image: CIImage, extent: CGRect) -> (image: CIImage, extent: CGRect) {
+        guard let recordingOrientation else {
+            return (image, extent)
+        }
+
+        switch recordingOrientation {
+        case .portrait, .portraitUpsideDown:
+            return (image, extent)
+        case .landscapeLeft:
+            return rotatedVideoFrame(image, extent: extent, radians: .pi / 2)
+        case .landscapeRight:
+            return rotatedVideoFrame(image, extent: extent, radians: -.pi / 2)
+        }
+    }
+
+    private func rotatedVideoFrame(_ image: CIImage, extent: CGRect, radians: CGFloat) -> (image: CIImage, extent: CGRect) {
+        let outputExtent = CGRect(
+            origin: .zero,
+            size: CGSize(width: extent.height, height: extent.width)
+        )
+        let rotated = image.transformed(by: CGAffineTransform(rotationAngle: radians))
+        let translated = rotated.transformed(
+            by: radians < 0
+            ? CGAffineTransform(translationX: 0, y: extent.width)
+            : CGAffineTransform(translationX: extent.height, y: 0)
+        )
+        return (translated.cropped(to: outputExtent), outputExtent)
     }
 
     private func appendAudioSampleBuffer(_ sampleBuffer: CMSampleBuffer) {

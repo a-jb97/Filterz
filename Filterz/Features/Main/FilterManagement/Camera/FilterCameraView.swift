@@ -305,59 +305,71 @@ struct FilterCameraView: View {
     }
 
     private var filterPicker: some View {
-        VStack {
-            Spacer()
+        GeometryReader { proxy in
+            let screenWidth = UIScreen.main.bounds.width
+            let globalMinX = proxy.frame(in: .global).minX
 
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Text("필터 선택")
-                        .font(.filterzDisplay(20))
-                        .foregroundStyle(Color.filterzGray30)
-
-                    Spacer()
-
-                    Button {
-                        isFilterPickerPresented = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.filterzGray30)
-                            .rotationEffect(controlRotation)
-                            .frame(width: 36, height: 36)
-                    }
-                    .buttonStyle(.plain)
+            Color.clear
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .overlay(alignment: .bottomLeading) {
+                    filterPickerContent(width: screenWidth)
+                        .offset(x: -globalMinX)
                 }
-                .padding(.horizontal, 20)
-
-                if filters.isEmpty {
-                    Text("사용할 수 있는 필터가 없습니다")
-                        .font(.pretendard(14, weight: .regular))
-                        .foregroundStyle(Color.filterzGray75)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 36)
-                } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 12) {
-                            neutralFilterCard
-
-                            ForEach(filters) { filter in
-                                filterCard(filter)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                    }
-                    .frame(height: 184)
-                }
-            }
-            .padding(.top, 18)
-            .padding(.bottom, 28)
-            .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(.ultraThinMaterial)
-            )
+            .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .ignoresSafeArea(edges: .bottom)
         .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    private func filterPickerContent(width: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("필터 선택")
+                    .font(.filterzDisplay(20))
+                    .foregroundStyle(Color.filterzGray30)
+
+                Spacer()
+
+                Button {
+                    isFilterPickerPresented = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.filterzGray30)
+                        .rotationEffect(controlRotation)
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 20)
+
+            if filters.isEmpty {
+                Text("사용할 수 있는 필터가 없습니다")
+                    .font(.pretendard(14, weight: .regular))
+                    .foregroundStyle(Color.filterzGray75)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 36)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 12) {
+                        neutralFilterCard
+
+                        ForEach(filters) { filter in
+                            filterCard(filter)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .frame(width: width, height: 184, alignment: .leading)
+            }
+        }
+        .frame(width: width, alignment: .leading)
+        .padding(.top, 18)
+        .padding(.bottom, 28)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(.ultraThinMaterial)
+        )
     }
 
     private var neutralFilterCard: some View {
@@ -383,6 +395,7 @@ struct FilterCameraView: View {
                     .font(.pretendard(12, weight: .bold))
                     .foregroundStyle(Color.filterzGray30)
                     .lineLimit(1)
+                    .frame(width: 104, alignment: .leading)
             }
         }
         .buttonStyle(.plain)
