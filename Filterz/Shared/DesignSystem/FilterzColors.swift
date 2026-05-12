@@ -1,9 +1,9 @@
 import SwiftUI
 
 extension Color {
-    static let filterzBackground    = Color(hex: "#000000")
+    static let filterzBackground    = Color(hex: "#fff1bc")
     static let filterzAccent        = Color(hex: "#FFE100")
-    static let filterzBlackAccent   = Color(hex: "#080500")
+    static let filterzBlackAccent   = Color(hex: "#151100")
     static let filterzAccentDeep    = Color(hex: "#FFB800")
     static let filterzSurface       = Color(hex: "#1A1A1A")
     static let filterzBorder        = Color(hex: "#2A2A2A")
@@ -17,7 +17,7 @@ extension Color {
     static let filterzGray45         = Color(hex: "#D8D6D7")   // GrayScale/45
     static let filterzGray60         = Color(hex: "#ABABAE")   // GrayScale/60 - 2차 텍스트
     static let filterzGray75         = Color(hex: "#6A6A6E")   // GrayScale/75 - 비활성
-    static let filterzDeepSprout      = Color(hex: "#4b3f00")   // 랭킹 카드 border
+    static let filterzDeepSprout      = Color(hex: "#231e00")   // 랭킹 카드 border
     static let filterzGray90          = Color(hex: "#434347")   // 비활성 작가명 텍스트
     static let filterzTranslucent     = Color(hex: "#6A6A6E").opacity(0.5)
 
