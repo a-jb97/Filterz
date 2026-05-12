@@ -157,6 +157,7 @@ extension DependencyValues {
 
 struct PaymentClient: Sendable {
     var createOrder: @Sendable (_ filterId: String, _ totalPrice: Int) async throws -> OrderCreateResponseDTO
+    var getOrders: @Sendable () async throws -> [OrderResponseDTO]
     var validatePayment: @Sendable (_ impUid: String) async throws -> PaymentResponseDTO
 }
 
@@ -167,6 +168,23 @@ extension PaymentClient: DependencyKey {
                 try await NetworkManager.shared.request(
                     .createOrder(query: OrderCreateRequestDTO(filterId: filterId, totalPrice: totalPrice))
                 )
+            },
+            getOrders: {
+                let data = try await NetworkManager.shared.requestRaw(.getOrders)
+                let decoder = JSONDecoder()
+                if let response = try? decoder.decode(OrderListResponseDTO.self, from: data) {
+                    return response.data
+                }
+                if let response = try? decoder.decode([OrderResponseDTO].self, from: data) {
+                    return response
+                }
+                if let response = try? decoder.decode(ReceiptOrderListResponseDTO.self, from: data) {
+                    return response.data.map(\.orderItem)
+                }
+                if let response = try? decoder.decode([ReceiptOrderResponseDTO].self, from: data) {
+                    return response.map(\.orderItem)
+                }
+                throw NetworkError.decodingFailed
             },
             validatePayment: { impUid in
                 try await NetworkManager.shared.request(
@@ -186,6 +204,44 @@ extension PaymentClient: DependencyKey {
                     createdAt: "",
                     updatedAt: ""
                 )
+            },
+            getOrders: {
+                let creator = UserInfoResponseDTO(userID: "u1", nick: "윤새싹", profileImage: nil)
+                let filter = FilterSummaryResponseDTO_Order(
+                    id: "mock-id",
+                    category: "moody",
+                    title: "청록새록",
+                    description: "맑고 투명한 빛을 담은 자연 감성 필터입니다.",
+                    files: [],
+                    price: 2000,
+                    creator: creator,
+                    filterValues: FilterValuesDTO(
+                        brightness: -0.05,
+                        exposure: 0.2,
+                        contrast: 1.08,
+                        saturation: 0.9,
+                        sharpness: 0.2,
+                        blur: 0,
+                        vignette: 0.2,
+                        noiseReduction: 0,
+                        highlights: -0.1,
+                        shadows: 0.15,
+                        temperature: 6200,
+                        blackPoint: 0.02
+                    ),
+                    createdAt: "",
+                    updatedAt: ""
+                )
+                return [
+                    OrderResponseDTO(
+                        orderId: "mock-order-id",
+                        orderCode: "ios_sesac_mock_order",
+                        filter: filter,
+                        paidAt: "",
+                        createdAt: "",
+                        updatedAt: ""
+                    )
+                ]
             },
             validatePayment: { impUid in
                 PaymentResponseDTO(

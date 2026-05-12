@@ -31,7 +31,45 @@ nonisolated struct OrderResponseDTO: Decodable, Sendable {
         case orderId = "order_id"
         case orderCode = "order_code"
         case filter, paidAt, createdAt, updatedAt
+        case paidAtSnake = "paid_at"
+        case createdAtSnake = "created_at"
+        case updatedAtSnake = "updated_at"
     }
+
+    init(
+        orderId: String,
+        orderCode: String,
+        filter: FilterSummaryResponseDTO_Order,
+        paidAt: String?,
+        createdAt: String,
+        updatedAt: String
+    ) {
+        self.orderId = orderId
+        self.orderCode = orderCode
+        self.filter = filter
+        self.paidAt = paidAt
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        orderId = try container.decode(String.self, forKey: .orderId)
+        orderCode = try container.decode(String.self, forKey: .orderCode)
+        filter = try container.decode(FilterSummaryResponseDTO_Order.self, forKey: .filter)
+        paidAt = try container.decodeIfPresent(String.self, forKey: .paidAt)
+            ?? container.decodeIfPresent(String.self, forKey: .paidAtSnake)
+        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
+            ?? container.decodeIfPresent(String.self, forKey: .createdAtSnake)
+            ?? ""
+        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt)
+            ?? container.decodeIfPresent(String.self, forKey: .updatedAtSnake)
+            ?? ""
+    }
+}
+
+nonisolated struct OrderListResponseDTO: Decodable, Sendable {
+    let data: [OrderResponseDTO]
 }
 
 nonisolated struct ReceiptOrderResponseDTO: Decodable, Sendable {
@@ -45,6 +83,10 @@ nonisolated struct ReceiptOrderResponseDTO: Decodable, Sendable {
         case orderItem = "order_item"
         case createdAt, updatedAt
     }
+}
+
+nonisolated struct ReceiptOrderListResponseDTO: Decodable, Sendable {
+    let data: [ReceiptOrderResponseDTO]
 }
 
 // MARK: - Payment Response DTOs

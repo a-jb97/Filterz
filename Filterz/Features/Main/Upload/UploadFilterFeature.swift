@@ -56,6 +56,7 @@ struct UploadFilterFeature {
     @ObservableState
     struct State: Equatable {
         var mode: Mode = .create
+        var showsBackButton: Bool = false
         var filterName: String = ""
         var selectedCategory: String? = nil
         var selectedImageData: Data? = nil
@@ -71,9 +72,12 @@ struct UploadFilterFeature {
         var errorMessage: String? = nil
         var isSaveSucceeded: Bool = false
 
-        init() {}
+        init(showsBackButton: Bool = false) {
+            self.showsBackButton = showsBackButton
+        }
 
         init(editing detail: FilterDetail) {
+            showsBackButton = true
             mode = .edit(EditContext(
                 filterId: detail.id,
                 files: detail.imageURLs,

@@ -60,7 +60,7 @@ struct MainView: View {
         case .market:
             FeedView(store: store.scope(state: \.feed, action: \.feed))
         case .explore:
-            UploadFilterView(store: store.scope(state: \.upload, action: \.upload))
+            FilterManagementView(store: store.scope(state: \.filterManagement, action: \.filterManagement))
         case .chat:
             ChatListView(store: store.scope(state: \.chatList, action: \.chatList))
         case .mypage:

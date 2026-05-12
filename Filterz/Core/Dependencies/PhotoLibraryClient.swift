@@ -5,6 +5,7 @@ import UIKit
 
 struct PhotoLibraryClient: Sendable {
     var saveImageData: @Sendable (_ imageData: Data) async throws -> Void
+    var saveVideoFile: @Sendable (_ fileURL: URL) async throws -> Void
 }
 
 extension PhotoLibraryClient: DependencyKey {
@@ -12,12 +13,18 @@ extension PhotoLibraryClient: DependencyKey {
         PhotoLibraryClient(
             saveImageData: { imageData in
                 try await saveToPhotoLibrary(imageData)
+            },
+            saveVideoFile: { fileURL in
+                try await saveVideoToPhotoLibrary(fileURL)
             }
         )
     }
 
     static var testValue: PhotoLibraryClient {
-        PhotoLibraryClient(saveImageData: { _ in })
+        PhotoLibraryClient(
+            saveImageData: { _ in },
+            saveVideoFile: { _ in }
+        )
     }
 }
 
@@ -30,12 +37,15 @@ extension DependencyValues {
 
 private enum PhotoLibrarySaveError: LocalizedError {
     case invalidImageData
+    case invalidVideoFile
     case unauthorized
 
     var errorDescription: String? {
         switch self {
         case .invalidImageData:
             return "저장할 이미지를 만들 수 없습니다."
+        case .invalidVideoFile:
+            return "저장할 동영상을 만들 수 없습니다."
         case .unauthorized:
             return "사진앱 저장 권한이 필요합니다."
         }
@@ -55,5 +65,21 @@ private func saveToPhotoLibrary(_ imageData: Data) async throws {
     try await PHPhotoLibrary.shared().performChanges {
         let request = PHAssetCreationRequest.forAsset()
         request.addResource(with: .photo, data: imageData, options: nil)
+    }
+}
+
+private func saveVideoToPhotoLibrary(_ fileURL: URL) async throws {
+    guard FileManager.default.fileExists(atPath: fileURL.path) else {
+        throw PhotoLibrarySaveError.invalidVideoFile
+    }
+
+    let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+    guard status == .authorized || status == .limited else {
+        throw PhotoLibrarySaveError.unauthorized
+    }
+
+    try await PHPhotoLibrary.shared().performChanges {
+        let request = PHAssetCreationRequest.forAsset()
+        request.addResource(with: .video, fileURL: fileURL, options: nil)
     }
 }
