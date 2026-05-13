@@ -75,13 +75,11 @@ private struct TagView: View {
 
     var body: some View {
         Text("#\(displayHashTag(text))")
-            .font(.pretendard(12, weight: .medium))
-            .foregroundColor(.filterzGray60)
-            .padding(.horizontal, 10)
+            .font(.pretendard(9, weight: .medium))
+            .foregroundColor(.filterzGray30)
+            .padding(.horizontal, 8)
             .padding(.vertical, 5)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Color.filterzBlackAccent)
-            )
+            .background(Capsule().fill(Color.filterzBlackAccent))
+            .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
     }
 }
