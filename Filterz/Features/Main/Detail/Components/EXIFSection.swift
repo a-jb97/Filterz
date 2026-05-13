@@ -4,6 +4,7 @@ import CoreLocation
 
 struct EXIFSection: View {
     let exif: FilterExifData
+    var onMapTapped: (EXIFMapLocation) -> Void = { _ in }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -53,16 +54,38 @@ struct EXIFSection: View {
                 latitude: Double(lat),
                 longitude: Double(lon)
             )
-            Map(initialPosition: .region(MKCoordinateRegion(
-                center: coordinate,
-                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-            ))) {
-                Marker("", coordinate: coordinate)
-                    .tint(Color.filterzAccent)
+            ZStack(alignment: .topTrailing) {
+                Map(initialPosition: .region(MKCoordinateRegion(
+                    center: coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                ))) {
+                    Marker("", coordinate: coordinate)
+                        .tint(Color.filterzAccent)
+                }
+                .allowsHitTesting(false)
+
+                Button {
+                    onMapTapped(EXIFMapLocation(latitude: Double(lat), longitude: Double(lon)))
+                } label: {
+                    Rectangle()
+                        .fill(Color.clear)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("촬영 위치 지도 열기")
+
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.black)
+                    .padding(6)
+                    .background(
+                        Circle().fill(Color.filterzAccent)
+                    )
+                    .padding(8)
+                    .allowsHitTesting(false)
             }
             .frame(height: 120)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .disabled(true)
         }
     }
 
@@ -75,9 +98,11 @@ struct EXIFSection: View {
                     .foregroundColor(.filterzGray60)
             }
 
-            if let mp = exif.megapixels, let dims = exif.dimensionsFormatted,
-               let size = exif.fileSizeFormatted {
-                Text("\(mp) • \(dims) • \(size)")
+            let resolutionText = [exif.megapixels, exif.dimensionsFormatted, exif.fileSizeFormatted]
+                .compactMap { $0 }
+                .joined(separator: " • ")
+            if !resolutionText.isEmpty {
+                Text(resolutionText)
                     .font(.pretendard(12, weight: .medium))
                     .foregroundColor(.filterzGray60)
             }
@@ -94,4 +119,48 @@ struct EXIFSection: View {
 private struct MapPin: Identifiable {
     let id = UUID()
     let coordinate: CLLocationCoordinate2D
+}
+
+struct EXIFMapSheetView: View {
+    let location: EXIFMapLocation
+    @Environment(\.dismiss) private var dismiss
+
+    private var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(
+            latitude: location.latitude,
+            longitude: location.longitude
+        )
+    }
+
+    var body: some View {
+        NavigationStack {
+            Map(initialPosition: .region(MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            ))) {
+                Marker("촬영 위치", coordinate: coordinate)
+                    .tint(Color.filterzAccent)
+            }
+            .mapControls {
+                MapCompass()
+                MapScaleView()
+                MapUserLocationButton()
+            }
+            .ignoresSafeArea(edges: .bottom)
+            .navigationTitle("촬영 위치")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .tint(.filterzGray30)
+                    .accessibilityLabel("닫기")
+                }
+            }
+        }
+    }
 }

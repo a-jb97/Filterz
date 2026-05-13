@@ -26,7 +26,10 @@ struct FilterDetailView: View {
                             previewSection(detail: detail)
                             priceSection(detail: detail)
                             statsSection(detail: detail)
-                            EXIFSection(exif: detail.exif)
+                            EXIFSection(
+                                exif: detail.exif,
+                                onMapTapped: { store.send(.exifMapTapped($0)) }
+                            )
                                 .padding(.horizontal, 16)
                             FilterPresetsSection(presets: detail.presets, isUnlocked: detail.isDownloaded)
                                 .padding(.horizontal, 16)
@@ -137,6 +140,20 @@ struct FilterDetailView: View {
                     onDismiss: { store.send(.applyPreviewDismissed) }
                 )
             }
+        }
+        .sheet(
+            item: Binding(
+                get: { store.exifMapLocation },
+                set: { newValue in
+                    if newValue == nil {
+                        store.send(.exifMapDismissed)
+                    }
+                }
+            )
+        ) { location in
+            EXIFMapSheetView(location: location)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
         .alert($store.scope(state: \.alert, action: \.alert))
     }
@@ -272,14 +289,15 @@ struct FilterDetailView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(detail.hashtags, id: \.self) { tag in
-                    Text("#\(tag)")
-                        .font(.pretendard(13, weight: .medium))
-                        .foregroundColor(.filterzGray60)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                    Text("#\(displayHashTag(tag))")
+                        .font(.pretendard(9, weight: .medium))
+                        .foregroundColor(.filterzGray30)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 7)
                         .background(
                             Capsule().fill(Color.filterzBlackAccent)
                         )
+                        .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
                 }
             }
             .padding(.horizontal, 16)
@@ -348,7 +366,7 @@ struct FilterDetailView: View {
     private func commentRow(_ comment: FilterComment, isReply: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 10) {
-                avatar(for: comment.creator)
+                commentAvatar(comment)
 
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 8) {
@@ -359,7 +377,7 @@ struct FilterDetailView: View {
 
                         Text(comment.createdAtFormatted)
                             .font(.pretendard(11, weight: .regular))
-                            .foregroundColor(.filterzGray75)
+                            .foregroundColor(.filterzAccent.opacity(0.5))
                             .lineLimit(1)
 
                         Spacer(minLength: 0)
@@ -396,9 +414,23 @@ struct FilterDetailView: View {
                 .fill(isReply ? Color.filterzBlackBase : Color.filterzBlackAccent)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                        .stroke(Color.filterzAccent.opacity(0.5), lineWidth: 1)
                 )
         )
+    }
+
+    @ViewBuilder
+    private func commentAvatar(_ comment: FilterComment) -> some View {
+        if comment.creator.id == store.currentUserId {
+            avatar(for: comment.creator)
+        } else {
+            Button {
+                store.send(.commentCreatorProfileTapped(commentId: comment.id))
+            } label: {
+                avatar(for: comment.creator)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private func avatar(for creator: FilterCreator) -> some View {
