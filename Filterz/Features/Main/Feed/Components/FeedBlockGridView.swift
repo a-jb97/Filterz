@@ -4,13 +4,14 @@ import SwiftUI
 
 struct FeedListView: View {
     let items: [FeedItem]
+    var tagStyle: FeedListTagStyle = .filled
     var onItemTapped: (String) -> Void = { _ in }
     var onAuthorTapped: (String) -> Void = { _ in }
 
     var body: some View {
         VStack(spacing: 0) {
             ForEach(items) { item in
-                FeedListRowView(item: item, onAuthorTapped: onAuthorTapped)
+                FeedListRowView(item: item, tagStyle: tagStyle, onAuthorTapped: onAuthorTapped)
                     .onTapGesture { onItemTapped(item.id) }
             }
         }
@@ -18,10 +19,17 @@ struct FeedListView: View {
     }
 }
 
+enum FeedListTagStyle {
+    case filled
+    case profile
+    case compactProfile
+}
+
 // MARK: - FeedListRowView
 
 private struct FeedListRowView: View {
     let item: FeedItem
+    let tagStyle: FeedListTagStyle
     let onAuthorTapped: (String) -> Void
 
     var body: some View {
@@ -34,14 +42,7 @@ private struct FeedListRowView: View {
                         .font(.filterzDisplay(18))
                         .foregroundColor(.filterzGray30)
 
-                    Text("#\(item.hashtag)")
-                        .font(.pretendard(12, weight: .medium))
-                        .foregroundColor(.filterzGray60)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule().fill(Color.filterzGray90)
-                        )
+                    tagView
                 }
 
                 Button {
@@ -62,6 +63,37 @@ private struct FeedListRowView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 16)
+    }
+
+    @ViewBuilder
+    private var tagView: some View {
+        switch tagStyle {
+        case .filled:
+            Text("#\(displayHashTag(item.hashtag))")
+                .font(.pretendard(12, weight: .medium))
+                .foregroundColor(.filterzGray60)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule().fill(Color.filterzGray90)
+                )
+        case .profile:
+            Text("#\(displayHashTag(item.hashtag))")
+                .font(.pretendard(13, weight: .medium))
+                .foregroundColor(.filterzGray30)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(Capsule().fill(Color.filterzBlackAccent))
+                .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
+        case .compactProfile:
+            Text("#\(displayHashTag(item.hashtag))")
+                .font(.pretendard(9, weight: .medium))
+                .foregroundColor(.filterzGray30)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(Capsule().fill(Color.filterzBlackAccent))
+                .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
+        }
     }
 
     private var thumbnailView: some View {

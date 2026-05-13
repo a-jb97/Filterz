@@ -91,6 +91,7 @@ struct FilterManagementView: View {
         } else {
             FeedListView(
                 items: store.feedItems,
+                tagStyle: .compactProfile,
                 onItemTapped: { store.send(.filterTapped(id: $0)) },
                 onAuthorTapped: { _ in }
             )

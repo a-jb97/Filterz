@@ -54,7 +54,7 @@ struct TodayBannerView: View {
 
             Text("\(current) / \(total)")
                 .font(.pretendard(10, weight: .medium))
-                .foregroundColor(.filterzGray45)
+                .foregroundColor(.filterzBackground)
         }
     }
 }

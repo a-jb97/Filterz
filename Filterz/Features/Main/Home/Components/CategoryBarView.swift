@@ -46,7 +46,8 @@ struct CategoryBarView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 15)
+        .padding(.top, -8)
+        .padding(.bottom, 15)
     }
 }
 
@@ -55,15 +56,15 @@ private struct CategoryItemView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.filterzBlackAccent)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.filterzDeepSprout, lineWidth: 1)
-                )
-                .frame(width: 56, height: 56)
+//            RoundedRectangle(cornerRadius: 10)
+//                .fill(Color.filterzBlackAccent)
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 10)
+//                        .stroke(Color.filterzAccent, lineWidth: 1)
+//                )
+//                .frame(width: 56, height: 56)
 
-            VStack(spacing: 2) {
+            VStack(spacing: 8) {
                 Image(systemName: category.icon)
                     .resizable()
                     .scaledToFit()
