@@ -66,6 +66,9 @@ nonisolated struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
     let price: Int
     let creator: UserInfoResponseDTO
     let filterValues: FilterValuesDTO?
+    let isLiked: Bool
+    let likeCount: Int
+    let buyerCount: Int
     let createdAt: String
     let updatedAt: String
 
@@ -74,6 +77,9 @@ nonisolated struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
         case filterId = "filter_id"
         case category, title, description, files, price, creator
         case filterValues = "filter_values"
+        case isLiked = "is_liked"
+        case likeCount = "like_count"
+        case buyerCount = "buyer_count"
         case createdAt, updatedAt
     }
 
@@ -86,6 +92,9 @@ nonisolated struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
         price: Int,
         creator: UserInfoResponseDTO,
         filterValues: FilterValuesDTO?,
+        isLiked: Bool = false,
+        likeCount: Int = 0,
+        buyerCount: Int = 0,
         createdAt: String,
         updatedAt: String
     ) {
@@ -97,6 +106,9 @@ nonisolated struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
         self.price = price
         self.creator = creator
         self.filterValues = filterValues
+        self.isLiked = isLiked
+        self.likeCount = likeCount
+        self.buyerCount = buyerCount
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -112,6 +124,9 @@ nonisolated struct FilterSummaryResponseDTO_Order: Decodable, Sendable {
         price = try container.decodeIfPresent(Int.self, forKey: .price) ?? 0
         creator = try container.decode(UserInfoResponseDTO.self, forKey: .creator)
         filterValues = try container.decodeIfPresent(FilterValuesDTO.self, forKey: .filterValues)
+        isLiked = try container.decodeIfPresent(Bool.self, forKey: .isLiked) ?? false
+        likeCount = try container.decodeIfPresent(Int.self, forKey: .likeCount) ?? 0
+        buyerCount = try container.decodeIfPresent(Int.self, forKey: .buyerCount) ?? 0
         createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
         updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? ""
     }

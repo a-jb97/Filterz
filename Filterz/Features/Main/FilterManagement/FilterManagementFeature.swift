@@ -12,6 +12,9 @@ struct PurchasedFilterItem: Identifiable, Equatable, Sendable {
     let price: Int
     let purchasedAt: String?
     let createdAt: String
+    var likeCount: Int
+    let buyerCount: Int
+    var isLiked: Bool
     let filterValues: FilterAdjustmentValues
 
     var feedItem: FeedItem {
@@ -23,10 +26,10 @@ struct PurchasedFilterItem: Identifiable, Equatable, Sendable {
             imageURL: imageURL,
             authorName: authorNick,
             authorNick: authorNick,
-            likeCount: 0,
-            buyerCount: 0,
+            likeCount: likeCount,
+            buyerCount: buyerCount,
             hashtag: category,
-            isLiked: false,
+            isLiked: isLiked,
             createdAt: createdAt
         )
     }
@@ -43,10 +46,13 @@ struct PurchasedFilterItem: Identifiable, Equatable, Sendable {
         price = filter.price
         purchasedAt = order.paidAt ?? order.createdAt
         createdAt = filter.createdAt
+        likeCount = filter.likeCount
+        buyerCount = filter.buyerCount
+        isLiked = filter.isLiked
         filterValues = FilterAdjustmentValues(dto: filter.filterValues)
     }
 
-    init(detail: FilterResponseDTO) {
+    init(detail: FilterResponseDTO, purchasedAt: String? = nil) {
         id = detail.filterId
         title = detail.title
         description = detail.description
@@ -55,16 +61,26 @@ struct PurchasedFilterItem: Identifiable, Equatable, Sendable {
         authorNick = detail.creator.nick
         category = detail.category
         price = detail.price
-        purchasedAt = nil
+        self.purchasedAt = purchasedAt
         createdAt = detail.createdAt
+        likeCount = detail.likeCount
+        buyerCount = detail.buyerCount
+        isLiked = detail.isLiked
         filterValues = FilterAdjustmentValues(dto: detail.filterValues)
+    }
+
+    nonisolated func updatingLike(isLiked: Bool, likeCount: Int) -> PurchasedFilterItem {
+        var item = self
+        item.isLiked = isLiked
+        item.likeCount = max(0, likeCount)
+        return item
     }
 }
 
 @Reducer
 struct FilterManagementFeature {
     struct AvailableFiltersPayload: Sendable {
-        let purchasedOrders: [OrderResponseDTO]
+        let purchasedItems: [PurchasedFilterItem]
         let ownedDetails: [FilterResponseDTO]
     }
 
@@ -115,8 +131,8 @@ struct FilterManagementFeature {
             case .availableFiltersResponse(.success(let payload)):
                 state.isLoading = false
                 state.items = mergedItems(
-                    purchased: payload.purchasedOrders.map(PurchasedFilterItem.init(order:)),
-                    owned: payload.ownedDetails.map(PurchasedFilterItem.init(detail:))
+                    purchased: payload.purchasedItems,
+                    owned: payload.ownedDetails.map { PurchasedFilterItem(detail: $0) }
                 )
                 return .none
 
@@ -154,10 +170,10 @@ struct FilterManagementFeature {
         state.isLoading = true
         state.errorMessage = nil
         return .run { [paymentClient, userClient, filterClient] send in
-            async let purchasedOrders = loadPurchasedOrders(paymentClient)
+            async let purchasedItems = loadPurchasedItems(paymentClient, filterClient)
             async let ownedDetails = loadOwnedFilterDetails(userClient, filterClient)
             await send(.availableFiltersResponse(.success(AvailableFiltersPayload(
-                purchasedOrders: purchasedOrders,
+                purchasedItems: purchasedItems,
                 ownedDetails: ownedDetails
             ))))
         }
@@ -180,9 +196,24 @@ nonisolated private func mergedItems(
         }
 }
 
-private func loadPurchasedOrders(_ paymentClient: PaymentClient) async -> [OrderResponseDTO] {
+private func loadPurchasedItems(
+    _ paymentClient: PaymentClient,
+    _ filterClient: FilterClient
+) async -> [PurchasedFilterItem] {
     do {
-        return try await paymentClient.getOrders()
+        let orders = try await paymentClient.getOrders()
+        var items: [PurchasedFilterItem] = []
+        for order in orders {
+            if let detail = try? await filterClient.getFilterDetail(order.filter.id) {
+                items.append(PurchasedFilterItem(
+                    detail: detail,
+                    purchasedAt: order.paidAt ?? order.createdAt
+                ))
+            } else {
+                items.append(PurchasedFilterItem(order: order))
+            }
+        }
+        return items
     } catch {
         return []
     }
