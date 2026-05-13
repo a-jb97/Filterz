@@ -31,8 +31,10 @@ struct FilterExifData: Equatable, Sendable {
     }
 
     var fileSizeFormatted: String? {
-        guard let size = fileSize else { return nil }
-        return String(format: "%.1fMB", size / 1_048_576)
+        guard let size = fileSize, size > 0 else { return nil }
+        return size >= 1.0
+            ? String(format: "%.1fMB", size)
+            : String(format: "%.0fKB", size * 1_024)
     }
 
     var dimensionsFormatted: String? {
@@ -283,6 +285,15 @@ struct PortOnePaymentResult: Equatable, Sendable {
     let errorMessage: String?
 }
 
+struct EXIFMapLocation: Equatable, Sendable, Identifiable {
+    let latitude: Double
+    let longitude: Double
+
+    var id: String {
+        "\(latitude),\(longitude)"
+    }
+}
+
 private enum FilterApplyError: LocalizedError {
     case renderFailed
 
@@ -339,6 +350,7 @@ struct FilterDetailFeature {
         var isPhotoPickerPresented: Bool = false
         var selectedPhotoData: Data? = nil
         var appliedPreviewImageData: Data? = nil
+        var exifMapLocation: EXIFMapLocation? = nil
         var isFilterRendering: Bool = false
         var isAppliedPhotoSaving: Bool = false
         var errorMessage: String? = nil
@@ -364,6 +376,8 @@ struct FilterDetailFeature {
         case applyPreviewDismissed
         case saveAppliedPhotoTapped
         case saveAppliedPhotoResponse(Result<Void, any Error>)
+        case exifMapTapped(EXIFMapLocation)
+        case exifMapDismissed
         case creatorProfileTapped
         case dmCreatorTapped
         case editTapped
@@ -372,6 +386,7 @@ struct FilterDetailFeature {
         case editCompleted(FilterResponseDTO)
         case commentTextChanged(String)
         case replyTapped(commentId: String)
+        case commentCreatorProfileTapped(commentId: String)
         case editCommentTapped(commentId: String)
         case deleteCommentTapped(commentId: String)
         case cancelCommentModeTapped
@@ -694,6 +709,14 @@ struct FilterDetailFeature {
                 state.alert = makeAlert(title: "사진 저장 실패", message: error.localizedDescription)
                 return .none
 
+            case .exifMapTapped(let location):
+                state.exifMapLocation = location
+                return .none
+
+            case .exifMapDismissed:
+                state.exifMapLocation = nil
+                return .none
+
             case .creatorProfileTapped:
                 guard let creatorId = state.detail?.creator.id else { return .none }
                 return .send(.delegate(.userProfileTapped(userId: creatorId)))
@@ -752,6 +775,13 @@ struct FilterDetailFeature {
                 state.editingComment = nil
                 state.commentText = ""
                 return .none
+
+            case .commentCreatorProfileTapped(let commentId):
+                guard let detail = state.detail,
+                      let target = findCommentTarget(in: detail.comments, commentId: commentId),
+                      target.creator.id != state.currentUserId
+                else { return .none }
+                return .send(.delegate(.userProfileTapped(userId: target.creator.id)))
 
             case .editCommentTapped(let commentId):
                 guard let detail = state.detail,

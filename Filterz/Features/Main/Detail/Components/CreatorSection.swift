@@ -48,13 +48,13 @@ struct CreatorSection: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 20, height: 20)
-                        .foregroundColor(.filterzGray45)
+                        .foregroundColor(.filterzAccent)
                         .padding(14)
                         .background(
                             Circle()
                                 .fill(Color.filterzBlackAccent)
                                 .overlay(
-                                    Circle().stroke(Color.filterzTranslucent, lineWidth: 1)
+                                    Circle().stroke(Color.filterzAccent.opacity(0.5), lineWidth: 1)
                                 )
                         )
                 }
