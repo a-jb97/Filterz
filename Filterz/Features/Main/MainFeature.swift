@@ -217,7 +217,15 @@ struct MainFeature {
                 state.path.append(.filterDetail(.init(filterId: id)))
                 return .none
 
-            case .path(.element(_, .filterDetail(.delegate(.backTapped)))):
+            case .path(.element(let id, .filterDetail(.delegate(.backTapped)))):
+                if let detail = state.path[id: id, case: \.filterDetail]?.detail {
+                    updateFilterManagementLike(
+                        &state,
+                        filterId: detail.id,
+                        isLiked: detail.isLiked,
+                        likeCount: detail.likeCount
+                    )
+                }
                 state.path.removeLast()
                 return .none
 
@@ -248,6 +256,46 @@ struct MainFeature {
 
             case .createChatRoomResponse(.failure):
                 state.isOpeningDM = false
+                return .none
+
+            case .path(.element(let id, .filterDetail(.likeTapped))):
+                guard let detail = state.path[id: id, case: \.filterDetail]?.detail else {
+                    return .none
+                }
+                let isLiked = !detail.isLiked
+                let likeCount = detail.likeCount + (detail.isLiked ? -1 : 1)
+                updateFilterManagementLike(
+                    &state,
+                    filterId: detail.id,
+                    isLiked: isLiked,
+                    likeCount: likeCount
+                )
+                return .none
+
+            case .path(.element(let id, .filterDetail(.likeResponse(.failure)))):
+                guard let detail = state.path[id: id, case: \.filterDetail]?.detail else {
+                    return .none
+                }
+                let isLiked = !detail.isLiked
+                let likeCount = detail.likeCount + (detail.isLiked ? -1 : 1)
+                updateFilterManagementLike(
+                    &state,
+                    filterId: detail.id,
+                    isLiked: isLiked,
+                    likeCount: likeCount
+                )
+                return .none
+
+            case .path(.element(let id, .filterDetail(.likeResponse(.success)))):
+                guard let detail = state.path[id: id, case: \.filterDetail]?.detail else {
+                    return .none
+                }
+                updateFilterManagementLike(
+                    &state,
+                    filterId: detail.id,
+                    isLiked: detail.isLiked,
+                    likeCount: detail.likeCount
+                )
                 return .none
 
             case .path(.element(_, .filterDetail(.delegate(.editFilterRequested(let detail))))):
@@ -462,6 +510,21 @@ struct MainFeature {
             }
         }
         return nil
+    }
+
+    private func updateFilterManagementLike(
+        _ state: inout State,
+        filterId: String,
+        isLiked: Bool,
+        likeCount: Int
+    ) {
+        guard let index = state.filterManagement.items.firstIndex(where: { $0.id == filterId }) else {
+            return
+        }
+        state.filterManagement.items[index] = state.filterManagement.items[index].updatingLike(
+            isLiked: isLiked,
+            likeCount: likeCount
+        )
     }
 }
 

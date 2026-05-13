@@ -86,7 +86,7 @@ struct UploadFilterFeature {
             ))
             filterName = detail.title
             selectedCategory = detail.category
-            existingImagePath = detail.imageURLs.first
+            existingImagePath = detail.imageURLs.dropFirst().first ?? detail.imageURLs.first
             imageMetadata = detail.exif.imageMetadata
             filterValues = FilterAdjustmentValues(presets: detail.presets)
             filterDescription = detail.description
@@ -258,14 +258,35 @@ struct UploadFilterFeature {
                 state.isUploading = true
                 let filterValues = state.filterValues
 
-                return .run { [filterClient, imageData = state.selectedImageData, filterValues] send in
+                return .run {
+                    [
+                        filterClient,
+                        imageData = state.selectedImageData,
+                        existingImageData = state.existingImageData,
+                        existingImagePath = state.existingImagePath,
+                        filterValues
+                    ] send in
                     let files: [String]
                     let photoMeta: PhotoMetadataDTO?
                     if let imageData {
-                        let jpegData = compressUnder2MB(imageData)
-                        let fileResponse: FileResponseDTO = try await filterClient.uploadFile([jpegData])
+                        let uploadImages = try makeFilterUploadImages(
+                            sourceData: imageData,
+                            values: filterValues
+                        )
+                        let fileResponse: FileResponseDTO = try await filterClient.uploadFile(uploadImages)
                         files = fileResponse.files
                         photoMeta = buildPhotoMetadataDTO(from: imageData)
+                    } else if let sourceData = try await loadExistingSourceImageData(
+                        data: existingImageData,
+                        path: existingImagePath
+                    ) {
+                        let uploadImages = try makeFilterUploadImages(
+                            sourceData: sourceData,
+                            values: filterValues
+                        )
+                        let fileResponse: FileResponseDTO = try await filterClient.uploadFile(uploadImages)
+                        files = fileResponse.files
+                        photoMeta = mode.existingPhotoMetadata ?? buildPhotoMetadataDTO(from: sourceData)
                     } else {
                         files = mode.existingFiles
                         photoMeta = mode.existingPhotoMetadata
@@ -432,6 +453,14 @@ private extension FilterPresetValues {
     }
 }
 
+private enum UploadFilterError: LocalizedError {
+    case renderFailed
+
+    var errorDescription: String? {
+        "필터가 적용된 이미지를 만들 수 없습니다."
+    }
+}
+
 // MARK: - EXIF Helpers
 
 nonisolated private func extractDisplayMetadata(from data: Data) -> ImageMetadata {
@@ -538,6 +567,26 @@ nonisolated private func makeThumbnail(_ data: Data, maxSide: CGFloat) -> Data? 
 nonisolated private func makeFilteredPreview(_ data: Data, values: FilterAdjustmentValues) -> Data? {
     FilterImageRenderer.previewData(from: data, values: values)
         ?? makeThumbnail(data, maxSide: 600)
+}
+
+private func loadExistingSourceImageData(data: Data?, path: String?) async throws -> Data? {
+    if let data { return data }
+    guard let path else { return nil }
+    return try await loadRemoteImageData(path: path)
+}
+
+nonisolated private func makeFilterUploadImages(
+    sourceData: Data,
+    values: FilterAdjustmentValues
+) throws -> [Data] {
+    guard let filteredData = FilterImageRenderer.renderedData(from: sourceData, values: values) else {
+        throw UploadFilterError.renderFailed
+    }
+
+    return [
+        compressUnder2MB(filteredData),
+        compressUnder2MB(sourceData)
+    ]
 }
 
 private func loadRemoteImageData(path: String) async throws -> Data {
