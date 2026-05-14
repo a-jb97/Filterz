@@ -53,7 +53,7 @@ struct UploadFilterView: View {
             store.send(.backTapped)
         }
         .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .onAppear {
             store.send(.onAppear)
             if displayImage == nil, let data = store.displayThumbnail {
@@ -140,7 +140,7 @@ struct UploadFilterView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 10, height: 18)
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                         .padding(8)
                 }
                 .frame(width: 44, height: 44)
@@ -168,7 +168,7 @@ struct UploadFilterView: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     // MARK: - 필터명
@@ -210,7 +210,7 @@ struct UploadFilterView: View {
                 .padding(.vertical, 7)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
+                        .fill(isSelected ? Color.filterzAccent : Color.filterzBackground)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(
@@ -252,7 +252,7 @@ struct UploadFilterView: View {
                         .fill(Color.filterzSurface)
                         .frame(maxWidth: .infinity)
                         .frame(height: 300)
-                        .overlay(ProgressView().tint(Color.filterzGray60))
+                        .overlay(ProgressView().tint(Color.filterzGray30))
                 }
             } else {
                 emptyPhotoArea
@@ -298,7 +298,7 @@ struct UploadFilterView: View {
                 .frame(width: 54, height: 54)
                 .background(
                     Circle()
-                        .fill(Color.filterzBlackAccent)
+                        .fill(Color.filterzBackground)
                         .overlay(
                             Circle()
                                 .stroke(Color.filterzDeepSprout, lineWidth: 1)
@@ -313,7 +313,7 @@ struct UploadFilterView: View {
         .frame(height: 132)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackAccent)
+                .fill(Color.filterzBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.filterzBorder, lineWidth: 1)
@@ -407,7 +407,7 @@ struct UploadFilterView: View {
                 if let spec = meta.lensSpec {
                     Text(spec)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
 
                 let sizeLine = [meta.megapixels, meta.resolution, meta.fileSize]
@@ -416,25 +416,25 @@ struct UploadFilterView: View {
                 if !sizeLine.isEmpty {
                     Text(sizeLine)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
 
                 if let address = meta.address {
                     Text(address)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
 
                 if let dateStr = meta.dateTimeOriginal {
                     Text(dateStr)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.filterzBlackAccent)
+        .background(Color.filterzBackground)
     }
 
     // MARK: - 필터 소개
@@ -469,7 +469,7 @@ struct UploadFilterView: View {
 
                 Text("원")
                     .font(.filterzBody())
-                    .foregroundStyle(Color.filterzGray60)
+                    .foregroundStyle(Color.filterzGray30)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)

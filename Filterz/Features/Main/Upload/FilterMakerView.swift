@@ -13,7 +13,7 @@ struct FilterMakerView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .top) {
-                Color.filterzBlackBase.ignoresSafeArea()
+                Color.filterzBackground.ignoresSafeArea()
                 VStack(spacing: 0) {
                     navigationHeader
                     previewArea
@@ -47,7 +47,7 @@ struct FilterMakerView: View {
             Button { store.send(.backTapped) } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 22, weight: .regular))
-                    .foregroundStyle(Color.filterzGray75)
+                    .foregroundStyle(Color.filterzGray30)
                     .frame(width: 48, height: 56)
             }
 
@@ -55,20 +55,20 @@ struct FilterMakerView: View {
 
             Text("EDIT")
                 .font(.mulgyeolBold(20))
-                .foregroundStyle(Color.filterzGray60)
+                .foregroundStyle(Color.filterzGray30)
 
             Spacer()
 
             Button { store.send(.saveTapped) } label: {
                 Image(systemName: "square.and.arrow.down")
                     .font(.system(size: 23, weight: .regular))
-                    .foregroundStyle(Color.filterzGray75)
+                    .foregroundStyle(Color.filterzGray30)
                     .frame(width: 48, height: 56)
             }
         }
         .padding(.horizontal, 4)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var previewArea: some View {
@@ -82,7 +82,7 @@ struct FilterMakerView: View {
                             .frame(width: proxy.size.width, height: proxy.size.height)
                     } else {
                         Color.filterzSurface
-                            .overlay(ProgressView().tint(Color.filterzGray60))
+                            .overlay(ProgressView().tint(Color.filterzGray30))
                     }
                 }
                 .frame(width: proxy.size.width, height: proxy.size.height)
@@ -123,7 +123,7 @@ struct FilterMakerView: View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(Color.filterzGray60)
+                .foregroundStyle(Color.filterzGray30)
                 .frame(width: 40, height: 32)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
@@ -144,14 +144,14 @@ struct FilterMakerView: View {
         }
         .padding(.top, 14)
         .padding(.bottom, 20)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var sliderArea: some View {
         VStack(spacing: 8) {
             Text(valueText)
                 .font(.pretendard(14, weight: .bold))
-                .foregroundStyle(Color.filterzGray75)
+                .foregroundStyle(Color.filterzGray30)
                 .frame(width: 44, height: 20)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
@@ -194,12 +194,12 @@ struct FilterMakerView: View {
                 Image(systemName: key.icon)
                     .font(.system(size: 28, weight: .semibold))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isSelected ? Color.filterzGray30 : Color.filterzGray75)
+                    .foregroundStyle(isSelected ? Color.filterzGray30 : Color.filterzGray30)
                     .frame(width: 32, height: 32)
 
                 Text(key.title)
                     .font(.pretendard(10, weight: .semibold))
-                    .foregroundStyle(isSelected ? Color.filterzGray30 : Color.filterzGray75)
+                    .foregroundStyle(isSelected ? Color.filterzGray30 : Color.filterzGray30)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(width: 62)

@@ -22,7 +22,7 @@ struct FilterCameraView: View {
 
     var body: some View {
         ZStack {
-            Color.filterzBlackBase.ignoresSafeArea()
+            Color.filterzBackground.ignoresSafeArea()
 
             cameraPreview
 
@@ -167,7 +167,7 @@ struct FilterCameraView: View {
                         .rotationEffect(controlRotation)
                         .padding(.horizontal, 16)
                         .frame(minWidth: 58, minHeight: 38)
-                        .background(Capsule().fill(camera.isSaving ? Color.filterzGray60 : Color.filterzAccent))
+                        .background(Capsule().fill(camera.isSaving ? Color.filterzGray30 : Color.filterzAccent))
                     }
                     .buttonStyle(.plain)
                     .disabled(camera.isSaving)
@@ -269,7 +269,7 @@ struct FilterCameraView: View {
                             .tint(Color.filterzBackground)
                             .rotationEffect(controlRotation)
                             .frame(width: 62, height: 62)
-                            .background(Circle().fill(Color.filterzGray60))
+                            .background(Circle().fill(Color.filterzGray30))
                     } else if camera.mode == .video && camera.isRecording {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.red)
@@ -346,7 +346,7 @@ struct FilterCameraView: View {
             if filters.isEmpty {
                 Text("사용할 수 있는 필터가 없습니다")
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundStyle(Color.filterzGray75)
+                    .foregroundStyle(Color.filterzGray30)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 36)
             } else {
@@ -384,7 +384,7 @@ struct FilterCameraView: View {
                             .resizable()
                             .scaledToFill()
                     } else {
-                        Color.filterzBlackAccent
+                        Color.filterzBackground
                     }
                 }
                 .frame(width: 104, height: 132)
@@ -413,7 +413,7 @@ struct FilterCameraView: View {
                             .resizable()
                             .scaledToFill()
                     } else {
-                        Color.filterzBlackAccent
+                        Color.filterzBackground
                         ProgressView()
                             .tint(Color.filterzAccent)
                     }

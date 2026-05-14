@@ -16,7 +16,7 @@ struct FilterManagementView: View {
                 .padding(.bottom, 120)
             }
         }
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .onAppear { store.send(.onAppear) }
         .refreshable { store.send(.refresh) }
         .alert("오류", isPresented: Binding(
@@ -72,7 +72,7 @@ struct FilterManagementView: View {
         }
         .padding(.horizontal, 20)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     @ViewBuilder
@@ -85,7 +85,7 @@ struct FilterManagementView: View {
         } else if store.items.isEmpty {
             Text("구매한 필터가 없습니다")
                 .font(.pretendard(14, weight: .regular))
-                .foregroundColor(.filterzGray75)
+                .foregroundColor(.filterzGray30)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 48)
         } else {

@@ -8,7 +8,7 @@ struct CameraView: View {
 
     var body: some View {
         ZStack {
-            Color.filterzBlackBase.ignoresSafeArea()
+            Color.filterzBackground.ignoresSafeArea()
 
             switch store.permissionStatus {
             case .authorized:
@@ -82,7 +82,7 @@ struct CameraView: View {
             } label: {
                 Image(systemName: store.flashMode.iconName)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(store.supportsFlash ? Color.filterzAccent : Color.filterzGray75)
+                    .foregroundStyle(store.supportsFlash ? Color.filterzAccent : Color.filterzGray30)
                     .rotationEffect(controlRotation)
                     .frame(width: 44, height: 44)
                     .background(Circle().fill(Color.black.opacity(0.42)))
@@ -131,7 +131,7 @@ struct CameraView: View {
                         .stroke(Color.filterzGray30, lineWidth: 4)
                         .frame(width: 78, height: 78)
                     Circle()
-                        .fill(store.isCapturing ? Color.filterzGray60 : Color.filterzGray30)
+                        .fill(store.isCapturing ? Color.filterzGray30 : Color.filterzGray30)
                         .frame(width: 62, height: 62)
                     if store.isCapturing {
                         ProgressView()
@@ -204,7 +204,7 @@ struct CameraView: View {
                         .rotationEffect(controlRotation)
                         .padding(.horizontal, 16)
                         .frame(minWidth: 58, minHeight: 38)
-                        .background(Capsule().fill(store.isWritingMetadata ? Color.filterzGray60 : Color.filterzAccent))
+                        .background(Capsule().fill(store.isWritingMetadata ? Color.filterzGray30 : Color.filterzAccent))
                     }
                     .buttonStyle(.plain)
                     .disabled(store.isWritingMetadata)
@@ -229,7 +229,7 @@ struct CameraView: View {
 
             Text("설정에서 카메라 접근을 허용한 뒤 다시 시도해주세요.")
                 .font(.filterzCaption())
-                .foregroundStyle(Color.filterzGray60)
+                .foregroundStyle(Color.filterzGray30)
                 .multilineTextAlignment(.center)
 
             Button {
