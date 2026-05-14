@@ -54,8 +54,6 @@ struct FeedView: View {
             if let category = store.selectedCategory {
                 HStack(spacing: 4) {
                     Text(category.title)
-                        .font(.pretendard(12, weight: .semibold))
-                        .foregroundColor(.filterzAccent)
                     Button {
                         store.send(.categorySelected(nil))
                     } label: {
@@ -64,10 +62,11 @@ struct FeedView: View {
                             .foregroundColor(.filterzAccent)
                     }
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule().fill(Color.filterzBackground)
+                .filterzTornTapeStyle(
+                    font: .pretendard(12, weight: .semibold),
+                    foregroundColor: .filterzGray30,
+                    horizontalPadding: 8,
+                    verticalPadding: 3
                 )
             }
 
@@ -82,7 +81,7 @@ struct FeedView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 20)
+        .padding(.top, 12)
     }
 
     private var feedContent: some View {
@@ -157,7 +156,7 @@ struct FeedView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.filterzSurface)
+                .fill(Color.filterzBackground)
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 10)
@@ -172,7 +171,7 @@ struct FeedView: View {
                 selectedUserFilterList(user)
             } else if store.isSearchingUsers && store.searchUsers.isEmpty {
                 Spacer()
-                ProgressView().tint(.filterzGray45)
+                ProgressView().tint(.filterzGray30)
                 Spacer()
             } else if store.searchUsers.isEmpty {
                 searchEmptyText("검색 결과가 없습니다")
@@ -221,11 +220,12 @@ struct FeedView: View {
 
                     if let category = store.selectedCategory {
                         Text(category.title)
-                            .font(.pretendard(12, weight: .semibold))
-                            .foregroundColor(.filterzAccent)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(Capsule().fill(Color.filterzBackground))
+                            .filterzTornTapeStyle(
+                                font: .pretendard(12, weight: .semibold),
+                                foregroundColor: .filterzGray30,
+                                horizontalPadding: 8,
+                                verticalPadding: 3
+                            )
                     }
                 }
                 .padding(.horizontal, 20)
@@ -233,7 +233,7 @@ struct FeedView: View {
 
                 if store.isLoadingUserFilters && store.searchedUserFilters.isEmpty {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 48)
                 } else if store.searchedUserFilters.isEmpty {
@@ -252,7 +252,7 @@ struct FeedView: View {
 
                     if store.hasMoreUserFilters {
                         ProgressView()
-                            .tint(.filterzGray45)
+                            .tint(.filterzGray30)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .onAppear { store.send(.loadMoreUserFilters) }
@@ -289,7 +289,7 @@ private struct FeedNavBarView: View {
             Button(action: onVideoTapped) {
                 Image(systemName: "video")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -297,7 +297,7 @@ private struct FeedNavBarView: View {
             Button(action: onSearchTapped) {
                 Image(systemName: isSearchPresented ? "xmark" : "magnifyingglass")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -360,25 +360,17 @@ private struct SortButtonRowView: View {
 
     private func sortButton(for mode: FeedFeature.SortMode) -> some View {
         let isSelected = sortMode == mode
+
         return Button {
             onSelect(mode)
         } label: {
             Text(mode.title)
-                .font(.pretendard(14, weight: isSelected ? .bold : .medium))
-                .foregroundColor(isSelected ? .filterzBackground : .filterzGray30)
-                .padding(.horizontal, isSelected ? 17 : 12)
-                .padding(.vertical, isSelected ? 5 : 7)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? Color.filterzAccent : Color.filterzBackground)
-                        .overlay(
-                            Capsule()
-                                .stroke(
-                                    Color.filterzDeepSprout,
-                                    lineWidth: 1
-                                )
-                        )
+                .filterzTornTapeStyle(
+                    font: .pretendard(14, weight: isSelected ? .bold : .medium),
+                    fillColor: isSelected ? .filterzClip : .filterzBackground,
+                    strokeColor: isSelected ? nil : .filterzDeepSprout
                 )
         }
+        .buttonStyle(.plain)
     }
 }

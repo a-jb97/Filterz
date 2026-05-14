@@ -10,7 +10,7 @@ struct TodayBannerView: View {
 
         ZStack(alignment: .bottomTrailing) {
             if banners.isEmpty {
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: 5)
                     .fill(Color(hex: "#1A2A3A"))
                     .frame(height: 100)
             } else {
@@ -23,7 +23,7 @@ struct TodayBannerView: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 100)
                             .background(Color(hex: "#1A2A3A"))
-                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
                             .tag(index)
                             .onTapGesture { store.send(.bannerTapped(banner)) }
                     }
@@ -38,7 +38,7 @@ struct TodayBannerView: View {
                     .padding(.bottom, 12)
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 10)
         .padding(.top, 10)
     }
 
@@ -58,4 +58,3 @@ struct TodayBannerView: View {
         }
     }
 }
-

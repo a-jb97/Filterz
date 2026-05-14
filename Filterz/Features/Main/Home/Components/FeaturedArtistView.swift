@@ -15,11 +15,7 @@ struct FeaturedArtistView: View {
             // 작가 프로필
             Button(action: onProfileTapped) {
                 HStack(spacing: 16) {
-                    AuthenticatedImageView(path: artist.profileImagePath)
-                        .frame(width: 72, height: 72)
-                        .background(Color.filterzTranslucent)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
+                    artistProfileImage
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text(artist.name)
@@ -65,8 +61,36 @@ struct FeaturedArtistView: View {
                     .lineSpacing(12 * 0.7)
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 10)
         .padding(.top, 20)
+    }
+
+    private var artistProfileImage: some View {
+        ZStack {
+            Color(hex: "#E8EDF1")
+
+            AuthenticatedImageView(path: artist.profileImagePath)
+                .scaledToFill()
+
+            if artist.profileImagePath == nil {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 30, weight: .light))
+                    .foregroundColor(.filterzGray30)
+            }
+        }
+        .frame(width: 60, height: 74)
+        .clipped()
+        .padding(.top, 7)
+        .padding(.horizontal, 7)
+        .padding(.bottom, 10)
+        .background(
+            Color.filterzPolaroid
+                .shadow(color: Color.black.opacity(0.16), radius: 6, x: 3, y: 4)
+        )
+        .overlay(
+            Rectangle()
+                .stroke(Color.filterzGray45.opacity(0.85), lineWidth: 1)
+        )
     }
 }
 
@@ -75,11 +99,6 @@ private struct TagView: View {
 
     var body: some View {
         Text("#\(displayHashTag(text))")
-            .font(.pretendard(9, weight: .medium))
-            .foregroundColor(.filterzGray30)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(Capsule().fill(Color.filterzBackground))
-            .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
+            .filterzTornTapeStyle()
     }
 }

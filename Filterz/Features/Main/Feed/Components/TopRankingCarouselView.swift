@@ -113,7 +113,7 @@ private struct HangingRankingCardView: View {
 private struct ClothespinView: View {
     var body: some View {
         Rectangle()
-            .fill(Color(hex: "#D8A77A"))
+            .fill(Color.filterzClip)
             .frame(width: 14, height: 37)
             .rotationEffect(.degrees(1.5))
             .shadow(color: Color.black.opacity(0.16), radius: 2, x: 1, y: 2)
@@ -131,7 +131,8 @@ private struct RankingCardView: View {
 
     private let cardWidth: CGFloat = 260
     private let cardHeight: CGFloat = 360
-    private let imageSize: CGFloat = 222
+    private let imageSize: CGFloat = 233.4
+    private let imageTopPadding: CGFloat = 10
 
     var body: some View {
         card
@@ -148,7 +149,7 @@ private struct RankingCardView: View {
                     Rectangle()
                         .stroke(Color.filterzGray45.opacity(0.75), lineWidth: 1)
                 )
-                .padding(.top, 18)
+                .padding(.top, imageTopPadding)
 
             VStack(alignment: .leading, spacing: 7) {
                 Button {
@@ -184,9 +185,9 @@ private struct RankingCardView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 18)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
         }
         .frame(width: cardWidth, height: cardHeight)
         .background(Color.filterzPolaroid)
