@@ -30,7 +30,7 @@ struct CapsuleOutlineButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 16, weight: .semibold))
-            .foregroundColor(.filterzTextPrimary)
+            .foregroundColor(.filterzGray30)
             .frame(maxWidth: .infinity)
             .frame(height: 54)
             .overlay(Capsule().stroke(Color.filterzBorder, lineWidth: 1))

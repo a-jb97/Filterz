@@ -19,7 +19,7 @@ struct FilterzTextField: View {
                         .frame(width: 20)
                 }
                 TextField(placeholder, text: $text)
-                    .foregroundColor(.filterzTextPrimary)
+                    .foregroundColor(.filterzGray30)
                     .tint(.filterzAccent)
                     .keyboardType(keyboardType)
                     .textInputAutocapitalization(autocapitalization)

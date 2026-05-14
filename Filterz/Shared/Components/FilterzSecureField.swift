@@ -25,7 +25,7 @@ struct FilterzSecureField: View {
                         SecureField(placeholder, text: $text)
                     }
                 }
-                .foregroundColor(.filterzTextPrimary)
+                .foregroundColor(.filterzGray30)
                 .tint(.filterzAccent)
                 .autocorrectionDisabled()
                 .focused($isFocused)

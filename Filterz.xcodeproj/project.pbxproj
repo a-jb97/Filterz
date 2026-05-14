@@ -7,21 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9E25C3CE2F9BA75900B518B9 /* SCDream5.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C92F9BA75900B518B9 /* SCDream5.otf */; };
-		9E25C3CF2F9BA75900B518B9 /* SCDream3.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C72F9BA75900B518B9 /* SCDream3.otf */; };
-		9E25C3D02F9BA75900B518B9 /* SCDream1.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C52F9BA75900B518B9 /* SCDream1.otf */; };
-		9E25C3D12F9BA75900B518B9 /* SCDream2.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C62F9BA75900B518B9 /* SCDream2.otf */; };
-		9E25C3D22F9BA75900B518B9 /* SCDream4.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3C82F9BA75900B518B9 /* SCDream4.otf */; };
-		9E25C3D32F9BA75900B518B9 /* SCDream9.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CD2F9BA75900B518B9 /* SCDream9.otf */; };
-		9E25C3D42F9BA75900B518B9 /* SCDream6.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CA2F9BA75900B518B9 /* SCDream6.otf */; };
-		9E25C3D52F9BA75900B518B9 /* SCDream8.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */; };
-		9E25C3D62F9BA75900B518B9 /* SCDream7.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E25C3CB2F9BA75900B518B9 /* SCDream7.otf */; };
 		9E2A0ABB2FA07D630005F318 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */; };
 		9E2A0ABE2FA07E880005F318 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */; };
 		9E2A0AC02FA07E880005F318 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */; };
 		9E3CA4852FA61FD500C73CB9 /* iamport-ios in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3CA4842FA61FD500C73CB9 /* iamport-ios */; };
 		9E60AB7A2FA3D7890058545F /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9E60AB792FA3D7890058545F /* SocketIO */; };
-		9E847F292F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */; };
 		9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9EB5967B2F98EE7000CA0337 /* .gitignore */; };
 		9EB5967F2F98F8C300CA0337 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */; };
 		9EB596832F98FB1C00CA0337 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB596822F98FB1C00CA0337 /* KakaoSDKAuth */; };
@@ -48,17 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9E25C3C52F9BA75900B518B9 /* SCDream1.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream1.otf; sourceTree = "<group>"; };
-		9E25C3C62F9BA75900B518B9 /* SCDream2.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream2.otf; sourceTree = "<group>"; };
-		9E25C3C72F9BA75900B518B9 /* SCDream3.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream3.otf; sourceTree = "<group>"; };
-		9E25C3C82F9BA75900B518B9 /* SCDream4.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream4.otf; sourceTree = "<group>"; };
-		9E25C3C92F9BA75900B518B9 /* SCDream5.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream5.otf; sourceTree = "<group>"; };
-		9E25C3CA2F9BA75900B518B9 /* SCDream6.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream6.otf; sourceTree = "<group>"; };
-		9E25C3CB2F9BA75900B518B9 /* SCDream7.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream7.otf; sourceTree = "<group>"; };
-		9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream8.otf; sourceTree = "<group>"; };
-		9E25C3CD2F9BA75900B518B9 /* SCDream9.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SCDream9.otf; sourceTree = "<group>"; };
 		9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ClimateCrisisKR-1979.otf"; sourceTree = "<group>"; };
 		9EB596512F98B56F00CA0337 /* Filterz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Filterz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB5965E2F98B57100CA0337 /* FilterzTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB596682F98B57100CA0337 /* FilterzUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -125,16 +105,6 @@
 				9EB596612F98B57100CA0337 /* FilterzTests */,
 				9EB5966B2F98B57100CA0337 /* FilterzUITests */,
 				9EB596522F98B56F00CA0337 /* Products */,
-				9E25C3C52F9BA75900B518B9 /* SCDream1.otf */,
-				9E25C3C62F9BA75900B518B9 /* SCDream2.otf */,
-				9E25C3C72F9BA75900B518B9 /* SCDream3.otf */,
-				9E25C3C82F9BA75900B518B9 /* SCDream4.otf */,
-				9E25C3C92F9BA75900B518B9 /* SCDream5.otf */,
-				9E25C3CA2F9BA75900B518B9 /* SCDream6.otf */,
-				9E25C3CB2F9BA75900B518B9 /* SCDream7.otf */,
-				9E25C3CC2F9BA75900B518B9 /* SCDream8.otf */,
-				9E25C3CD2F9BA75900B518B9 /* SCDream9.otf */,
-				9E847F282F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf */,
 				9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
@@ -288,16 +258,6 @@
 			files = (
 				9E2A0ABB2FA07D630005F318 /* GoogleService-Info.plist in Resources */,
 				9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */,
-				9E25C3CE2F9BA75900B518B9 /* SCDream5.otf in Resources */,
-				9E25C3CF2F9BA75900B518B9 /* SCDream3.otf in Resources */,
-				9E25C3D02F9BA75900B518B9 /* SCDream1.otf in Resources */,
-				9E25C3D12F9BA75900B518B9 /* SCDream2.otf in Resources */,
-				9E25C3D22F9BA75900B518B9 /* SCDream4.otf in Resources */,
-				9E25C3D32F9BA75900B518B9 /* SCDream9.otf in Resources */,
-				9E847F292F9C9AD600FD86FA /* ClimateCrisisKR-1979.otf in Resources */,
-				9E25C3D42F9BA75900B518B9 /* SCDream6.otf in Resources */,
-				9E25C3D52F9BA75900B518B9 /* SCDream8.otf in Resources */,
-				9E25C3D62F9BA75900B518B9 /* SCDream7.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

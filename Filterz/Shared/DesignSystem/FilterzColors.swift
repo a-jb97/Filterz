@@ -1,24 +1,17 @@
 import SwiftUI
 
 extension Color {
-    static let filterzBackground    = Color(hex: "#000000")
-    static let filterzAccent        = Color(hex: "#FFE100")
-    static let filterzBlackAccent   = Color(hex: "#080500")
-    static let filterzAccentDeep    = Color(hex: "#FFB800")
-    static let filterzSurface       = Color(hex: "#1A1A1A")
-    static let filterzBorder        = Color(hex: "#2A2A2A")
-    static let filterzTextPrimary   = Color.white
-    static let filterzTextSecondary = Color(hex: "#8A8A8A")
-    static let filterzError         = Color(hex: "#FF4B4B")
-
-    // Figma 디자인 시스템 색상
-    static let filterzBlackBase      = Color(hex: "#0B0B0B")   // GrayScale/100
-    static let filterzGray30         = Color(hex: "#FFFFFF")   // GrayScale/30 - 1차 텍스트
-    static let filterzGray45         = Color(hex: "#D8D6D7")   // GrayScale/45
-    static let filterzGray60         = Color(hex: "#FFFFFF")   // GrayScale/60 - 2차 텍스트
-    static let filterzGray75         = Color(hex: "#FFFFFF")   // GrayScale/75 - 비활성
-    static let filterzDeepSprout      = Color(hex: "#d4ba00")   // 랭킹 카드 border
-    static let filterzGray90          = Color(hex: "#434347")   // 비활성 작가명 텍스트
+    static let filterzBackground      = Color(hex: "#FFFFFA")
+    static let filterzGray30         = Color(hex: "#151100")
+    static let filterzAccent         = Color(hex: "#795027")
+    static let filterzAccentDeep     = Color(hex: "#FFB800")
+    static let filterzSurface        = Color(hex: "#1A1A1A")
+    static let filterzBorder         = Color(hex: "#2A2A2A")
+    static let filterzTextSecondary  = Color(hex: "#8A8A8A")
+    static let filterzError          = Color(hex: "#FF4B4B")
+    static let filterzGray45         = Color(hex: "#D8D6D7")
+    static let filterzDeepSprout      = Color(hex: "#2d1b09")
+    static let filterzGray90          = Color(hex: "#434347")
     static let filterzTranslucent     = Color(hex: "#6A6A6E").opacity(0.5)
 
     init(hex: String) {
