@@ -35,7 +35,7 @@ struct ChatInputBar: View {
             }
             inputRow
         }
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
         .animation(.spring(response: 0.28, dampingFraction: 0.86), value: hasAttachments)
     }
 
@@ -53,7 +53,7 @@ struct ChatInputBar: View {
             .padding(.vertical, 10)
         }
         .frame(height: 100)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private func thumbnailCell(image: PickedImage, index: Int) -> some View {
@@ -67,7 +67,7 @@ struct ChatInputBar: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             } else {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.filterzBlackAccent)
+                    .fill(Color.filterzBackground)
                     .frame(width: 80, height: 80)
             }
 
@@ -83,7 +83,7 @@ struct ChatInputBar: View {
             Button { onImageRemoved(index) } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(Color.filterzBlackBase, Color.filterzGray30)
+                    .foregroundStyle(Color.filterzBackground, Color.filterzGray30)
                     .padding(4)
             }
             .buttonStyle(.plain)
@@ -95,7 +95,7 @@ struct ChatInputBar: View {
     private func pdfCell(file: PickedFile, index: Int) -> some View {
         ZStack(alignment: .topTrailing) {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.filterzBlackAccent)
+                .fill(Color.filterzBackground)
             VStack(spacing: 4) {
                 Image(systemName: "doc.fill")
                     .font(.system(size: 28))
@@ -112,7 +112,7 @@ struct ChatInputBar: View {
             Button { onFileRemoved(index) } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(Color.filterzBlackBase, Color.filterzGray30)
+                    .foregroundStyle(Color.filterzBackground, Color.filterzGray30)
                     .padding(4)
             }
             .buttonStyle(.plain)
@@ -166,7 +166,7 @@ struct ChatInputBar: View {
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color.filterzBlackAccent)
+                        .fill(Color.filterzBackground)
                 )
 
             Button(action: onSend) {
@@ -178,14 +178,14 @@ struct ChatInputBar: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 22, height: 22)
-                        .foregroundColor(canSend ? .filterzAccent : .filterzGray75)
+                        .foregroundColor(canSend ? .filterzAccent : .filterzGray30)
                 }
             }
             .disabled(!canSend || isSending)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var canSend: Bool {

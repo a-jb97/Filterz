@@ -20,7 +20,7 @@ struct ChatListView: View {
                 roomList
             }
         }
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .onAppear { store.send(.onAppear) }
         .onDisappear { store.send(.onDisappear) }
         .onChange(of: store.isSearchPresented) { _, isPresented in
@@ -48,14 +48,14 @@ struct ChatListView: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Color.filterzGray60)
+                .foregroundStyle(Color.filterzGray30)
 
             TextField(
                 "닉네임 검색",
@@ -70,7 +70,7 @@ struct ChatListView: View {
 
             if store.isSearching {
                 ProgressView()
-                    .tint(Color.filterzGray60)
+                    .tint(Color.filterzGray30)
                     .scaleEffect(0.8)
             } else if !store.searchText.isEmpty {
                 Button {
@@ -78,7 +78,7 @@ struct ChatListView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Color.filterzGray75)
+                        .foregroundStyle(Color.filterzGray30)
                 }
                 .buttonStyle(.plain)
             }
@@ -91,7 +91,7 @@ struct ChatListView: View {
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 10)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var emptyRoomState: some View {
@@ -104,7 +104,7 @@ struct ChatListView: View {
                 Spacer()
                 Text("아직 대화가 없습니다")
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                 Spacer()
             }
         }
@@ -127,7 +127,7 @@ struct ChatListView: View {
                 }
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
-                .listRowBackground(Color.filterzBlackBase)
+                .listRowBackground(Color.filterzBackground)
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     Button(role: .destructive) {
                         store.send(.deleteButtonTapped(room))
@@ -140,7 +140,7 @@ struct ChatListView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
         .contentMargins(.bottom, 100, for: .scrollContent)
     }
 
@@ -150,7 +150,7 @@ struct ChatListView: View {
                 Spacer()
                 Text("닉네임을 검색해보세요")
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                 Spacer()
             } else if store.isSearching && store.searchResults.isEmpty {
                 Spacer()
@@ -160,7 +160,7 @@ struct ChatListView: View {
                 Spacer()
                 Text("검색 결과가 없습니다")
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                 Spacer()
             } else {
                 ScrollView {
@@ -197,7 +197,7 @@ private struct SearchUserCell: View {
                 HStack(spacing: 12) {
                     AuthenticatedImageView(path: user.profileImagePath)
                         .frame(width: 48, height: 48)
-                        .background(Color.filterzBlackAccent)
+                        .background(Color.filterzBackground)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
@@ -213,7 +213,7 @@ private struct SearchUserCell: View {
 
             if isLoading {
                 ProgressView()
-                    .tint(Color.filterzGray60)
+                    .tint(Color.filterzGray30)
                     .scaleEffect(0.85)
             } else {
                 Button(action: onDMTapped) {
@@ -225,7 +225,7 @@ private struct SearchUserCell: View {
                         .padding(12)
                         .background(
                             Circle()
-                                .fill(Color.filterzBlackAccent)
+                                .fill(Color.filterzBackground)
                                 .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
                         )
                 }

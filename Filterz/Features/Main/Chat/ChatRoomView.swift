@@ -34,7 +34,7 @@ struct ChatRoomView: View {
                 onInvalidAttachment: { store.send(.invalidAttachmentDetected($0)) }
             )
         }
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .filterzSwipeBack {
             store.send(.backTapped)
         }
@@ -103,7 +103,7 @@ struct ChatRoomView: View {
             summarySheet
                 .presentationDetents([.fraction(0.33)])
                 .presentationDragIndicator(.visible)
-                .presentationBackground(Color.filterzBlackAccent)
+                .presentationBackground(Color.filterzBackground)
         }
         .onAppear { store.send(.onAppear) }
         .onDisappear { store.send(.onDisappear) }
@@ -116,7 +116,7 @@ struct ChatRoomView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 10, height: 18)
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                     .padding(8)
             }
             .frame(width: 48, height: 48)
@@ -139,7 +139,7 @@ struct ChatRoomView: View {
         }
         .padding(.horizontal, 4)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var aiSummaryButton: some View {
@@ -168,7 +168,7 @@ struct ChatRoomView: View {
                 }
                 .padding(.horizontal, 14)
                 .frame(height: 36)
-                .background(Capsule().fill(Color.filterzBlackAccent))
+                .background(Capsule().fill(Color.filterzBackground))
                 .overlay(
                     Capsule()
                         .stroke(Color.filterzAccent.opacity(0.55), lineWidth: 1)
@@ -181,7 +181,7 @@ struct ChatRoomView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var summarySheet: some View {
@@ -210,7 +210,7 @@ struct ChatRoomView: View {
         .padding(.top, 20)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.filterzBlackAccent)
+        .background(Color.filterzBackground)
     }
 
     private var messagesList: some View {
@@ -228,7 +228,7 @@ struct ChatRoomView: View {
                         if shouldShowDateSeparator(at: index) {
                             Text(message.createdAt.chatSeparatorDisplay)
                                 .font(.pretendard(11, weight: .regular))
-                                .foregroundColor(.filterzGray60)
+                                .foregroundColor(.filterzGray30)
                                 .padding(.top, index == 0 ? 8 : 18)
                                 .padding(.bottom, 10)
                         }
