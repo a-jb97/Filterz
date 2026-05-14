@@ -19,7 +19,7 @@ struct VideoListRowView: View {
 
                 Text(item.description)
                     .font(.pretendard(13, weight: .regular))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -32,7 +32,7 @@ struct VideoListRowView: View {
                             .foregroundColor(.filterzAccent)
                             .padding(.horizontal, 7)
                             .padding(.vertical, 3)
-                            .background(Capsule().fill(Color.filterzBlackAccent))
+                            .background(Capsule().fill(Color.filterzBackground))
                     }
                 }
             }
@@ -46,7 +46,7 @@ struct VideoListRowView: View {
 
                     Text("\(item.likeCount)")
                         .font(.pretendard(12, weight: .semibold))
-                        .foregroundColor(.filterzGray75)
+                        .foregroundColor(.filterzGray30)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                 }
@@ -64,7 +64,7 @@ struct VideoListRowView: View {
         ZStack {
             AuthenticatedImageView(path: item.thumbnailURL, contentMode: .fill)
                 .frame(width: 100, height: 120)
-                .background(Color.filterzBlackAccent)
+                .background(Color.filterzBackground)
                 .clipped()
 
             LinearGradient(
@@ -95,6 +95,6 @@ struct VideoListRowView: View {
             Text(text)
                 .font(.pretendard(12, weight: .medium))
         }
-        .foregroundColor(.filterzGray60)
+        .foregroundColor(.filterzGray30)
     }
 }

@@ -6,7 +6,7 @@ struct VideoListView: View {
 
     var body: some View {
         ZStack {
-            Color.filterzBlackBase.ignoresSafeArea()
+            Color.filterzBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 navBar
@@ -19,7 +19,7 @@ struct VideoListView: View {
                     Spacer()
                     Text("등록된 비디오가 없습니다")
                         .font(.pretendard(14, weight: .regular))
-                        .foregroundColor(.filterzGray60)
+                        .foregroundColor(.filterzGray30)
                     Spacer()
                 } else {
                     listContent
@@ -65,7 +65,7 @@ struct VideoListView: View {
         }
         .padding(.horizontal, 8)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var listContent: some View {

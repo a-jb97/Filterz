@@ -17,7 +17,7 @@ struct VideoPlayerView: View {
 
     var body: some View {
         ZStack {
-            Color.filterzBlackBase.ignoresSafeArea()
+            Color.filterzBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 navBar
@@ -149,7 +149,7 @@ struct VideoPlayerView: View {
         }
         .padding(.horizontal, 8)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private func preparePlayer(urlString: String) {
