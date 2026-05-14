@@ -102,7 +102,7 @@ struct ChatInputBar: View {
                     .foregroundColor(.filterzAccent)
                 Text(file.name)
                     .font(.pretendard(10, weight: .regular))
-                    .foregroundColor(.filterzGray45)
+                    .foregroundColor(.filterzGray30)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .truncationMode(.middle)
@@ -134,7 +134,7 @@ struct ChatInputBar: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 22, height: 22)
-                    .foregroundColor(.filterzGray45)
+                    .foregroundColor(.filterzGray30)
             }
             .disabled(isSending || totalAttachments >= maxAttachments)
             .onChange(of: photoSelections) { _, newValue in
@@ -146,7 +146,7 @@ struct ChatInputBar: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 22, height: 22)
-                    .foregroundColor(.filterzGray45)
+                    .foregroundColor(.filterzGray30)
             }
             .disabled(isSending || totalAttachments >= maxAttachments)
             .fileImporter(
@@ -167,6 +167,10 @@ struct ChatInputBar: View {
                 .background(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .fill(Color.filterzBackground)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color.filterzGray30, lineWidth: 1)
                 )
 
             Button(action: onSend) {

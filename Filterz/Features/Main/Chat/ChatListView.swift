@@ -40,7 +40,7 @@ struct ChatListView: View {
             } label: {
                 Image(systemName: store.isSearchPresented ? "xmark" : "magnifyingglass")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -87,7 +87,7 @@ struct ChatListView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.filterzSurface)
+                .fill(Color.filterzBackground)
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 10)
@@ -98,7 +98,7 @@ struct ChatListView: View {
         Group {
             if store.isLoading {
                 Spacer()
-                ProgressView().tint(.filterzGray45)
+                ProgressView().tint(.filterzGray30)
                 Spacer()
             } else {
                 Spacer()
@@ -154,7 +154,7 @@ struct ChatListView: View {
                 Spacer()
             } else if store.isSearching && store.searchResults.isEmpty {
                 Spacer()
-                ProgressView().tint(.filterzGray45)
+                ProgressView().tint(.filterzGray30)
                 Spacer()
             } else if store.searchResults.isEmpty {
                 Spacer()
@@ -221,7 +221,7 @@ private struct SearchUserCell: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 18, height: 18)
-                        .foregroundColor(.filterzGray45)
+                        .foregroundColor(.filterzGray30)
                         .padding(12)
                         .background(
                             Circle()

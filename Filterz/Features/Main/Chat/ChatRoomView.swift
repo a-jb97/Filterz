@@ -163,16 +163,12 @@ struct ChatRoomView: View {
 
                     Text(store.isSummarizing ? "요약 중" : "AI 요약")
                         .font(.pretendard(13, weight: .semibold))
-                        .foregroundColor(.filterzGray30)
+                        .foregroundColor(.filterzAccent)
                         .lineLimit(1)
                 }
                 .padding(.horizontal, 14)
                 .frame(height: 36)
                 .background(Capsule().fill(Color.filterzBackground))
-                .overlay(
-                    Capsule()
-                        .stroke(Color.filterzAccent.opacity(0.55), lineWidth: 1)
-                )
             }
             .buttonStyle(.plain)
             .disabled(store.isSummarizing)
@@ -201,7 +197,7 @@ struct ChatRoomView: View {
             ScrollView {
                 Text(store.summaryText ?? "")
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundColor(.filterzGray45)
+                    .foregroundColor(.filterzGray30)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineSpacing(4)
             }

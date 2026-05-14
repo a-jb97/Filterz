@@ -90,6 +90,12 @@ struct ChatBubbleView: View {
                     .padding(.vertical, 10)
                     .background(bubbleBackground)
                     .clipShape(bubbleShape)
+                    .overlay {
+                        if !isMine {
+                            bubbleShape
+                                .stroke(Color.filterzGray45, lineWidth: 1)
+                        }
+                    }
                     .fixedSize(horizontal: false, vertical: true)
                     .layoutPriority(1)
             }
@@ -122,11 +128,7 @@ struct ChatBubbleView: View {
     @ViewBuilder
     private var bubbleBackground: some View {
         if isMine {
-            LinearGradient(
-                colors: [Color.filterzAccent, Color.filterzAccentDeep],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color.filterzAccent
         } else {
             Color.filterzBackground
         }
