@@ -1,0 +1,22 @@
+{
+  "filter_id": "fixture-filter-1",
+  "category": "moody",
+  "title": "Updated Fixture",
+  "description": "오프라인 수정 응답 샘플입니다.",
+  "files": ["/filters/offline-film.jpg"],
+  "price": 2000,
+  "creator": {
+    "user_id": "fixture-user",
+    "nick": "Fixture User",
+    "profileImage": "/profiles/fixture-user.jpg"
+  },
+  "photoMetadata": null,
+  "filterValues": null,
+  "is_liked": false,
+  "is_downloaded": true,
+  "like_count": 128,
+  "buyer_count": 32,
+  "comments": [],
+  "createdAt": "2026-05-14T00:00:00Z",
+  "updatedAt": "2026-05-14T00:00:00Z"
+}

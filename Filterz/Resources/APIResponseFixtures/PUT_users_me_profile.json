@@ -1,0 +1,10 @@
+{
+  "user_id": "fixture-user",
+  "email": "fixture@example.com",
+  "nick": "Fixture User",
+  "name": "Filterz Fixture",
+  "introduction": "오프라인 모드용 샘플 사용자입니다.",
+  "profileImage": "/profiles/fixture-user.jpg",
+  "phoneNum": "010-0000-0000",
+  "hashTags": ["fixture", "offline", "filterz"]
+}

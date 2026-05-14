@@ -1,0 +1,64 @@
+{
+  "filter_id": "fixture-filter-1",
+  "category": "moody",
+  "title": "Offline Film",
+  "description": "오프라인 모드용 상세 필터 샘플입니다.",
+  "files": ["/filters/offline-film.jpg"],
+  "price": 2000,
+  "creator": {
+    "user_id": "fixture-author",
+    "nick": "Fixture Artist",
+    "name": "Sample Artist",
+    "introduction": "필터를 만드는 샘플 작가입니다.",
+    "profileImage": "/profiles/fixture-author.jpg",
+    "hashTags": ["film", "daily"]
+  },
+  "photoMetadata": {
+    "camera": "Fixture Camera",
+    "lens_info": "26mm",
+    "focal_length": 26,
+    "aperture": 1.8,
+    "iso": 200,
+    "shutter_speed": "1/120",
+    "pixel_width": 3024,
+    "pixel_height": 4032,
+    "file_size": 2.4,
+    "format": "JPEG",
+    "date_time_original": "2026-05-14T00:00:00Z",
+    "latitude": 37.5665,
+    "longitude": 126.9780
+  },
+  "filterValues": {
+    "brightness": 0.1,
+    "exposure": 0.2,
+    "contrast": 1.08,
+    "saturation": 0.9,
+    "sharpness": 0.2,
+    "blur": 0,
+    "vignette": 0.2,
+    "noise_reduction": 0,
+    "highlights": -0.1,
+    "shadows": 0.15,
+    "temperature": 6200,
+    "black_point": 0.02
+  },
+  "is_liked": false,
+  "is_downloaded": false,
+  "like_count": 128,
+  "buyer_count": 32,
+  "comments": [
+    {
+      "comment_id": "fixture-comment-1",
+      "content": "오프라인 댓글 샘플입니다.",
+      "createdAt": "2026-05-14T00:00:00Z",
+      "creator": {
+        "user_id": "fixture-user",
+        "nick": "Fixture User",
+        "profileImage": "/profiles/fixture-user.jpg"
+      },
+      "replies": []
+    }
+  ],
+  "createdAt": "2026-05-14T00:00:00Z",
+  "updatedAt": "2026-05-14T00:00:00Z"
+}

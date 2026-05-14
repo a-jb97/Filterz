@@ -1,0 +1,7 @@
+{
+  "order_id": "fixture-order-id",
+  "order_code": "fixture_order_code",
+  "total_price": 2000,
+  "createdAt": "2026-05-14T00:00:00Z",
+  "updatedAt": "2026-05-14T00:00:00Z"
+}

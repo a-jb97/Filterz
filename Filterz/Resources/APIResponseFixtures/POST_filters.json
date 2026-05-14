@@ -1,0 +1,22 @@
+{
+  "filter_id": "fixture-filter-created",
+  "category": "moody",
+  "title": "Created Fixture",
+  "description": "오프라인 생성 응답 샘플입니다.",
+  "files": ["/filters/created-fixture.jpg"],
+  "price": 1000,
+  "creator": {
+    "user_id": "fixture-user",
+    "nick": "Fixture User",
+    "profileImage": "/profiles/fixture-user.jpg"
+  },
+  "photoMetadata": null,
+  "filterValues": null,
+  "is_liked": false,
+  "is_downloaded": true,
+  "like_count": 0,
+  "buyer_count": 0,
+  "comments": [],
+  "createdAt": "2026-05-14T00:00:00Z",
+  "updatedAt": "2026-05-14T00:00:00Z"
+}

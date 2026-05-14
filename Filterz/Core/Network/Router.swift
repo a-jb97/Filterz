@@ -69,6 +69,81 @@ enum Router: URLRequestConvertible {
     case getLogs
 }
 
+// MARK: - Fixture Support
+
+extension Router {
+    var fixtureFileName: String {
+        fixtureKey + ".json"
+    }
+
+    var fixtureKey: String {
+        switch self {
+        // User
+        case .join:                 return "POST_users_join"
+        case .login:                return "POST_users_login"
+        case .kakaoLogin:           return "POST_users_login_kakao"
+        case .appleLogin:           return "POST_users_login_apple"
+        case .emailValidation:      return "POST_users_validation_email"
+        case .refreshToken:         return "GET_auth_refresh"
+        case .logout:               return "POST_users_logout"
+        case .myInfo:               return "GET_users_me_profile"
+        case .editMyProfile:        return "PUT_users_me_profile"
+        case .userProfile:          return "GET_users_profile"
+        case .getTodayAuthor:       return "GET_users_today-author"
+        case .searchUsers:          return "GET_users_search"
+
+        // Filter
+        case .getFilters:           return "GET_filters"
+        case .getUserFilters:       return "GET_filters_users"
+        case .getLikedFilters:      return "GET_filters_likes_me"
+        case .createFilter:         return "POST_filters"
+        case .getFilter:            return "GET_filters_detail"
+        case .editFilter:           return "PUT_filters_detail"
+        case .deleteFilter:         return "DELETE_filters_detail"
+        case .likeFilter:           return "POST_filters_like"
+        case .getTodayFilter:       return "GET_filters_today-filter"
+        case .getHotTrendFilters:   return "GET_filters_hot-trend"
+        case .createFilterComment:  return "POST_filters_comments"
+        case .editFilterComment:    return "PUT_filters_comments_detail"
+        case .deleteFilterComment:  return "DELETE_filters_comments_detail"
+
+        // Post
+        case .getPosts:             return "GET_posts"
+        case .createPost:           return "POST_posts"
+        case .getPost:              return "GET_posts_detail"
+        case .editPost:             return "PUT_posts_detail"
+        case .deletePost:           return "DELETE_posts_detail"
+        case .likePost:             return "POST_posts_like"
+        case .createPostComment:    return "POST_posts_comments"
+        case .deletePostComment:    return "DELETE_posts_comments_detail"
+
+        // Chat
+        case .getChatRooms:         return "GET_chats"
+        case .createChatRoom:       return "POST_chats"
+        case .getChatMessages:      return "GET_chats_messages"
+        case .sendMessage:          return "POST_chats_messages"
+        case .sendChatFiles:        return "POST_chats_files"
+
+        // Order & Payment
+        case .createOrder:          return "POST_orders"
+        case .getOrders:            return "GET_orders"
+        case .getOrder:             return "GET_payments_detail"
+        case .validatePayment:      return "POST_payments_validation"
+
+        // Video
+        case .getVideos:            return "GET_videos"
+        case .getVideo:             return "GET_videos_detail"
+        case .getStreamURL:         return "GET_videos_stream"
+        case .likeVideo:            return "POST_videos_like"
+
+        // Common
+        case .uploadFile:           return "POST_filters_files"
+        case .getBanners:           return "GET_banners_main"
+        case .getLogs:              return "GET_logs"
+        }
+    }
+}
+
 // MARK: - URLRequestConvertible
 
 extension Router {

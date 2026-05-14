@@ -113,10 +113,17 @@ final class NetworkManager: @unchecked Sendable {
 
         switch response.result {
         case .success(let data):
+            APIResponseCaptureStore.save(data: data, for: router)
             do { return try decoder.decode(T.self, from: data) }
             catch { throw NetworkError.decodingFailed }
         case .failure(let error):
-            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
+            let statusCode = response.response?.statusCode
+            let networkError = mapError(error, statusCode: statusCode, data: response.data)
+            if shouldUseFixtureFallback(for: error, statusCode: statusCode),
+               let fallback: T = decodeFixture(for: router) {
+                return fallback
+            }
+            throw networkError
         }
     }
 
@@ -128,9 +135,17 @@ final class NetworkManager: @unchecked Sendable {
             .response
 
         switch response.result {
-        case .success(let data): return data
+        case .success(let data):
+            APIResponseCaptureStore.save(data: data, for: router)
+            return data
         case .failure(let error):
-            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
+            let statusCode = response.response?.statusCode
+            let networkError = mapError(error, statusCode: statusCode, data: response.data)
+            if shouldUseFixtureFallback(for: error, statusCode: statusCode),
+               let data = APIResponseFixtureStore.bundledData(for: router) {
+                return data
+            }
+            throw networkError
         }
     }
 
@@ -155,10 +170,17 @@ final class NetworkManager: @unchecked Sendable {
 
         switch response.result {
         case .success(let data):
+            APIResponseCaptureStore.save(data: data, for: router)
             do { return try decoder.decode(T.self, from: data) }
             catch { throw NetworkError.decodingFailed }
         case .failure(let error):
-            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
+            let statusCode = response.response?.statusCode
+            let networkError = mapError(error, statusCode: statusCode, data: response.data)
+            if shouldUseFixtureFallback(for: error, statusCode: statusCode),
+               let fallback: T = decodeFixture(for: router) {
+                return fallback
+            }
+            throw networkError
         }
     }
 
@@ -183,10 +205,17 @@ final class NetworkManager: @unchecked Sendable {
 
         switch response.result {
         case .success(let data):
+            APIResponseCaptureStore.save(data: data, for: router)
             do { return try decoder.decode(T.self, from: data) }
             catch { throw NetworkError.decodingFailed }
         case .failure(let error):
-            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
+            let statusCode = response.response?.statusCode
+            let networkError = mapError(error, statusCode: statusCode, data: response.data)
+            if shouldUseFixtureFallback(for: error, statusCode: statusCode),
+               let fallback: T = decodeFixture(for: router) {
+                return fallback
+            }
+            throw networkError
         }
     }
 
@@ -199,12 +228,53 @@ final class NetworkManager: @unchecked Sendable {
 
         if let statusCode = response.response?.statusCode,
            (200..<300).contains(statusCode) {
+            if let data = response.data {
+                APIResponseCaptureStore.save(data: data, for: router)
+            }
             return
         }
 
         if let error = response.error {
-            throw mapError(error, statusCode: response.response?.statusCode, data: response.data)
+            let statusCode = response.response?.statusCode
+            let networkError = mapError(error, statusCode: statusCode, data: response.data)
+            if shouldUseFixtureFallback(for: error, statusCode: statusCode),
+               APIResponseFixtureStore.bundledData(for: router) != nil {
+                return
+            }
+            throw networkError
         }
+    }
+
+    private func decodeFixture<T: Decodable>(for router: Router) -> T? {
+        guard let data = APIResponseFixtureStore.bundledData(for: router) else {
+            return nil
+        }
+
+        return try? decoder.decode(T.self, from: data)
+    }
+
+    private func shouldUseFixtureFallback(for error: AFError, statusCode: Int?) -> Bool {
+        if let statusCode {
+            return statusCode >= 500
+        }
+
+        if case .sessionTaskFailed(let urlError as URLError) = error {
+            switch urlError.code {
+            case .notConnectedToInternet,
+                 .networkConnectionLost,
+                 .cannotConnectToHost,
+                 .cannotFindHost,
+                 .dnsLookupFailed,
+                 .timedOut,
+                 .internationalRoamingOff,
+                 .dataNotAllowed:
+                return true
+            default:
+                return false
+            }
+        }
+
+        return false
     }
 
     private func mapError(_ error: AFError, statusCode: Int?, data: Data?) -> NetworkError {

@@ -1,0 +1,18 @@
+{
+  "post_id": "fixture-post-1",
+  "category": "daily",
+  "title": "Updated Offline Post",
+  "content": "오프라인 모드용 게시글 수정 샘플입니다.",
+  "geolocation": null,
+  "creator": {
+    "user_id": "fixture-user",
+    "nick": "Fixture User",
+    "profileImage": "/profiles/fixture-user.jpg"
+  },
+  "files": [],
+  "is_like": false,
+  "like_count": 12,
+  "comments": [],
+  "createdAt": "2026-05-14T00:00:00Z",
+  "updatedAt": "2026-05-14T00:00:00Z"
+}
