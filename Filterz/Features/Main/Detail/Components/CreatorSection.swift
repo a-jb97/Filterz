@@ -70,7 +70,7 @@ struct CreatorSection: View {
 
     private func actionButton(
         systemName: String,
-        foregroundColor: Color = .filterzGray45,
+        foregroundColor: Color = .filterzGray30,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {

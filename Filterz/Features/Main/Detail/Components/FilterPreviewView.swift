@@ -25,7 +25,7 @@ struct FilterPreviewView: View {
                     }
                 }
                 .frame(width: geo.size.width, height: 400)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .clipShape(RoundedRectangle(cornerRadius: 5))
 
                 AfterBeforeLabelRow()
                     .offset(x: revealX - geo.size.width / 2)
@@ -200,12 +200,12 @@ struct AfterBeforeLabelRow: View {
     private func label(_ text: String) -> some View {
         Text(text)
             .font(.pretendard(13, weight: .bold))
-            .foregroundColor(.black)
-            .padding(.horizontal, 12)
+            .foregroundColor(Color.filterzBackground)
+            .padding(.horizontal, 8.4)
             .padding(.vertical, 5)
-            .frame(minWidth: 80)
+            .frame(minWidth: 56)
             .background(
-                Capsule()
+                RoundedRectangle(cornerRadius: 5)
                     .fill(Color.filterzAccent)
             )
     }

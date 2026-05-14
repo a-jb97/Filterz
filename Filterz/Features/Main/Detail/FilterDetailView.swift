@@ -19,7 +19,7 @@ struct FilterDetailView: View {
 
                 if store.isLoading {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                 } else if let detail = store.detail {
                     ScrollView(showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 20) {
@@ -245,11 +245,11 @@ struct FilterDetailView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 5)
                 .fill(Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.filterzGray30.opacity(0.9), lineWidth: 1)
                 )
         )
     }
@@ -267,18 +267,18 @@ struct FilterDetailView: View {
         } label: {
             ZStack {
                 Text(canApplyFilter ? "적용하기" : "결제하기")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(canApplyFilter ? .filterzGray30 : .black)
+                    .font(.filterzBody())
+                    .foregroundColor(.filterzAccent)
                     .opacity(store.isPurchaseLoading || store.isFilterRendering ? 0 : 1)
 
                 if store.isPurchaseLoading || store.isFilterRendering {
                     ProgressView()
-                        .tint(canApplyFilter ? .filterzGray30 : .black)
+                        .tint(.filterzAccent)
                 }
             }
             .frame(maxWidth: .infinity)
             .frame(height: 54)
-            .background(canApplyFilter ? Color.filterzDeepSprout : Color.filterzAccent)
+            .background(Color.filterzBackground)
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -290,14 +290,12 @@ struct FilterDetailView: View {
             HStack(spacing: 8) {
                 ForEach(detail.hashtags, id: \.self) { tag in
                     Text("#\(displayHashTag(tag))")
-                        .font(.pretendard(9, weight: .medium))
-                        .foregroundColor(.filterzGray30)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 7)
-                        .background(
-                            Capsule().fill(Color.filterzBackground)
+                        .filterzTornTapeStyle(
+                            font: .pretendard(9, weight: .medium),
+                            foregroundColor: .filterzGray30,
+                            horizontalPadding: 8,
+                            verticalPadding: 7
                         )
-                        .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
                 }
             }
             .padding(.horizontal, 16)
@@ -331,11 +329,11 @@ struct FilterDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 24)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 5)
                             .fill(Color.filterzBackground)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.filterzTranslucent, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color.filterzGray30.opacity(0.9), lineWidth: 1)
                             )
                     )
             } else {
@@ -410,10 +408,10 @@ struct FilterDetailView: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 5)
                 .fill(isReply ? Color.filterzBackground : Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 5)
                         .stroke(Color.filterzAccent.opacity(0.5), lineWidth: 1)
                 )
         )
@@ -503,11 +501,11 @@ struct FilterDetailView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 5)
                         .fill(Color.filterzBackground)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.filterzTranslucent, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color.filterzGray30.opacity(0.7), lineWidth: 1)
                         )
                 )
 
@@ -533,11 +531,11 @@ struct FilterDetailView: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 5)
                 .fill(Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.filterzGray30.opacity(0.7), lineWidth: 1)
                 )
         )
     }
