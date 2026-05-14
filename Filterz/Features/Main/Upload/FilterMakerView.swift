@@ -53,8 +53,8 @@ struct FilterMakerView: View {
 
             Spacer()
 
-            Text("EDIT")
-                .font(.mulgyeolBold(20))
+            Text("필터 제작")
+                .font(.filterzDisplay(24))
                 .foregroundStyle(Color.filterzGray30)
 
             Spacer()
@@ -62,7 +62,7 @@ struct FilterMakerView: View {
             Button { store.send(.saveTapped) } label: {
                 Image(systemName: "square.and.arrow.down")
                     .font(.system(size: 23, weight: .regular))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 48, height: 56)
             }
         }
@@ -123,13 +123,13 @@ struct FilterMakerView: View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(Color.filterzGray30)
+                .foregroundStyle(Color.filterzBackground)
                 .frame(width: 40, height: 32)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 5)
                         .fill(Color.filterzTranslucent)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 8)
+                            RoundedRectangle(cornerRadius: 5)
                                 .stroke(Color.filterzTranslucent, lineWidth: 1)
                         )
                 )
@@ -151,11 +151,11 @@ struct FilterMakerView: View {
         VStack(spacing: 8) {
             Text(valueText)
                 .font(.pretendard(14, weight: .bold))
-                .foregroundStyle(Color.filterzGray30)
+                .foregroundStyle(Color.filterzBackground)
                 .frame(width: 44, height: 20)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(hex: "#1F2527"))
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(Color.filterzAccent)
                 )
 
             Slider(
@@ -168,7 +168,7 @@ struct FilterMakerView: View {
                     store.send(isEditing ? .sliderEditingStarted : .sliderEditingEnded)
                 }
             )
-            .tint(.pink)
+            .tint(.filterzAccent)
             .padding(.horizontal, 20)
         }
     }
@@ -194,7 +194,7 @@ struct FilterMakerView: View {
                 Image(systemName: key.icon)
                     .font(.system(size: 28, weight: .semibold))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isSelected ? Color.filterzGray30 : Color.filterzGray30)
+                    .foregroundStyle(isSelected ? Color.filterzAccent : Color.filterzGray30.opacity(0.9))
                     .frame(width: 32, height: 32)
 
                 Text(key.title)

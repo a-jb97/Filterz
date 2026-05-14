@@ -161,13 +161,13 @@ struct FilterCameraView: View {
                             } else {
                                 Text("저장")
                                     .font(.filterzCaption())
-                                    .foregroundStyle(Color.filterzBackground)
+                                    .foregroundStyle(Color.filterzAccent)
                             }
                         }
                         .rotationEffect(controlRotation)
                         .padding(.horizontal, 16)
                         .frame(minWidth: 58, minHeight: 38)
-                        .background(Capsule().fill(camera.isSaving ? Color.filterzGray30 : Color.filterzAccent))
+                        .background(Capsule().fill(Color.filterzBackground))
                     }
                     .buttonStyle(.plain)
                     .disabled(camera.isSaving)
@@ -189,12 +189,11 @@ struct FilterCameraView: View {
                 } label: {
                     Text(zoomLabel(option.displayFactor))
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(camera.selectedZoomOption == option ? Color.filterzBackground : Color.filterzGray30)
+                        .foregroundStyle(Color.filterzAccent)
                         .rotationEffect(controlRotation)
                         .frame(width: 42, height: 32)
                         .background(
-                            Capsule()
-                                .fill(camera.selectedZoomOption == option ? Color.filterzAccent : Color.black.opacity(0.48))
+                            Capsule().fill(Color.filterzBackground)
                         )
                 }
                 .buttonStyle(.plain)
@@ -220,10 +219,10 @@ struct FilterCameraView: View {
         } label: {
             Text(title)
                 .font(.pretendard(13, weight: .bold))
-                .foregroundStyle(camera.mode == mode ? Color.filterzBackground : Color.filterzGray30)
+                .foregroundStyle(Color.filterzAccent)
                 .frame(width: 72, height: 32)
                 .background(
-                    Capsule().fill(camera.mode == mode ? Color.filterzAccent : Color.clear)
+                    Capsule().fill(Color.filterzBackground)
                 )
         }
         .buttonStyle(.plain)

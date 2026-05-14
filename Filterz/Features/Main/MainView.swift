@@ -88,7 +88,9 @@ private struct CustomTabBarView: View {
                 RoundedRectangle(cornerRadius: 34)
                     .fill(.ultraThinMaterial)
                 RoundedRectangle(cornerRadius: 34)
-                    .stroke(Color.filterzTranslucent, lineWidth: 1)
+                    .fill(Color.filterzBackground.opacity(0.82))
+                RoundedRectangle(cornerRadius: 34)
+                    .stroke(Color.filterzPolaroid.opacity(0.9), lineWidth: 1)
             }
         )
     }
@@ -103,9 +105,9 @@ private struct CustomTabBarView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 32, height: 32)
-                    .foregroundColor(isSelected ? .filterzGray30 : .filterzGray30)
+                    .foregroundColor(.filterzAccent.opacity(0.8))
                     .shadow(
-                        color: isSelected ? Color.white.opacity(0.15) : .clear,
+                        color: isSelected ? Color.filterzGray30.opacity(0.4) : .clear,
                         radius: 2, x: 0, y: 3
                     )
 
@@ -117,7 +119,7 @@ private struct CustomTabBarView: View {
                         .minimumScaleFactor(0.8)
                         .frame(minWidth: 18, minHeight: 18)
                         .padding(.horizontal, chatUnreadCount > 9 ? 4 : 0)
-                        .background(Capsule().fill(Color.filterzAccent))
+                        .background(Capsule().fill(Color.filterzClip))
                         .offset(x: 9, y: -8)
                 }
             }
@@ -135,7 +137,7 @@ private extension MainFeature.Tab {
         switch self {
         case .home:      return isSelected ? "house.fill" : "house"
         case .market:    return "square.grid.2x2"
-        case .explore:   return "sparkles"
+        case .explore:   return "camera.filters"
         case .chat:      return isSelected ? "message.fill" : "message"
         case .mypage:    return isSelected ? "person.fill" : "person"
         }

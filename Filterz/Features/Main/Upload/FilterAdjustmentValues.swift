@@ -186,18 +186,18 @@ enum FilterAdjustmentKey: CaseIterable, Equatable, Sendable, Identifiable {
 
     var title: String {
         switch self {
-        case .brightness: "BRIGHTNESS"
-        case .exposure: "EXPOSURE"
-        case .contrast: "CONTRAST"
-        case .saturation: "SATURATION"
-        case .sharpness: "SHARPNESS"
-        case .blur: "BLUR"
-        case .vignette: "VIGNETTE"
-        case .noiseReduction: "NOISE"
-        case .highlights: "HIGHLIGHTS"
-        case .shadows: "SHADOWS"
-        case .temperature: "TEMPERATURE"
-        case .blackPoint: "BLACKPOINT"
+        case .brightness: "밝기"
+        case .exposure: "노출"
+        case .contrast: "대비"
+        case .saturation: "채도"
+        case .sharpness: "선명도"
+        case .blur: "블러"
+        case .vignette: "비네트"
+        case .noiseReduction: "노이즈"
+        case .highlights: "하이라이트"
+        case .shadows: "그림자"
+        case .temperature: "색온도"
+        case .blackPoint: "블랙포인트"
         }
     }
 

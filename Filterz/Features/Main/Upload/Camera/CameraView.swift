@@ -101,12 +101,11 @@ struct CameraView: View {
                 } label: {
                     Text(zoomLabel(option.displayFactor))
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(store.selectedZoomOption == option ? Color.filterzBackground : Color.filterzGray30)
+                        .foregroundStyle(Color.filterzAccent)
                         .rotationEffect(controlRotation)
                         .frame(width: 42, height: 32)
                         .background(
-                            Capsule()
-                                .fill(store.selectedZoomOption == option ? Color.filterzAccent : Color.black.opacity(0.48))
+                            Capsule().fill(Color.filterzBackground)
                         )
                 }
                 .buttonStyle(.plain)
@@ -198,13 +197,13 @@ struct CameraView: View {
                             } else {
                                 Text("등록")
                                     .font(.filterzCaption())
-                                    .foregroundStyle(Color.filterzBackground)
+                                    .foregroundStyle(Color.filterzAccent)
                             }
                         }
                         .rotationEffect(controlRotation)
                         .padding(.horizontal, 16)
                         .frame(minWidth: 58, minHeight: 38)
-                        .background(Capsule().fill(store.isWritingMetadata ? Color.filterzGray30 : Color.filterzAccent))
+                        .background(Capsule().fill(Color.filterzBackground))
                     }
                     .buttonStyle(.plain)
                     .disabled(store.isWritingMetadata)
@@ -238,11 +237,11 @@ struct CameraView: View {
             } label: {
                 Text("닫기")
                     .font(.filterzCaption())
-                    .foregroundStyle(Color.filterzBackground)
+                    .foregroundStyle(Color.filterzAccent)
                     .rotationEffect(controlRotation)
                     .padding(.horizontal, 22)
                     .frame(height: 42)
-                    .background(Capsule().fill(Color.filterzAccent))
+                    .background(Capsule().fill(Color.filterzBackground))
             }
             .buttonStyle(.plain)
             .padding(.top, 8)

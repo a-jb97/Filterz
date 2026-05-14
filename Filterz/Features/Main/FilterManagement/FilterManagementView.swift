@@ -79,7 +79,7 @@ struct FilterManagementView: View {
     private var content: some View {
         if store.isLoading && store.items.isEmpty {
             ProgressView()
-                .tint(.filterzGray45)
+                .tint(.filterzGray30)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 48)
         } else if store.items.isEmpty {
