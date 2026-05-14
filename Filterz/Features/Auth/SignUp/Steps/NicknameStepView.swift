@@ -9,7 +9,7 @@ struct NicknameStepView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("닉네임을 정해주세요")
                     .font(.filterzHeadline())
-                    .foregroundColor(.filterzTextPrimary)
+                    .foregroundColor(.filterzGray30)
                 Text("2~12자 이내로 입력해주세요")
                     .font(.filterzBody())
                     .foregroundColor(.filterzTextSecondary)

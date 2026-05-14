@@ -49,7 +49,7 @@ struct LoginView: View {
         VStack(spacing: 10) {
             (
                 Text("FILTER")
-                    .foregroundColor(.filterzTextPrimary)
+                    .foregroundColor(.filterzGray30)
                 + Text("Z")
                     .foregroundColor(.filterzAccent)
             )
