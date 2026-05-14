@@ -52,11 +52,11 @@ struct AppView: View {
             Color.filterzBackground.ignoresSafeArea()
             (
                 Text("FILTER")
-                    .foregroundColor(.filterzTextPrimary)
+                    .foregroundColor(.filterzGray30)
                 + Text("Z")
                     .foregroundColor(.filterzAccent)
             )
-            .font(.custom("ClimateCrisisKR-1979", size: 42))
+            .font(.filterzDisplay(42))
         }
     }
 }

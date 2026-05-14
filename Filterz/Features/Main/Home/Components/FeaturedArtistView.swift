@@ -10,7 +10,7 @@ struct FeaturedArtistView: View {
             // 섹션 헤더
             Text("오늘의 작가 소개")
                 .font(.pretendard(16, weight: .bold))
-                .foregroundColor(.filterzGray60)
+                .foregroundColor(.filterzGray30)
 
             // 작가 프로필
             Button(action: onProfileTapped) {
@@ -27,7 +27,7 @@ struct FeaturedArtistView: View {
                             .foregroundColor(.filterzGray30)
                         Text(artist.nameEn)
                             .font(.pretendard(16, weight: .medium))
-                            .foregroundColor(.filterzGray75)
+                            .foregroundColor(.filterzGray30)
                     }
                 }
             }
@@ -57,11 +57,11 @@ struct FeaturedArtistView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(artist.quote)
                     .font(.mulgyeolRegular(14))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
 
                 Text(artist.bio)
                     .font(.pretendard(12, weight: .regular))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                     .lineSpacing(12 * 0.7)
             }
         }
@@ -79,7 +79,7 @@ private struct TagView: View {
             .foregroundColor(.filterzGray30)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
-            .background(Capsule().fill(Color.filterzBlackAccent))
+            .background(Capsule().fill(Color.filterzBackground))
             .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
     }
 }

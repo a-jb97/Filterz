@@ -57,7 +57,7 @@ private struct CategoryItemView: View {
     var body: some View {
         ZStack {
 //            RoundedRectangle(cornerRadius: 10)
-//                .fill(Color.filterzBlackAccent)
+//                .fill(Color.filterzBlackBase)
 //                .overlay(
 //                    RoundedRectangle(cornerRadius: 10)
 //                        .stroke(Color.filterzAccent, lineWidth: 1)

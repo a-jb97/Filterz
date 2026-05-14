@@ -23,7 +23,7 @@ struct HomeView: View {
             }
         }
         .ignoresSafeArea(edges: .top)
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .onAppear { store.send(.onAppear) }
         .sheet(isPresented: Binding(
             get: { store.bannerWebURL != nil },

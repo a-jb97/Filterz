@@ -103,7 +103,7 @@ private struct CustomTabBarView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 32, height: 32)
-                    .foregroundColor(isSelected ? .filterzGray30 : .filterzGray75)
+                    .foregroundColor(isSelected ? .filterzGray30 : .filterzGray30)
                     .shadow(
                         color: isSelected ? Color.white.opacity(0.15) : .clear,
                         radius: 2, x: 0, y: 3

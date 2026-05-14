@@ -45,10 +45,10 @@ struct TodayBannerView: View {
     private func pageIndicator(current: Int, total: Int) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzGray75.opacity(0.5))
+                .fill(Color.filterzGray30.opacity(0.5))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.filterzGray60, lineWidth: 1)
+                        .stroke(Color.filterzGray30, lineWidth: 1)
                 )
                 .frame(width: 44, height: 20)
 

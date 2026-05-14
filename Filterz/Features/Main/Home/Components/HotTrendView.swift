@@ -14,7 +14,7 @@ struct HotTrendView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("핫 트렌드")
                 .font(.pretendard(16, weight: .bold))
-                .foregroundColor(.filterzGray60)
+                .foregroundColor(.filterzGray30)
                 .padding(.horizontal, 20)
 
             GeometryReader { geo in

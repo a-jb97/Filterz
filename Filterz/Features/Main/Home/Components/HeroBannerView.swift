@@ -16,8 +16,8 @@ struct HeroBannerView: View {
             // 하단 그라디언트 오버레이
             LinearGradient(
                 stops: [
-                    .init(color: .clear, location: 0.25),
-                    .init(color: Color.filterzBlackBase, location: 0.95)
+                    .init(color: Color.filterzBackground.opacity(0), location: 0.65),
+                    .init(color: Color.filterzBackground, location: 0.95)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -43,7 +43,7 @@ struct HeroBannerView: View {
                     } label: {
                         Text("사용해보기")
                             .font(.pretendard(12, weight: .medium))
-                            .foregroundColor(.filterzGray60)
+                            .foregroundColor(.filterzGray30)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 7)
                             .background(
@@ -64,23 +64,23 @@ struct HeroBannerView: View {
             // 하단 텍스트 블록
             VStack(alignment: .leading, spacing: 4) {
                 Text("오늘의 필터 소개")
-                    .font(.pretendard(13, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .font(.pretendard(15, weight: .medium))
+                    .foregroundColor(.filterzGray30)
 
                 Text(store.todayFilterTitle)
-                    .font(.custom("ClimateCrisisKR-1979", size: 32))
+                    .font(.custom("HSBomBaram2.0", size: 32))
                     .foregroundColor(.filterzGray30)
 
                 Text(store.todayFilterSubtitle)
-                    .font(.custom("ClimateCrisisKR-1979", size: 32))
+                    .font(.custom("HSBomBaram2.0", size: 32))
                     .foregroundColor(.filterzGray30)
 
                 Spacer().frame(height: 12)
 
                 Text(store.todayFilterDescription)
-                    .font(.pretendard(12, weight: .regular))
-                    .foregroundColor(.filterzGray60)
-                    .lineSpacing(12 * 0.7)
+                    .font(.pretendard(14, weight: .regular))
+                    .foregroundColor(.filterzGray30)
+                    .lineSpacing(14 * 0.7)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
