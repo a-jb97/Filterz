@@ -1,19 +1,20 @@
 import SwiftUI
 
 extension Color {
-    static let filterzBackground      = Color(hex: "#FFF7F0")
+    static let filterzBackground     = Color(hex: "#FFF7F0")
     static let filterzPolaroid       = Color(hex: "#FFFFFF")
     static let filterzGray30         = Color(hex: "#151100")
     static let filterzAccent         = Color(hex: "#795027")
-    static let filterzAccentDeep     = Color(hex: "#FFB800")
+    static let filterzAccentDeep     = Color(hex: "#2a1908")
     static let filterzSurface        = Color(hex: "#1A1A1A")
     static let filterzBorder         = Color(hex: "#2A2A2A")
     static let filterzTextSecondary  = Color(hex: "#8A8A8A")
     static let filterzError          = Color(hex: "#FF4B4B")
     static let filterzGray45         = Color(hex: "#D8D6D7")
-    static let filterzDeepSprout      = Color(hex: "#2d1b09")
-    static let filterzGray90          = Color(hex: "#434347")
-    static let filterzTranslucent     = Color(hex: "#6A6A6E").opacity(0.5)
+    static let filterzDeepSprout     = Color(hex: "#2d1b09")
+    static let filterzGray90         = Color(hex: "#434347")
+    static let filterzTranslucent    = Color(hex: "#6A6A6E").opacity(0.5)
+    static let filterzClip           = Color(hex: "#D8A77A")
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

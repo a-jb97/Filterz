@@ -53,7 +53,7 @@ struct LoginView: View {
                 + Text("Z")
                     .foregroundColor(.filterzAccent)
             )
-            .font(.custom("ClimateCrisisKR-1979", size: 42))
+            .font(.filterzDisplay(42))
             Text("나만의 필터를 발견하세요")
                 .font(.filterzBody())
                 .foregroundColor(.filterzTextSecondary)
@@ -131,7 +131,7 @@ struct LoginView: View {
                 store.send(.navigateToSignUp)
             } label: {
                 Text("회원가입")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.filterzBody())
                     .foregroundColor(.filterzAccent)
             }
         }

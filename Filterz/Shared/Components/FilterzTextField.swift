@@ -18,7 +18,13 @@ struct FilterzTextField: View {
                         .foregroundColor(.filterzTextSecondary)
                         .frame(width: 20)
                 }
-                TextField(placeholder, text: $text)
+                TextField(
+                    "",
+                    text: $text,
+                    prompt: Text(placeholder)
+                        .foregroundColor(Color.filterzGray30.opacity(0.5))
+                )
+                    .font(.filterzBody())
                     .foregroundColor(.filterzGray30)
                     .tint(.filterzAccent)
                     .keyboardType(keyboardType)
@@ -28,7 +34,7 @@ struct FilterzTextField: View {
             }
             .padding(.horizontal, 16)
             .frame(height: 54)
-            .background(Color.filterzSurface)
+            .background(Color.filterzBackground)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
