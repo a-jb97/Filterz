@@ -18,7 +18,7 @@ struct SettingsView: View {
                                     .foregroundColor(.filterzGray30)
                                 Text(option.qualityDescription)
                                     .font(.pretendard(12, weight: .regular))
-                                    .foregroundColor(.filterzGray60)
+                                    .foregroundColor(.filterzGray30)
                             }
                             Spacer()
                             if store.selectedQuality == option {
@@ -34,7 +34,7 @@ struct SettingsView: View {
             } header: {
                 Text("이미지 전송 화질")
                     .font(.pretendard(12, weight: .semibold))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                     .textCase(nil)
             }
 
@@ -46,7 +46,7 @@ struct SettingsView: View {
                             .foregroundColor(.filterzGray30)
                         Text("읽지 않은 채팅을 요약")
                             .font(.pretendard(12, weight: .regular))
-                            .foregroundColor(.filterzGray60)
+                            .foregroundColor(.filterzGray30)
                     }
 
                     Spacer()
@@ -64,13 +64,13 @@ struct SettingsView: View {
             } header: {
                 Text("채팅")
                     .font(.pretendard(12, weight: .semibold))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                     .textCase(nil)
             }
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .navigationTitle("설정")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { store.send(.onAppear) }
