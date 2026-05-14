@@ -1,7 +1,8 @@
 import SwiftUI
 
 extension Color {
-    static let filterzBackground      = Color(hex: "#FFFFFA")
+    static let filterzBackground      = Color(hex: "#FFF7F0")
+    static let filterzPolaroid       = Color(hex: "#FFFFFF")
     static let filterzGray30         = Color(hex: "#151100")
     static let filterzAccent         = Color(hex: "#795027")
     static let filterzAccentDeep     = Color(hex: "#FFB800")

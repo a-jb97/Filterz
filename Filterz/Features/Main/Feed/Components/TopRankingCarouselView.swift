@@ -189,7 +189,7 @@ private struct RankingCardView: View {
             .padding(.bottom, 24)
         }
         .frame(width: cardWidth, height: cardHeight)
-        .background(Color.filterzBackground)
+        .background(Color.filterzPolaroid)
         .overlay(
             RoundedRectangle(cornerRadius: 2, style: .continuous)
                 .stroke(Color.filterzGray45.opacity(0.85), lineWidth: 1)

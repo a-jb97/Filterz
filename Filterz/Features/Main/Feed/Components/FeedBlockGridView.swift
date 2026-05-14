@@ -212,7 +212,7 @@ private struct FeedMasonryCardView: View {
             footerView
         }
         .frame(width: width)
-        .background(Color.filterzBackground)
+        .background(Color.filterzPolaroid)
         .overlay(
             RoundedRectangle(cornerRadius: 2, style: .continuous)
                 .stroke(Color.filterzGray45.opacity(0.85), lineWidth: 1)
