@@ -20,7 +20,7 @@ struct CreatorSection: View {
                 HStack(spacing: 12) {
                     AuthenticatedImageView(path: creator.profileImagePath)
                         .frame(width: 48, height: 48)
-                        .background(Color.filterzBlackAccent)
+                        .background(Color.filterzBackground)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
@@ -30,7 +30,7 @@ struct CreatorSection: View {
                             .foregroundColor(.filterzGray30)
                         Text(creator.nick.uppercased())
                             .font(.pretendard(12, weight: .regular))
-                            .foregroundColor(.filterzGray60)
+                            .foregroundColor(.filterzGray30)
                     }
                 }
             }
@@ -52,7 +52,7 @@ struct CreatorSection: View {
                         .padding(14)
                         .background(
                             Circle()
-                                .fill(Color.filterzBlackAccent)
+                                .fill(Color.filterzBackground)
                                 .overlay(
                                     Circle().stroke(Color.filterzAccent.opacity(0.5), lineWidth: 1)
                                 )
@@ -82,7 +82,7 @@ struct CreatorSection: View {
                 .padding(14)
                 .background(
                     Circle()
-                        .fill(Color.filterzBlackAccent)
+                        .fill(Color.filterzBackground)
                         .overlay(
                             Circle().stroke(Color.filterzTranslucent, lineWidth: 1)
                         )

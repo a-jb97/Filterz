@@ -83,7 +83,7 @@ struct FilterPreviewView: View {
         } else {
             Color.filterzSurface
                 .frame(width: width, height: 400)
-                .overlay(ProgressView().tint(Color.filterzGray60))
+                .overlay(ProgressView().tint(Color.filterzGray30))
         }
     }
 
@@ -191,7 +191,7 @@ struct AfterBeforeLabelRow: View {
         HStack(spacing: 8) {
             label("After")
             Image(systemName: "arrow.up.circle.fill")
-                .foregroundColor(Color.filterzGray60)
+                .foregroundColor(Color.filterzGray30)
                 .font(.system(size: 20))
             label("Before")
         }

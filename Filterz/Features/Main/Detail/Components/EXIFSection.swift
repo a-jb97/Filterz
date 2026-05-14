@@ -20,7 +20,7 @@ struct EXIFSection: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackAccent)
+                .fill(Color.filterzBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.filterzTranslucent, lineWidth: 1)
@@ -95,7 +95,7 @@ struct EXIFSection: View {
                let aperture = exif.aperture, let iso = exif.iso {
                 Text("\(lensInfo) - \(Int(focalLength))mm f/\(String(format: "%.1f", aperture)) ISO \(iso)")
                     .font(.pretendard(12, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
 
             let resolutionText = [exif.megapixels, exif.dimensionsFormatted, exif.fileSizeFormatted]
@@ -104,13 +104,13 @@ struct EXIFSection: View {
             if !resolutionText.isEmpty {
                 Text(resolutionText)
                     .font(.pretendard(12, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
 
             if let date = exif.dateTimeOriginalFormatted {
                 Text(date)
                     .font(.pretendard(12, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
         }
     }

@@ -9,7 +9,7 @@ struct FilterPresetsSection: View {
             HStack {
                 Text("Filter Presets")
                     .font(.pretendard(14, weight: .bold))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                 Spacer()
                 Text("LUT")
                     .font(.pretendard(11, weight: .bold))
@@ -28,7 +28,7 @@ struct FilterPresetsSection: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackAccent)
+                .fill(Color.filterzBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.filterzTranslucent, lineWidth: 1)
@@ -70,10 +70,10 @@ struct FilterPresetsSection: View {
                 ForEach(0..<8, id: \.self) { _ in
                     VStack(spacing: 4) {
                         Circle()
-                            .fill(Color.filterzGray75)
+                            .fill(Color.filterzGray30)
                             .frame(width: 24, height: 24)
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(Color.filterzGray75)
+                            .fill(Color.filterzGray30)
                             .frame(width: 28, height: 10)
                     }
                 }
@@ -83,10 +83,10 @@ struct FilterPresetsSection: View {
             VStack(spacing: 10) {
                 Image(systemName: "lock.fill")
                     .font(.system(size: 24))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                 Text("결제가 필요한 유료 필터입니다")
                     .font(.pretendard(13, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
             .padding(.vertical, 16)
         }
