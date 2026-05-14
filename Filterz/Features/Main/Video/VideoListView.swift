@@ -13,7 +13,7 @@ struct VideoListView: View {
 
                 if store.isLoading && store.items.isEmpty {
                     Spacer()
-                    ProgressView().tint(.filterzGray45)
+                    ProgressView().tint(.filterzGray30)
                     Spacer()
                 } else if store.items.isEmpty {
                     Spacer()
@@ -86,7 +86,7 @@ struct VideoListView: View {
 
                 if store.hasMore {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .onAppear { store.send(.loadMore) }

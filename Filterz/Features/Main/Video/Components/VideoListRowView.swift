@@ -42,7 +42,7 @@ struct VideoListRowView: View {
                 VStack(spacing: 4) {
                     Image(systemName: item.isLiked ? "heart.fill" : "heart")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(item.isLiked ? .red : .filterzGray45)
+                        .foregroundColor(item.isLiked ? .red : .filterzGray30)
 
                     Text("\(item.likeCount)")
                         .font(.pretendard(12, weight: .semibold))
@@ -85,7 +85,7 @@ struct VideoListRowView: View {
             }
         }
         .frame(width: 100, height: 120)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
     }
 
     private func metadataLabel(systemName: String, text: String) -> some View {

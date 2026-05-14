@@ -14,7 +14,7 @@ struct LikedFiltersView: View {
 
                     if store.isLoading && store.items.isEmpty {
                         ProgressView()
-                            .tint(.filterzGray45)
+                            .tint(.filterzGray30)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 48)
                     } else if store.items.isEmpty {
@@ -33,7 +33,7 @@ struct LikedFiltersView: View {
 
                         if store.hasMore {
                             ProgressView()
-                                .tint(.filterzGray45)
+                                .tint(.filterzGray30)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
                                 .onAppear { store.send(.loadMore) }
@@ -97,18 +97,20 @@ struct LikedFiltersView: View {
                     }
                 }
             }
+            .padding(.vertical, 4)
         }
     }
 
     private func categoryButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(13, weight: .semibold))
-                .foregroundColor(isSelected ? .filterzBackground : .filterzGray30)
-                .padding(.horizontal, 13)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule().fill(isSelected ? Color.filterzAccent : Color.filterzBackground)
+                .filterzTornTapeStyle(
+                    font: .pretendard(13, weight: .semibold),
+                    foregroundColor: isSelected ? .filterzGray30 : .filterzAccent,
+                    fillColor: isSelected ? .filterzClip : .filterzBackground,
+                    strokeColor: isSelected ? nil : .filterzDeepSprout,
+                    horizontalPadding: 13,
+                    verticalPadding: 10
                 )
         }
         .buttonStyle(.plain)

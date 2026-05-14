@@ -24,7 +24,7 @@ struct VideoPlayerView: View {
 
                 if player == nil {
                     Spacer()
-                    ProgressView().tint(.filterzGray45)
+                    ProgressView().tint(.filterzGray30)
                     Spacer()
                 } else if let player {
                     ZStack(alignment: .bottom) {
