@@ -1,0 +1,13 @@
+{
+  "video_id": "fixture-video-1",
+  "file_name": "fixture-video.m3u8",
+  "title": "Offline Editing Preview",
+  "description": "오프라인 모드용 비디오 샘플입니다.",
+  "duration": 18.5,
+  "thumbnail_url": "/videos/fixture-video-thumb.jpg",
+  "available_qualities": ["360p", "720p"],
+  "view_count": 1200,
+  "like_count": 42,
+  "is_liked": false,
+  "createdAt": "2026-05-14T00:00:00Z"
+}

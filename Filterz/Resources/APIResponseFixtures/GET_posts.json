@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "post_id": "fixture-post-1",
+      "category": "daily",
+      "title": "Offline Post",
+      "content": "오프라인 모드용 게시글 샘플입니다.",
+      "geolocation": {
+        "longitude": 126.9780,
+        "latitude": 37.5665
+      },
+      "creator": {
+        "user_id": "fixture-user",
+        "nick": "Fixture User",
+        "profileImage": "/profiles/fixture-user.jpg"
+      },
+      "files": ["/posts/fixture-post.jpg"],
+      "is_like": false,
+      "like_count": 12,
+      "createdAt": "2026-05-14T00:00:00Z",
+      "updatedAt": "2026-05-14T00:00:00Z"
+    }
+  ]
+}

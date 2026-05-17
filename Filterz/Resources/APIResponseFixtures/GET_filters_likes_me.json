@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "filter_id": "fixture-filter-liked",
+      "category": "bright",
+      "title": "Liked Fixture",
+      "description": "좋아요한 필터 샘플입니다.",
+      "files": ["/filters/liked-fixture.jpg"],
+      "creator": {
+        "user_id": "fixture-author",
+        "nick": "Fixture Artist",
+        "profileImage": "/profiles/fixture-author.jpg"
+      },
+      "is_liked": true,
+      "like_count": 210,
+      "buyer_count": 45,
+      "createdAt": "2026-05-14T00:00:00Z",
+      "updatedAt": "2026-05-14T00:00:00Z"
+    }
+  ],
+  "next_cursor": null
+}

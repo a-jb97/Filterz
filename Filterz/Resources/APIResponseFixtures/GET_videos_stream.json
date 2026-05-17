@@ -1,0 +1,20 @@
+{
+  "video_id": "fixture-video-1",
+  "stream_url": "https://example.com/fixtures/video/fixture-video.m3u8",
+  "qualities": [
+    {
+      "quality": "720p",
+      "stream_url": "https://example.com/fixtures/video/fixture-video-720p.m3u8"
+    },
+    {
+      "quality": "360p",
+      "stream_url": "https://example.com/fixtures/video/fixture-video-360p.m3u8"
+    }
+  ],
+  "subtitles": [
+    {
+      "language": "ko",
+      "url": "https://example.com/fixtures/video/fixture-video-ko.vtt"
+    }
+  ]
+}

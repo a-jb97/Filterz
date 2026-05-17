@@ -1,0 +1,8 @@
+{
+  "user_id": "fixture-user",
+  "email": "fixture@example.com",
+  "nick": "Apple Fixture",
+  "profileImage": "/profiles/fixture-user.jpg",
+  "accessToken": "fixture-access-token",
+  "refreshToken": "fixture-refresh-token"
+}

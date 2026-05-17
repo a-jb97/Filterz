@@ -1,0 +1,145 @@
+import SwiftUI
+import ComposableArchitecture
+
+struct MainView: View {
+    @Bindable var store: StoreOf<MainFeature>
+
+    var body: some View {
+        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+            ZStack(alignment: .bottom) {
+                tabContent
+                CustomTabBarView(
+                    selectedTab: $store.selectedTab.sending(\.tabSelected),
+                    chatUnreadCount: store.chatUnreadCount
+                )
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+            }
+            .ignoresSafeArea(edges: .bottom)
+            .navigationBarHidden(true)
+        } destination: { pathStore in
+            switch pathStore.case {
+            case .filterDetail(let detailStore):
+                FilterDetailView(store: detailStore)
+                    .navigationBarHidden(true)
+            case .likedFilters(let likedStore):
+                LikedFiltersView(store: likedStore)
+                    .navigationBarHidden(true)
+            case .uploadFilter(let uploadStore):
+                UploadFilterView(store: uploadStore)
+                    .navigationBarHidden(true)
+            case .filterMaker(let makerStore):
+                FilterMakerView(store: makerStore)
+                    .navigationBarHidden(true)
+            case .chatRoom(let chatStore):
+                ChatRoomView(store: chatStore)
+                    .navigationBarHidden(true)
+            case .videoList(let videoListStore):
+                VideoListView(store: videoListStore)
+                    .navigationBarHidden(true)
+            case .videoPlayer(let videoPlayerStore):
+                VideoPlayerView(store: videoPlayerStore)
+                    .navigationBarHidden(true)
+            case .settings(let settingsStore):
+                SettingsView(store: settingsStore)
+            }
+        }
+        .sheet(item: $store.scope(state: \.userProfile, action: \.userProfile)) { profileStore in
+            UserProfileView(store: profileStore)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .task { store.send(.onAppear) }
+    }
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch store.selectedTab {
+        case .home:
+            HomeView(store: store.scope(state: \.home, action: \.home))
+        case .market:
+            FeedView(store: store.scope(state: \.feed, action: \.feed))
+        case .explore:
+            FilterManagementView(store: store.scope(state: \.filterManagement, action: \.filterManagement))
+        case .chat:
+            ChatListView(store: store.scope(state: \.chatList, action: \.chatList))
+        case .mypage:
+            MyPageView(store: store.scope(state: \.mypage, action: \.mypage))
+        }
+    }
+}
+
+// MARK: - Custom Tab Bar
+
+private struct CustomTabBarView: View {
+    @Binding var selectedTab: MainFeature.Tab
+    let chatUnreadCount: Int
+
+    var body: some View {
+        HStack(spacing: 20) {
+            ForEach(MainFeature.Tab.allCases, id: \.self) { tab in
+                tabButton(for: tab)
+            }
+        }
+        .padding(.horizontal, 24)
+        .frame(width: 350, height: 68)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 34)
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 34)
+                    .fill(Color.filterzBackground.opacity(0.82))
+                RoundedRectangle(cornerRadius: 34)
+                    .stroke(Color.filterzPolaroid.opacity(0.9), lineWidth: 1)
+            }
+        )
+    }
+
+    private func tabButton(for tab: MainFeature.Tab) -> some View {
+        let isSelected = selectedTab == tab
+        return Button {
+            selectedTab = tab
+        } label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: tab.icon(isSelected: isSelected))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .foregroundColor(.filterzAccent.opacity(0.8))
+                    .shadow(
+                        color: isSelected ? Color.filterzGray30.opacity(0.4) : .clear,
+                        radius: 2, x: 0, y: 3
+                    )
+
+                if tab == .chat, chatUnreadCount > 0 {
+                    Text(badgeText(chatUnreadCount))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.filterzBackground)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .frame(minWidth: 18, minHeight: 18)
+                        .padding(.horizontal, chatUnreadCount > 9 ? 4 : 0)
+                        .background(Capsule().fill(Color.filterzClip))
+                        .offset(x: 9, y: -8)
+                }
+            }
+            .frame(width: 44, height: 44)
+        }
+    }
+
+    private func badgeText(_ count: Int) -> String {
+        count > 99 ? "99+" : "\(count)"
+    }
+}
+
+private extension MainFeature.Tab {
+    func icon(isSelected: Bool) -> String {
+        switch self {
+        case .home:      return isSelected ? "house.fill" : "house"
+        case .market:    return "square.grid.2x2"
+        case .explore:   return "camera.filters"
+        case .chat:      return isSelected ? "message.fill" : "message"
+        case .mypage:    return isSelected ? "person.fill" : "person"
+        }
+    }
+}

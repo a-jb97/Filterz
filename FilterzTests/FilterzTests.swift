@@ -6,14 +6,255 @@
 //
 
 import Testing
+import Foundation
 @testable import Filterz
 
 struct FilterzTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
+    @MainActor
+    @Test func filterAdjustmentDefaultsConvertToDTO() async throws {
+        let values = FilterAdjustmentValues()
+
+        #expect(values.dto.brightness == 0)
+        #expect(values.dto.contrast == 1)
+        #expect(values.dto.saturation == 1)
+        #expect(values.dto.highlights == 0)
+        #expect(values.dto.temperature == 6500)
+        #expect(values.dto.blackPoint == 0)
+    }
+
+    @MainActor
+    @Test func filterAdjustmentValuesClampDTOInput() async throws {
+        let dto = FilterValuesDTO(
+            brightness: 2,
+            exposure: -10,
+            contrast: 8,
+            saturation: -1,
+            sharpness: 4,
+            blur: 30,
+            vignette: 4,
+            noiseReduction: 2,
+            highlights: -1,
+            shadows: 2,
+            temperature: 12000,
+            blackPoint: -1
+        )
+        let values = FilterAdjustmentValues(dto: dto)
+
+        #expect(values.brightness == 1)
+        #expect(values.exposure == -5)
+        #expect(values.contrast == 4)
+        #expect(values.saturation == 0)
+        #expect(values.sharpness == 2)
+        #expect(values.blur == 20)
+        #expect(values.vignette == 2)
+        #expect(values.noiseReduction == 1)
+        #expect(values.highlights == -1)
+        #expect(values.shadows == 1)
+        #expect(values.temperature == 10000)
+        #expect(values.blackPoint == 0)
+    }
+
+    @MainActor
+    @Test func legacyZeroPresetUsesNeutralValues() async throws {
+        let dto = FilterValuesDTO(
+            brightness: 0,
+            exposure: 0,
+            contrast: 0,
+            saturation: 0,
+            sharpness: 0,
+            blur: 0,
+            vignette: 0,
+            noiseReduction: 0,
+            highlights: 0,
+            shadows: 0,
+            temperature: 0,
+            blackPoint: 0
+        )
+        let values = FilterAdjustmentValues(dto: dto)
+
+        #expect(values == .neutral)
+        #expect(values.contrast == 1)
+        #expect(values.saturation == 1)
+        #expect(values.highlights == 0)
+        #expect(values.temperature == 6500)
+    }
+
+    @MainActor
+    @Test func invalidLegacyTemperatureUsesNeutralTemperature() async throws {
+        let dto = FilterValuesDTO(
+            brightness: 0.15,
+            exposure: 0.3,
+            contrast: 1.05,
+            saturation: 1.1,
+            sharpness: 0.5,
+            blur: 0,
+            vignette: 0.2,
+            noiseReduction: 0.1,
+            highlights: -0.1,
+            shadows: 0.15,
+            temperature: 0,
+            blackPoint: 0.03
+        )
+        let values = FilterAdjustmentValues(dto: dto)
+
+        #expect(values.temperature == 6500)
+        #expect(values.highlights == -0.1)
+        #expect(values.contrast == 1.05)
+        #expect(values.saturation == 1.1)
+    }
+
+    @MainActor
+    @Test func photoMetadataFileSizeFormatsBytesAsMegabytes() async throws {
+        let exif = FilterExifData(
+            camera: nil,
+            lensInfo: nil,
+            focalLength: nil,
+            aperture: nil,
+            iso: nil,
+            shutterSpeed: nil,
+            pixelWidth: nil,
+            pixelHeight: nil,
+            fileSize: 2_306_867,
+            format: nil,
+            dateTimeOriginal: nil,
+            latitude: nil,
+            longitude: nil
+        )
+
+        #expect(exif.fileSizeFormatted == "2.2MB")
+    }
+
+    @Test func rootFilterCommentRequestOmitsParentComment() throws {
+        let query = FilterCommentRequestDTO(content: "hello", parentComment: nil)
+        let data = try JSONEncoder().encode(query)
+        let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: String])
+
+        #expect(object["content"] == "hello")
+        #expect(object["parent_comment_id"] == nil)
+    }
+
+    @Test func replyFilterCommentRequestEncodesParentComment() throws {
+        let query = FilterCommentRequestDTO(content: "reply", parentComment: "parent-1")
+        let data = try JSONEncoder().encode(query)
+        let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: String])
+
+        #expect(object["content"] == "reply")
+        #expect(object["parent_comment_id"] == "parent-1")
+    }
+
+    @Test func getVideosRouterEncodesPaginationQuery() throws {
+        let request = try Router.getVideos(
+            query: VideoListRequestDTO(next: "cursor-1", limit: 5)
+        ).asURLRequest()
+        let components = try #require(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let queryItems = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value) })
+
+        #expect(components.path.hasSuffix("/videos"))
+        #expect(queryItems["next"] == "cursor-1")
+        #expect(queryItems["limit"] == "5")
+    }
+
+    @Test func streamURLResponseDecodesQualityURLVariants() throws {
+        let data = Data("""
+        {
+            "video_id": "video-1",
+            "stream_url": "https://example.com/master.m3u8?token=abc",
+            "qualities": [
+                { "quality": "1080p", "stream_url": "https://example.com/1080.m3u8?token=abc" },
+                { "name": "720p", "url": "https://example.com/720.m3u8?token=abc" }
+            ],
+            "subtitles": [
+                { "language": "ko", "url": "https://example.com/ko.vtt" },
+                { "lang": "en", "url": "https://example.com/en.vtt" }
+            ]
+        }
+        """.utf8)
+
+        let dto = try JSONDecoder().decode(StreamUrlResponseDTO.self, from: data)
+
+        #expect(dto.videoId == "video-1")
+        #expect(dto.streamUrl.contains("master.m3u8"))
+        #expect(dto.qualities.map(\.quality) == ["1080p", "720p"])
+        #expect(dto.qualities.map(\.streamUrl).allSatisfy { $0.contains("token=abc") })
+        #expect(dto.subtitles.map(\.language) == ["ko", "en"])
+    }
+
+    @Test func videoStreamPlaybackURLKeepsAPIVersionForRootRelativePath() throws {
+        let stream = VideoStream(dto: StreamUrlResponseDTO(
+            videoId: "video-1",
+            streamUrl: "/videos/video-1/master.m3u8?token=abc",
+            qualities: [],
+            subtitles: []
+        ))
+
+        #expect(stream.playbackURL?.absoluteString == "http://filter.sesac.kr:42598/v1/videos/video-1/master.m3u8?token=abc")
+    }
+
+    @Test func videoStreamPlaybackURLDoesNotDuplicateAPIVersion() throws {
+        let stream = VideoStream(dto: StreamUrlResponseDTO(
+            videoId: "video-1",
+            streamUrl: "/v1/videos/video-1/master.m3u8?token=abc",
+            qualities: [],
+            subtitles: []
+        ))
+
+        #expect(stream.playbackURL?.absoluteString == "http://filter.sesac.kr:42598/v1/videos/video-1/master.m3u8?token=abc")
+    }
+
+    @Test func videoStreamPlaybackURLsIncludesUniqueQualityURLs() throws {
+        let stream = VideoStream(dto: StreamUrlResponseDTO(
+            videoId: "video-1",
+            streamUrl: "/v1/videos/video-1/master.m3u8?token=abc",
+            qualities: [
+                VideoQualityDTO(quality: "1080p", streamUrl: "/v1/videos/video-1/master.m3u8?token=abc"),
+                VideoQualityDTO(quality: "720p", streamUrl: "/v1/videos/video-1/720/index.m3u8?token=abc")
+            ],
+            subtitles: []
+        ))
+
+        #expect(stream.playbackURLs.map(\.absoluteString) == [
+            "http://filter.sesac.kr:42598/v1/videos/video-1/master.m3u8?token=abc",
+            "http://filter.sesac.kr:42598/v1/videos/video-1/720/index.m3u8?token=abc"
+        ])
+    }
+
+    @Test func hlsMediaPlaylistParsesSegmentDurations() throws {
+        let playlist = """
+        #EXTM3U
+        #EXT-X-TARGETDURATION:6
+        #EXTINF:5.984,
+        segment0.ts
+        #EXTINF:6.000,
+        segment1.ts
+        #EXTINF:4.500,
+        segment2.ts
+        #EXT-X-ENDLIST
+        """
+
+        let info = try HLSPlaylistParser.parseMediaPlaylist(playlist)
+
+        #expect(info.targetDuration == 6)
+        #expect(info.segmentDurations == [5.984, 6.000, 4.500])
+        #expect(info.segmentCount == 3)
+        #expect(info.averageDuration == (5.984 + 6.000 + 4.500) / 3)
+        #expect(info.minDuration == 4.500)
+        #expect(info.maxDuration == 6.000)
+    }
+
+    @Test func hlsMasterPlaylistResolvesFirstVariantURL() throws {
+        let playlist = """
+        #EXTM3U
+        #EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1280x720
+        720/index.m3u8?token=abc
+        #EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080
+        https://cdn.example.com/1080/index.m3u8?token=abc
+        """
+        let baseURL = try #require(URL(string: "https://cdn.example.com/videos/master.m3u8?token=abc"))
+
+        let variantURL = HLSPlaylistParser.firstVariantURL(in: playlist, baseURL: baseURL)
+
+        #expect(variantURL?.absoluteString == "https://cdn.example.com/videos/720/index.m3u8?token=abc")
     }
 
 }

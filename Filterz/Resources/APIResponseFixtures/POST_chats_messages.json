@@ -1,0 +1,13 @@
+{
+  "chat_id": "fixture-chat-sent",
+  "room_id": "fixture-room-1",
+  "content": "오프라인 전송 응답 샘플입니다.",
+  "createdAt": "2026-05-14T00:00:00Z",
+  "updatedAt": "2026-05-14T00:00:00Z",
+  "sender": {
+    "user_id": "fixture-user",
+    "nick": "Fixture User",
+    "profileImage": "/profiles/fixture-user.jpg"
+  },
+  "files": []
+}

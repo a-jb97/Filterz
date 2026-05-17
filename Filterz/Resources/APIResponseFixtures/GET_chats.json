@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "room_id": "fixture-room-1",
+      "createdAt": "2026-05-14T00:00:00Z",
+      "updatedAt": "2026-05-14T00:00:00Z",
+      "participants": [
+        {
+          "user_id": "fixture-user",
+          "nick": "Fixture User",
+          "profileImage": "/profiles/fixture-user.jpg"
+        },
+        {
+          "user_id": "fixture-author",
+          "nick": "Fixture Artist",
+          "profileImage": "/profiles/fixture-author.jpg"
+        }
+      ],
+      "lastChat": {
+        "chat_id": "fixture-chat-1",
+        "room_id": "fixture-room-1",
+        "content": "오프라인 채팅 샘플입니다.",
+        "createdAt": "2026-05-14T00:00:00Z",
+        "updatedAt": "2026-05-14T00:00:00Z",
+        "sender": {
+          "user_id": "fixture-author",
+          "nick": "Fixture Artist",
+          "profileImage": "/profiles/fixture-author.jpg"
+        },
+        "files": []
+      }
+    }
+  ]
+}

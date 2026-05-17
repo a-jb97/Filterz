@@ -7,7 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E2A0ABB2FA07D630005F318 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */; };
+		9E2A0ABE2FA07E880005F318 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */; };
+		9E2A0AC02FA07E880005F318 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */; };
+		9E3CA4852FA61FD500C73CB9 /* iamport-ios in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3CA4842FA61FD500C73CB9 /* iamport-ios */; };
+		9E60AB7A2FA3D7890058545F /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9E60AB792FA3D7890058545F /* SocketIO */; };
 		9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9EB5967B2F98EE7000CA0337 /* .gitignore */; };
+		9EB5967F2F98F8C300CA0337 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */; };
+		9EB596832F98FB1C00CA0337 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB596822F98FB1C00CA0337 /* KakaoSDKAuth */; };
+		9EB596852F98FB1C00CA0337 /* KakaoSDKCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB596842F98FB1C00CA0337 /* KakaoSDKCommon */; };
+		9EB596872F98FB1C00CA0337 /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = 9EB596862F98FB1C00CA0337 /* KakaoSDKUser */; };
+		9EE1A6BA2F9A70B000996D54 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9EE1A6B92F9A70B000996D54 /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		9EB596512F98B56F00CA0337 /* Filterz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Filterz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB5965E2F98B57100CA0337 /* FilterzTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EB596682F98B57100CA0337 /* FilterzUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilterzUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -57,6 +68,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E3CA4852FA61FD500C73CB9 /* iamport-ios in Frameworks */,
+				9EE1A6BA2F9A70B000996D54 /* Alamofire in Frameworks */,
+				9E60AB7A2FA3D7890058545F /* SocketIO in Frameworks */,
+				9EB596872F98FB1C00CA0337 /* KakaoSDKUser in Frameworks */,
+				9E2A0AC02FA07E880005F318 /* FirebaseMessaging in Frameworks */,
+				9E2A0ABE2FA07E880005F318 /* FirebaseAnalytics in Frameworks */,
+				9EB5967F2F98F8C300CA0337 /* ComposableArchitecture in Frameworks */,
+				9EB596852F98FB1C00CA0337 /* KakaoSDKCommon in Frameworks */,
+				9EB596832F98FB1C00CA0337 /* KakaoSDKAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,6 +105,7 @@
 				9EB596612F98B57100CA0337 /* FilterzTests */,
 				9EB5966B2F98B57100CA0337 /* FilterzUITests */,
 				9EB596522F98B56F00CA0337 /* Products */,
+				9E2A0ABA2FA07D630005F318 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -118,6 +139,15 @@
 			);
 			name = Filterz;
 			packageProductDependencies = (
+				9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */,
+				9EB596822F98FB1C00CA0337 /* KakaoSDKAuth */,
+				9EB596842F98FB1C00CA0337 /* KakaoSDKCommon */,
+				9EB596862F98FB1C00CA0337 /* KakaoSDKUser */,
+				9EE1A6B92F9A70B000996D54 /* Alamofire */,
+				9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */,
+				9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */,
+				9E60AB792FA3D7890058545F /* SocketIO */,
+				9E3CA4842FA61FD500C73CB9 /* iamport-ios */,
 			);
 			productName = Filterz;
 			productReference = 9EB596512F98B56F00CA0337 /* Filterz.app */;
@@ -201,6 +231,14 @@
 			);
 			mainGroup = 9EB596482F98B56F00CA0337;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9EB5967D2F98F8C300CA0337 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				9EB596812F98FB1C00CA0337 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
+				9EE1A6B82F9A70B000996D54 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				9E60AB782FA3D7890058545F /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
+				9E3CA4832FA61FD500C73CB9 /* XCRemoteSwiftPackageReference "iamport-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EB596522F98B56F00CA0337 /* Products */;
 			projectDirPath = "";
@@ -218,6 +256,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E2A0ABB2FA07D630005F318 /* GoogleService-Info.plist in Resources */,
 				9EB5967C2F98EE7000CA0337 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -402,18 +441,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Filterz/Filterz.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VR5Z389FF7;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDarkContent;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -442,18 +483,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Filterz/Filterz.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VR5Z389FF7;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDarkContent;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -601,6 +644,107 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.12.1;
+			};
+		};
+		9E3CA4832FA61FD500C73CB9 /* XCRemoteSwiftPackageReference "iamport-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/iamport/iamport-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.7;
+			};
+		};
+		9E60AB782FA3D7890058545F /* XCRemoteSwiftPackageReference "socket.io-client-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/socketio/socket.io-client-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 16.1.1;
+			};
+		};
+		9EB5967D2F98F8C300CA0337 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.25.5;
+			};
+			traits = (
+			);
+		};
+		9EB596812F98FB1C00CA0337 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.27.3;
+			};
+		};
+		9EE1A6B82F9A70B000996D54 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.11.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9E2A0ABD2FA07E880005F318 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		9E2A0ABF2FA07E880005F318 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E2A0ABC2FA07E880005F318 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		9E3CA4842FA61FD500C73CB9 /* iamport-ios */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E3CA4832FA61FD500C73CB9 /* XCRemoteSwiftPackageReference "iamport-ios" */;
+			productName = "iamport-ios";
+		};
+		9E60AB792FA3D7890058545F /* SocketIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E60AB782FA3D7890058545F /* XCRemoteSwiftPackageReference "socket.io-client-swift" */;
+			productName = SocketIO;
+		};
+		9EB5967E2F98F8C300CA0337 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EB5967D2F98F8C300CA0337 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+		9EB596822F98FB1C00CA0337 /* KakaoSDKAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EB596812F98FB1C00CA0337 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKAuth;
+		};
+		9EB596842F98FB1C00CA0337 /* KakaoSDKCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EB596812F98FB1C00CA0337 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKCommon;
+		};
+		9EB596862F98FB1C00CA0337 /* KakaoSDKUser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EB596812F98FB1C00CA0337 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKUser;
+		};
+		9EE1A6B92F9A70B000996D54 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EE1A6B82F9A70B000996D54 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9EB596492F98B56F00CA0337 /* Project object */;
 }

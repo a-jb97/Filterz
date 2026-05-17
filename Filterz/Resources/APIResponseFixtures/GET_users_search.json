@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "user_id": "fixture-author",
+      "nick": "Fixture Artist",
+      "name": "Sample Artist",
+      "introduction": "필터를 만드는 샘플 작가입니다.",
+      "profileImage": "/profiles/fixture-author.jpg",
+      "hashTags": ["portrait", "cinematic"]
+    }
+  ]
+}
