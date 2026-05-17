@@ -15,11 +15,11 @@ struct FilterDetailView: View {
             detailNavBar
 
             ZStack {
-                Color.filterzBlackBase.ignoresSafeArea()
+                Color.filterzBackground.ignoresSafeArea()
 
                 if store.isLoading {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                 } else if let detail = store.detail {
                     ScrollView(showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 20) {
@@ -55,7 +55,7 @@ struct FilterDetailView: View {
                 } else if let error = store.errorMessage {
                     Text(error)
                         .font(.pretendard(14, weight: .regular))
-                        .foregroundColor(.filterzGray60)
+                        .foregroundColor(.filterzGray30)
                         .multilineTextAlignment(.center)
                         .padding()
                 }
@@ -74,7 +74,7 @@ struct FilterDetailView: View {
                 }
             }
         }
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .filterzSwipeBack {
             store.send(.backTapped)
         }
@@ -167,7 +167,7 @@ struct FilterDetailView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 10, height: 18)
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
                     .padding(8)
             }
             .frame(width: 48, height: 48)
@@ -186,7 +186,7 @@ struct FilterDetailView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 22, height: 20)
-                    .foregroundColor(store.detail?.isLiked == true ? .red : .filterzGray60)
+                    .foregroundColor(store.detail?.isLiked == true ? .red : .filterzGray30)
                     .scaleEffect(store.detail?.isLiked == true ? 1.15 : 1.0)
                     .animation(.spring(response: 0.25, dampingFraction: 0.6), value: store.detail?.isLiked)
                     .padding(8)
@@ -195,7 +195,7 @@ struct FilterDetailView: View {
         }
         .padding(.horizontal, 4)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     // MARK: - Sections
@@ -237,7 +237,7 @@ struct FilterDetailView: View {
         VStack(spacing: 6) {
             Text(title)
                 .font(.pretendard(12, weight: .medium))
-                .foregroundColor(.filterzGray75)
+                .foregroundColor(.filterzGray30)
             Text(value)
                 .font(.filterzDisplay(24))
                 .foregroundColor(.filterzGray30)
@@ -245,11 +245,11 @@ struct FilterDetailView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackAccent)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.filterzGray30.opacity(0.9), lineWidth: 1)
                 )
         )
     }
@@ -267,18 +267,18 @@ struct FilterDetailView: View {
         } label: {
             ZStack {
                 Text(canApplyFilter ? "적용하기" : "결제하기")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(canApplyFilter ? .filterzTextPrimary : .black)
+                    .font(.filterzBody())
+                    .foregroundColor(.filterzAccent)
                     .opacity(store.isPurchaseLoading || store.isFilterRendering ? 0 : 1)
 
                 if store.isPurchaseLoading || store.isFilterRendering {
                     ProgressView()
-                        .tint(canApplyFilter ? .filterzTextPrimary : .black)
+                        .tint(.filterzAccent)
                 }
             }
             .frame(maxWidth: .infinity)
             .frame(height: 54)
-            .background(canApplyFilter ? Color.filterzDeepSprout : Color.filterzAccent)
+            .background(Color.filterzBackground)
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -290,14 +290,12 @@ struct FilterDetailView: View {
             HStack(spacing: 8) {
                 ForEach(detail.hashtags, id: \.self) { tag in
                     Text("#\(displayHashTag(tag))")
-                        .font(.pretendard(9, weight: .medium))
-                        .foregroundColor(.filterzGray30)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 7)
-                        .background(
-                            Capsule().fill(Color.filterzBlackAccent)
+                        .filterzTornTapeStyle(
+                            font: .pretendard(9, weight: .medium),
+                            foregroundColor: .filterzGray30,
+                            horizontalPadding: 8,
+                            verticalPadding: 7
                         )
-                        .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
                 }
             }
             .padding(.horizontal, 16)
@@ -307,7 +305,7 @@ struct FilterDetailView: View {
     private func descriptionSection(detail: FilterDetail) -> some View {
         Text(detail.description)
             .font(.pretendard(14, weight: .regular))
-            .foregroundColor(.filterzGray60)
+            .foregroundColor(.filterzGray30)
             .lineSpacing(8)
             .padding(.horizontal, 16)
     }
@@ -327,15 +325,15 @@ struct FilterDetailView: View {
             if detail.comments.isEmpty {
                 Text("첫 댓글을 남겨보세요.")
                     .font(.pretendard(13, weight: .regular))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 24)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.filterzBlackAccent)
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Color.filterzBackground)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.filterzTranslucent, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color.filterzGray30.opacity(0.9), lineWidth: 1)
                             )
                     )
             } else {
@@ -385,7 +383,7 @@ struct FilterDetailView: View {
 
                     Text(comment.content)
                         .font(.pretendard(13, weight: .regular))
-                        .foregroundColor(.filterzGray60)
+                        .foregroundColor(.filterzGray30)
                         .lineSpacing(4)
                         .fixedSize(horizontal: false, vertical: true)
 
@@ -410,10 +408,10 @@ struct FilterDetailView: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isReply ? Color.filterzBlackBase : Color.filterzBlackAccent)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(isReply ? Color.filterzBackground : Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 5)
                         .stroke(Color.filterzAccent.opacity(0.5), lineWidth: 1)
                 )
         )
@@ -436,7 +434,7 @@ struct FilterDetailView: View {
     private func avatar(for creator: FilterCreator) -> some View {
         ZStack {
             Circle()
-                .fill(Color.filterzBlackAccent)
+                .fill(Color.filterzBackground)
 
             if let path = creator.profileImagePath, !path.isEmpty {
                 AuthenticatedImageView(path: path)
@@ -445,7 +443,7 @@ struct FilterDetailView: View {
             } else {
                 Text(String(creator.nick.prefix(1)))
                     .font(.pretendard(12, weight: .bold))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
         }
             .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
@@ -460,7 +458,7 @@ struct FilterDetailView: View {
         Button(role: role, action: action) {
             Text(title)
                 .font(.pretendard(12, weight: .medium))
-                .foregroundColor(role == .destructive ? .red : .filterzGray75)
+                .foregroundColor(role == .destructive ? .red : .filterzGray30)
         }
         .buttonStyle(.plain)
     }
@@ -481,7 +479,7 @@ struct FilterDetailView: View {
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.filterzGray75)
+                            .foregroundColor(.filterzGray30)
                             .frame(width: 24, height: 24)
                     }
                     .buttonStyle(.plain)
@@ -503,11 +501,11 @@ struct FilterDetailView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.filterzBlackAccent)
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(Color.filterzBackground)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.filterzTranslucent, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color.filterzGray30.opacity(0.7), lineWidth: 1)
                         )
                 )
 
@@ -517,7 +515,7 @@ struct FilterDetailView: View {
                     Group {
                         if store.isCommentSubmitting {
                             ProgressView()
-                                .tint(.filterzBlackBase)
+                                .tint(.filterzBackground)
                         } else {
                             Image(systemName: store.editingComment == nil ? "paperplane.fill" : "checkmark")
                                 .font(.system(size: 14, weight: .bold))
@@ -525,7 +523,7 @@ struct FilterDetailView: View {
                     }
                     .frame(width: 38, height: 38)
                     .background(Circle().fill(canSubmitComment ? Color.filterzAccent : Color.filterzBorder))
-                    .foregroundColor(.filterzBlackBase)
+                    .foregroundColor(.filterzBackground)
                 }
                 .buttonStyle(.plain)
                 .disabled(!canSubmitComment || store.isCommentSubmitting)
@@ -533,11 +531,11 @@ struct FilterDetailView: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.filterzBlackBase)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.filterzGray30.opacity(0.7), lineWidth: 1)
                 )
         )
     }

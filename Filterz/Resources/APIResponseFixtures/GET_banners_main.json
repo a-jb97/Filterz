@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "name": "Offline Banner",
+      "imageUrl": "/banners/offline.jpg",
+      "payload": {
+        "type": "filter",
+        "value": "fixture-filter-1"
+      }
+    }
+  ]
+}

@@ -6,43 +6,119 @@ struct TopRankingCarouselView: View {
     var onAuthorTapped: (String) -> Void = { _ in }
 
     @State private var focusedID: String?
+    @State private var swayTrigger = 0
+    @State private var swayDirection: Double = 1
 
-    private let cardWidth: CGFloat = 220
-    private let liftAmount: CGFloat = 100
+    private let cardWidth: CGFloat = 260
+    private let itemSpacing: CGFloat = 18
 
     var body: some View {
         GeometryReader { geo in
             let sidePad = max(0, (geo.size.width - cardWidth) / 2)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(Array(items.enumerated()), id: \.element.id) { pair in
-                        RankingCardView(
-                            item: pair.element,
-                            rank: pair.offset + 1,
-                            onAuthorTapped: onAuthorTapped
-                        )
-                            .id(pair.element.id)
-                            .scrollTransition(.interactive) { content, phase in
-                                let lift = liftAmount * (1 - abs(phase.value))
-                                return content.offset(y: -lift)
-                            }
-                            .onTapGesture { onItemTapped(pair.element.id) }
+            ZStack(alignment: .top) {
+                clothesline
+                    .padding(.top, 17)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: itemSpacing) {
+                        ForEach(Array(items.enumerated()), id: \.element.id) { pair in
+                            HangingRankingCardView(
+                                item: pair.element,
+                                rank: pair.offset + 1,
+                                swayTrigger: swayTrigger,
+                                swayDirection: swayDirection,
+                                onAuthorTapped: onAuthorTapped
+                            )
+                                .id(pair.element.id)
+                                .onTapGesture { onItemTapped(pair.element.id) }
+                        }
                     }
+                    .scrollTargetLayout()
                 }
-                .scrollTargetLayout()
-                .padding(.top, liftAmount)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $focusedID)
+                .contentMargins(.horizontal, sidePad, for: .scrollContent)
+                .scrollClipDisabled()
             }
-            .scrollTargetBehavior(.viewAligned)
-            .scrollPosition(id: $focusedID)
-            .contentMargins(.horizontal, sidePad, for: .scrollContent)
-            .scrollClipDisabled()
         }
-        .frame(height: 510)
+        .frame(height: 430)
         .onChange(of: items) { _, newItems in
             guard focusedID == nil, let first = newItems.first else { return }
             focusedID = first.id
         }
+        .onChange(of: focusedID) { oldValue, newValue in
+            guard
+                let oldValue,
+                let newValue,
+                oldValue != newValue,
+                let oldIndex = items.firstIndex(where: { $0.id == oldValue }),
+                let newIndex = items.firstIndex(where: { $0.id == newValue })
+            else { return }
+
+            swayDirection = newIndex > oldIndex ? -1 : 1
+            swayTrigger += 1
+        }
+    }
+
+    private var clothesline: some View {
+        Rectangle()
+            .fill(Color.filterzAccent.opacity(0.56))
+            .frame(height: 1.3)
+            .shadow(color: Color.black.opacity(0.08), radius: 1, x: 0, y: 1)
+            .allowsHitTesting(false)
+    }
+}
+
+// MARK: - HangingRankingCardView
+
+private struct HangingRankingCardView: View {
+    let item: FeedItem
+    let rank: Int
+    let swayTrigger: Int
+    let swayDirection: Double
+    let onAuthorTapped: (String) -> Void
+
+    private let cardWidth: CGFloat = 260
+    private let hangingHeight: CGFloat = 30
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            RankingCardView(
+                item: item,
+                rank: rank,
+                onAuthorTapped: onAuthorTapped
+            )
+            .padding(.top, hangingHeight)
+
+            ClothespinView()
+                .padding(.top, 3)
+        }
+        .frame(width: cardWidth, height: 404, alignment: .top)
+        .keyframeAnimator(initialValue: 0.0, trigger: swayTrigger) { content, angle in
+            content.rotationEffect(.degrees(angle), anchor: .top)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(swayDirection * 2.4, duration: 0.12)
+                CubicKeyframe(swayDirection * -1.7, duration: 0.16)
+                CubicKeyframe(swayDirection * 0.8, duration: 0.13)
+                CubicKeyframe(0.0, duration: 0.18)
+            }
+        }
+    }
+}
+
+// MARK: - ClothespinView
+
+private struct ClothespinView: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color.filterzClip)
+            .frame(width: 14, height: 37)
+            .rotationEffect(.degrees(1.5))
+            .shadow(color: Color.black.opacity(0.16), radius: 2, x: 1, y: 2)
+        .frame(width: 28, height: 44)
+        .allowsHitTesting(false)
     }
 }
 
@@ -53,82 +129,73 @@ private struct RankingCardView: View {
     let rank: Int
     let onAuthorTapped: (String) -> Void
 
-    private let cardHeight: CGFloat = 380
-    private let badgeRadius: CGFloat = 22
+    private let cardWidth: CGFloat = 260
+    private let cardHeight: CGFloat = 360
+    private let imageSize: CGFloat = 233.4
+    private let imageTopPadding: CGFloat = 10
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            card
-                .padding(.bottom, badgeRadius)
-
-            RankBadgeView(rank: rank)
-        }
-        .frame(width: 220, height: cardHeight + badgeRadius)
+        card
+            .frame(width: cardWidth, height: cardHeight)
     }
 
     private var card: some View {
-        ZStack(alignment: .bottom) {
-            RoundedRectangle(cornerRadius: 110, style: .circular)
-                .fill(Color.filterzBlackAccent)
+        VStack(spacing: 0) {
+            AuthenticatedImageView(path: item.imageURL)
+                .scaledToFill()
+                .frame(width: imageSize, height: imageSize)
+                .clipped()
                 .overlay(
-                    RoundedRectangle(cornerRadius: 110, style: .circular)
-                        .stroke(Color.filterzDeepSprout, lineWidth: 2)
+                    Rectangle()
+                        .stroke(Color.filterzGray45.opacity(0.75), lineWidth: 1)
                 )
+                .padding(.top, imageTopPadding)
 
-            VStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 7) {
                 Button {
                     onAuthorTapped(item.authorId)
                 } label: {
-                    Text(item.authorNick.uppercased())
+                    Text(item.authorNick)
                         .font(.pretendard(12, weight: .semibold))
-                        .foregroundColor(.filterzGray75)
+                        .foregroundColor(.filterzAccent)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
                 .buttonStyle(.plain)
 
                 Text(item.title)
-                    .font(.filterzDisplay(28))
+                    .font(.filterzDisplay(24))
                     .foregroundColor(.filterzGray30)
-                    .multilineTextAlignment(.center)
+                    .multilineTextAlignment(.leading)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.72)
 
-                Text("#\(item.hashtag)")
-                    .font(.pretendard(14, weight: .bold))
-                    .foregroundColor(.filterzGray75)
+                HStack(alignment: .bottom) {
+                    Text("#\(displayHashTag(item.hashtag))")
+                        .font(.pretendard(13, weight: .medium))
+                        .foregroundColor(.filterzGray30)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+
+                    Spacer(minLength: 12)
+
+                    Text("\(rank)")
+                        .font(.filterzDisplay(17))
+                        .foregroundColor(.filterzAccent)
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 30)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
         }
-        .frame(width: 220, height: cardHeight)
-        .overlay(alignment: .top) {
-            AuthenticatedImageView(path: item.imageURL)
-                .frame(width: 190, height: 190)
-                .clipped()
-                .clipShape(Circle())
-                .padding(.top, 12)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 110, style: .circular))
-    }
-}
-
-// MARK: - RankBadgeView
-
-private struct RankBadgeView: View {
-    let rank: Int
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.filterzBlackAccent)
-                .overlay(
-                    Circle()
-                        .stroke(Color.filterzDeepSprout, lineWidth: 2)
-                )
-                .frame(width: 44, height: 44)
-
-            Text("\(rank)")
-                .font(.filterzDisplay(24))
-                .foregroundColor(.filterzAccent)
-        }
+        .frame(width: cardWidth, height: cardHeight)
+        .background(Color.filterzPolaroid)
+        .overlay(
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .stroke(Color.filterzGray45.opacity(0.85), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
+        .shadow(color: Color.black.opacity(0.24), radius: 8, x: 4, y: 5)
     }
 }

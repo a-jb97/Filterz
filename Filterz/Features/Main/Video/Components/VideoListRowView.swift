@@ -19,7 +19,7 @@ struct VideoListRowView: View {
 
                 Text(item.description)
                     .font(.pretendard(13, weight: .regular))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -32,7 +32,7 @@ struct VideoListRowView: View {
                             .foregroundColor(.filterzAccent)
                             .padding(.horizontal, 7)
                             .padding(.vertical, 3)
-                            .background(Capsule().fill(Color.filterzBlackAccent))
+                            .background(Capsule().fill(Color.filterzBackground))
                     }
                 }
             }
@@ -42,11 +42,11 @@ struct VideoListRowView: View {
                 VStack(spacing: 4) {
                     Image(systemName: item.isLiked ? "heart.fill" : "heart")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(item.isLiked ? .red : .filterzGray45)
+                        .foregroundColor(item.isLiked ? .red : .filterzGray30)
 
                     Text("\(item.likeCount)")
                         .font(.pretendard(12, weight: .semibold))
-                        .foregroundColor(.filterzGray75)
+                        .foregroundColor(.filterzGray30)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                 }
@@ -64,7 +64,7 @@ struct VideoListRowView: View {
         ZStack {
             AuthenticatedImageView(path: item.thumbnailURL, contentMode: .fill)
                 .frame(width: 100, height: 120)
-                .background(Color.filterzBlackAccent)
+                .background(Color.filterzBackground)
                 .clipped()
 
             LinearGradient(
@@ -85,7 +85,7 @@ struct VideoListRowView: View {
             }
         }
         .frame(width: 100, height: 120)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
     }
 
     private func metadataLabel(systemName: String, text: String) -> some View {
@@ -95,6 +95,6 @@ struct VideoListRowView: View {
             Text(text)
                 .font(.pretendard(12, weight: .medium))
         }
-        .foregroundColor(.filterzGray60)
+        .foregroundColor(.filterzGray30)
     }
 }

@@ -1,0 +1,43 @@
+{
+  "data": [
+    {
+      "order_id": "fixture-order-id",
+      "order_code": "fixture_order_code",
+      "filter": {
+        "id": "fixture-filter-1",
+        "category": "moody",
+        "title": "Offline Film",
+        "description": "오프라인 모드용 필터 샘플입니다.",
+        "files": ["/filters/offline-film.jpg"],
+        "price": 2000,
+        "creator": {
+          "user_id": "fixture-author",
+          "nick": "Fixture Artist",
+          "profileImage": "/profiles/fixture-author.jpg"
+        },
+        "filter_values": {
+          "brightness": 0.1,
+          "exposure": 0.2,
+          "contrast": 1.08,
+          "saturation": 0.9,
+          "sharpness": 0.2,
+          "blur": 0,
+          "vignette": 0.2,
+          "noise_reduction": 0,
+          "highlights": -0.1,
+          "shadows": 0.15,
+          "temperature": 6200,
+          "black_point": 0.02
+        },
+        "is_liked": false,
+        "like_count": 128,
+        "buyer_count": 32,
+        "createdAt": "2026-05-14T00:00:00Z",
+        "updatedAt": "2026-05-14T00:00:00Z"
+      },
+      "paidAt": "2026-05-14T00:00:00Z",
+      "createdAt": "2026-05-14T00:00:00Z",
+      "updatedAt": "2026-05-14T00:00:00Z"
+    }
+  ]
+}

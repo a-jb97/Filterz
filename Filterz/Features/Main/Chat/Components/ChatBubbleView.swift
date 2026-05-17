@@ -46,7 +46,7 @@ struct ChatBubbleView: View {
                 Button(action: onProfileTapped) {
                     AuthenticatedImageView(path: profileImagePath)
                         .frame(width: 32, height: 32)
-                        .background(Color.filterzBlackAccent)
+                        .background(Color.filterzBackground)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -59,7 +59,7 @@ struct ChatBubbleView: View {
     private var timestampView: some View {
         Text(message.createdAt.chatTimeDisplay)
             .font(.pretendard(11, weight: .regular))
-            .foregroundColor(.filterzGray60)
+            .foregroundColor(.filterzGray30)
             .lineLimit(1)
             .fixedSize()
             .padding(.bottom, 1)
@@ -85,11 +85,17 @@ struct ChatBubbleView: View {
             if let content = message.content, !content.isEmpty {
                 Text(content)
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundColor(isMine ? .filterzBlackBase : .filterzGray30)
+                    .foregroundColor(isMine ? .filterzBackground : .filterzGray30)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .background(bubbleBackground)
                     .clipShape(bubbleShape)
+                    .overlay {
+                        if !isMine {
+                            bubbleShape
+                                .stroke(Color.filterzGray45, lineWidth: 1)
+                        }
+                    }
                     .fixedSize(horizontal: false, vertical: true)
                     .layoutPriority(1)
             }
@@ -122,13 +128,9 @@ struct ChatBubbleView: View {
     @ViewBuilder
     private var bubbleBackground: some View {
         if isMine {
-            LinearGradient(
-                colors: [Color.filterzAccent, Color.filterzAccentDeep],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color.filterzAccent
         } else {
-            Color.filterzBlackAccent
+            Color.filterzBackground
         }
     }
 }

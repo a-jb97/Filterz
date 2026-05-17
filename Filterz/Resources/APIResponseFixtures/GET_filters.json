@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "filter_id": "fixture-filter-1",
+      "category": "moody",
+      "title": "Offline Film",
+      "description": "오프라인 모드용 필터 샘플입니다.",
+      "files": ["/filters/offline-film.jpg"],
+      "creator": {
+        "user_id": "fixture-author",
+        "nick": "Fixture Artist",
+        "name": "Sample Artist",
+        "introduction": "필터를 만드는 샘플 작가입니다.",
+        "profileImage": "/profiles/fixture-author.jpg",
+        "hashTags": ["film", "daily"]
+      },
+      "is_liked": false,
+      "like_count": 128,
+      "buyer_count": 32,
+      "createdAt": "2026-05-14T00:00:00Z",
+      "updatedAt": "2026-05-14T00:00:00Z"
+    }
+  ],
+  "next_cursor": null
+}

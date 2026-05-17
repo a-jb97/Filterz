@@ -9,13 +9,12 @@ struct FeedListView: View {
     var onAuthorTapped: (String) -> Void = { _ in }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 8) {
             ForEach(items) { item in
                 FeedListRowView(item: item, tagStyle: tagStyle, onAuthorTapped: onAuthorTapped)
                     .onTapGesture { onItemTapped(item.id) }
             }
         }
-        .padding(.horizontal, 20)
     }
 }
 
@@ -32,37 +31,56 @@ private struct FeedListRowView: View {
     let tagStyle: FeedListTagStyle
     let onAuthorTapped: (String) -> Void
 
+    private let imageLength: CGFloat = 104
+
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            thumbnailView
+        VStack(spacing: 0) {
+            FilmPerforationStrip()
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(item.title)
-                        .font(.filterzDisplay(18))
-                        .foregroundColor(.filterzGray30)
+            HStack(alignment: .top, spacing: 12) {
+                thumbnailView
 
-                    tagView
-                }
-
-                Button {
-                    onAuthorTapped(item.authorId)
-                } label: {
-                    Text(item.authorNick)
-                        .font(.pretendard(13, weight: .medium))
-                        .foregroundColor(.filterzGray60)
-                }
-                .buttonStyle(.plain)
-
-                Text(item.description)
-                    .font(.pretendard(13, weight: .regular))
-                    .foregroundColor(.filterzGray75)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                infoView
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+
+            FilmPerforationStrip()
         }
-        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity)
+        .background(Color.filterzGray30.opacity(0.9))
+        .contentShape(Rectangle())
+    }
+
+    private var infoView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(item.title)
+                    .font(.filterzDisplay(18))
+                    .foregroundColor(.filterzPolaroid)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.9)
+
+                tagView
+            }
+
+            Button {
+                onAuthorTapped(item.authorId)
+            } label: {
+                Text(item.authorNick)
+                    .font(.pretendard(13, weight: .medium))
+                    .foregroundColor(.filterzBackground)
+                    .lineLimit(1)
+            }
+            .buttonStyle(.plain)
+
+            Text(item.description)
+                .font(.pretendard(13, weight: .regular))
+                .foregroundColor(.filterzPolaroid)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(minHeight: imageLength, alignment: .topLeading)
     }
 
     @ViewBuilder
@@ -71,7 +89,7 @@ private struct FeedListRowView: View {
         case .filled:
             Text("#\(displayHashTag(item.hashtag))")
                 .font(.pretendard(12, weight: .medium))
-                .foregroundColor(.filterzGray60)
+                .foregroundColor(.filterzPolaroid)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
@@ -80,35 +98,58 @@ private struct FeedListRowView: View {
         case .profile:
             Text("#\(displayHashTag(item.hashtag))")
                 .font(.pretendard(13, weight: .medium))
-                .foregroundColor(.filterzGray30)
+                .foregroundColor(.filterzPolaroid)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(Capsule().fill(Color.filterzBlackAccent))
+                .background(Capsule().fill(Color.filterzBackground))
                 .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
         case .compactProfile:
             Text("#\(displayHashTag(item.hashtag))")
-                .font(.pretendard(9, weight: .medium))
-                .foregroundColor(.filterzGray30)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(Capsule().fill(Color.filterzBlackAccent))
-                .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
+                .filterzTornTapeStyle(
+                    font: .pretendard(9, weight: .medium),
+                    foregroundColor: .filterzGray30,
+                    horizontalPadding: 8,
+                    verticalPadding: 5
+                )
         }
     }
 
     private var thumbnailView: some View {
         ZStack(alignment: .bottomTrailing) {
-            AuthenticatedImageView(path: item.imageURL)
-                .scaledToFill()
-                .frame(width: 100, height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            AuthenticatedImageView(path: item.imageURL, contentMode: .fill)
+                .frame(width: imageLength, height: imageLength)
+                .background(Color.filterzBackground)
+                .clipped()
 
             Image(systemName: item.isLiked ? "heart.fill" : "heart")
                 .resizable()
                 .frame(width: 14, height: 13)
-                .foregroundColor(item.isLiked ? .red : .filterzGray45)
+                .foregroundColor(item.isLiked ? .red : .filterzGray30)
                 .padding(8)
         }
+    }
+}
+
+// MARK: - FilmPerforationStrip
+
+private struct FilmPerforationStrip: View {
+    private let holeCount = 10
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<holeCount, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(Color.filterzBackground)
+                    .frame(width: 14, height: 14)
+
+                if index < holeCount - 1 {
+                    Spacer(minLength: 8)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
     }
 }
 
@@ -184,6 +225,9 @@ private struct FeedMasonryCardView: View {
     let width: CGFloat
     let onAuthorTapped: (String) -> Void
 
+    private let cardPadding: CGFloat = 8
+    private let footerMinHeight: CGFloat = 28
+
     private var item: FeedItem {
         masonryItem.item
     }
@@ -192,74 +236,66 @@ private struct FeedMasonryCardView: View {
         masonryItem.aspectRatio >= 1.05
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            imageCard
+    private var imageWidth: CGFloat {
+        width - (cardPadding * 2)
+    }
 
-            Button {
-                onAuthorTapped(item.authorId)
-            } label: {
-                Text(item.authorNick.uppercased())
-                    .font(.pretendard(16, weight: .bold))
-                    .foregroundColor(.filterzGray75)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .padding(.horizontal, 8)
-            }
-            .buttonStyle(.plain)
+    private var imageHeight: CGFloat {
+        imageWidth / masonryItem.aspectRatio
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            imageCard
+                .padding(.top, cardPadding)
+                .padding(.horizontal, cardPadding)
+
+            footerView
         }
-        .frame(width: width, alignment: .leading)
+        .frame(width: width)
+        .background(Color.filterzPolaroid)
+        .overlay(
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .stroke(Color.filterzGray45.opacity(0.85), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
+        .shadow(color: Color.black.opacity(0.24), radius: 8, x: 4, y: 5)
         .contentShape(Rectangle())
     }
 
     private var imageCard: some View {
-        ZStack {
-            AuthenticatedImageView(path: item.imageURL, contentMode: .fill)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.filterzBlackAccent)
-                .clipped()
-
-            LinearGradient(
-                colors: [
-                    .black.opacity(0.48),
-                    .clear,
-                    .black.opacity(0.56)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
+        AuthenticatedImageView(path: item.imageURL, contentMode: .fill)
+            .frame(width: imageWidth, height: imageHeight)
+            .background(Color.filterzBackground)
+            .clipped()
+            .overlay(
+                Rectangle()
+                    .stroke(Color.filterzGray45.opacity(0.75), lineWidth: 1)
             )
-        }
-        .frame(width: width, height: width / masonryItem.aspectRatio)
-        .overlay(alignment: .topLeading) {
+    }
+
+    private var footerView: some View {
+        VStack(alignment: .leading, spacing: 5) {
             Text(item.title)
-                .font(.filterzDisplay(isCompactCard ? 14 : 17))
+                .font(.filterzDisplay(isCompactCard ? 16 : 18))
                 .foregroundColor(.filterzGray30)
                 .lineLimit(1)
-                .minimumScaleFactor(0.55)
-                .frame(
-                    maxWidth: width - (isCompactCard ? 20 : 24),
-                    minHeight: isCompactCard ? 24 : 28,
-                    alignment: .leading
-                )
-                .padding(.top, isCompactCard ? 8 : 11)
-                .padding(.leading, isCompactCard ? 10 : 12)
-        }
-        .overlay(alignment: .bottomTrailing) {
-            HStack(spacing: 4) {
-                Image(systemName: "heart.fill")
-                    .font(.system(size: isCompactCard ? 13 : 15, weight: .bold))
-                    .foregroundColor(.filterzGray30)
+                .minimumScaleFactor(0.7)
 
-                Text("\(item.likeCount)")
-                    .font(.pretendard(isCompactCard ? 14 : 16, weight: .bold))
-                    .foregroundColor(.filterzGray30)
+            Button {
+                onAuthorTapped(item.authorId)
+            } label: {
+                Text(item.authorNick)
+                    .font(.pretendard(12, weight: .semibold))
+                    .foregroundColor(.filterzAccent)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.8)
             }
-            .frame(minHeight: isCompactCard ? 22 : 24)
-            .padding(.trailing, isCompactCard ? 10 : 12)
-            .padding(.bottom, isCompactCard ? 8 : 10)
+            .buttonStyle(.plain)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .frame(maxWidth: .infinity, minHeight: footerMinHeight, alignment: .topLeading)
+        .padding(.horizontal, 10)
+        .padding(.top, 8)
+        .padding(.bottom, 10)
     }
 }

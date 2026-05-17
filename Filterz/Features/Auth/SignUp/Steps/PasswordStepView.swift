@@ -13,7 +13,7 @@ struct PasswordStepView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("비밀번호를 설정해주세요")
                     .font(.filterzHeadline())
-                    .foregroundColor(.filterzTextPrimary)
+                    .foregroundColor(.filterzGray30)
                 Text("아래 조건을 모두 충족해야 합니다")
                     .font(.filterzBody())
                     .foregroundColor(.filterzTextSecondary)
@@ -78,7 +78,7 @@ private struct PasswordRequirementsView: View {
                 .font(.system(size: 14))
             Text(label)
                 .font(.filterzCaption())
-                .foregroundColor(isSatisfied ? .filterzTextPrimary : .filterzTextSecondary)
+                .foregroundColor(isSatisfied ? .filterzGray30 : .filterzTextSecondary)
         }
         .animation(.easeInOut(duration: 0.15), value: isSatisfied)
     }

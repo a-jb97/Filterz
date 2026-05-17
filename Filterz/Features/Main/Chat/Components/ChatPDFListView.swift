@@ -19,13 +19,13 @@ struct ChatPDFListView: View {
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12))
-                            .foregroundColor(.filterzGray60)
+                            .foregroundColor(.filterzGray30)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color.filterzBlackAccent)
+                            .fill(Color.filterzBackground)
                     )
                 }
                 .buttonStyle(.plain)

@@ -9,7 +9,7 @@ struct EmailStepView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("이메일을 입력해주세요")
                     .font(.filterzHeadline())
-                    .foregroundColor(.filterzTextPrimary)
+                    .foregroundColor(.filterzGray30)
                 Text("로그인에 사용할 이메일을 입력해주세요")
                     .font(.filterzBody())
                     .foregroundColor(.filterzTextSecondary)

@@ -71,8 +71,8 @@ struct FeedFeature {
 
         var title: String {
             switch self {
-            case .block: return "Block Mode"
-            case .list:  return "List Mode"
+            case .block: return "썸네일 모드"
+            case .list:  return "목록 모드"
             }
         }
 

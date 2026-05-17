@@ -58,8 +58,8 @@ struct SignUpView: View {
             }
             Spacer()
             Text("회원가입")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.filterzTextPrimary)
+                .font(.filterzBody())
+                .foregroundColor(.filterzGray30)
             Spacer()
             Color.clear.frame(width: 24, height: 24)
         }

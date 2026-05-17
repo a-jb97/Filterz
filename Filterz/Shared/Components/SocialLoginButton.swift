@@ -7,14 +7,14 @@ struct SocialLoginButton: View {
         var backgroundColor: Color {
             switch self {
             case .kakao: return Color(hex: "#FEE500")
-            case .apple: return Color.white
+            case .apple: return .black
             }
         }
 
         var foregroundColor: Color {
             switch self {
             case .kakao: return Color(hex: "#3A1D1D")
-            case .apple: return .black
+            case .apple: return Color.white
             }
         }
 
@@ -48,7 +48,7 @@ struct SocialLoginButton: View {
             .frame(maxWidth: .infinity)
             .frame(height: 54)
             .background(provider.backgroundColor)
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 }

@@ -7,7 +7,7 @@ struct FeedView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Color.filterzBlackBase.ignoresSafeArea()
+            Color.filterzBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 FeedNavBarView(
@@ -39,7 +39,7 @@ struct FeedView: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.pretendard(16, weight: .bold))
-            .foregroundColor(.filterzGray60)
+            .foregroundColor(.filterzGray30)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -47,15 +47,13 @@ struct FeedView: View {
 
     private var filterFeedHeader: some View {
         HStack {
-            Text("Filter Feed")
+            Text("필터 피드")
                 .font(.pretendard(16, weight: .bold))
-                .foregroundColor(.filterzGray60)
+                .foregroundColor(.filterzGray30)
 
             if let category = store.selectedCategory {
                 HStack(spacing: 4) {
                     Text(category.title)
-                        .font(.pretendard(12, weight: .semibold))
-                        .foregroundColor(.filterzAccent)
                     Button {
                         store.send(.categorySelected(nil))
                     } label: {
@@ -64,10 +62,11 @@ struct FeedView: View {
                             .foregroundColor(.filterzAccent)
                     }
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule().fill(Color.filterzBlackAccent)
+                .filterzTornTapeStyle(
+                    font: .pretendard(12, weight: .semibold),
+                    foregroundColor: .filterzGray30,
+                    horizontalPadding: 8,
+                    verticalPadding: 3
                 )
             }
 
@@ -77,18 +76,19 @@ struct FeedView: View {
                 store.send(.viewModeToggled)
             } label: {
                 Text(store.viewMode.title)
-                    .font(.pretendard(16, weight: .medium))
-                    .foregroundColor(.filterzGray75)
+                    .font(.pretendard(13, weight: .medium))
+                    .foregroundColor(.filterzAccent)
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 20)
+        .padding(.top, 12)
     }
 
     private var feedContent: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                sectionHeader("Top Ranking")
+                sectionHeader("Top 10")
+                    .padding(.bottom, 4)
 
                 TopRankingCarouselView(items: store.topRankingItems) { id in
                     store.send(.topRankingItemTapped(id: id))
@@ -124,7 +124,7 @@ struct FeedView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Color.filterzGray60)
+                .foregroundStyle(Color.filterzGray30)
 
             TextField(
                 "닉네임 검색",
@@ -139,7 +139,7 @@ struct FeedView: View {
 
             if store.isSearchingUsers {
                 ProgressView()
-                    .tint(Color.filterzGray60)
+                    .tint(Color.filterzGray30)
                     .scaleEffect(0.8)
             } else if !store.searchText.isEmpty {
                 Button {
@@ -147,7 +147,7 @@ struct FeedView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Color.filterzGray75)
+                        .foregroundStyle(Color.filterzGray30)
                 }
                 .buttonStyle(.plain)
             }
@@ -156,11 +156,11 @@ struct FeedView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.filterzSurface)
+                .fill(Color.filterzBackground)
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 10)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var searchContent: some View {
@@ -171,7 +171,7 @@ struct FeedView: View {
                 selectedUserFilterList(user)
             } else if store.isSearchingUsers && store.searchUsers.isEmpty {
                 Spacer()
-                ProgressView().tint(.filterzGray45)
+                ProgressView().tint(.filterzGray30)
                 Spacer()
             } else if store.searchUsers.isEmpty {
                 searchEmptyText("검색 결과가 없습니다")
@@ -186,7 +186,7 @@ struct FeedView: View {
             Spacer()
             Text(text)
                 .font(.pretendard(14, weight: .regular))
-                .foregroundColor(.filterzGray60)
+                .foregroundColor(.filterzGray30)
             Spacer()
         }
         .frame(maxWidth: .infinity)
@@ -216,15 +216,16 @@ struct FeedView: View {
                 HStack(spacing: 8) {
                     Text("\(user.nick)의 필터")
                         .font(.pretendard(16, weight: .bold))
-                        .foregroundColor(.filterzGray60)
+                        .foregroundColor(.filterzGray30)
 
                     if let category = store.selectedCategory {
                         Text(category.title)
-                            .font(.pretendard(12, weight: .semibold))
-                            .foregroundColor(.filterzAccent)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(Capsule().fill(Color.filterzBlackAccent))
+                            .filterzTornTapeStyle(
+                                font: .pretendard(12, weight: .semibold),
+                                foregroundColor: .filterzGray30,
+                                horizontalPadding: 8,
+                                verticalPadding: 3
+                            )
                     }
                 }
                 .padding(.horizontal, 20)
@@ -232,13 +233,13 @@ struct FeedView: View {
 
                 if store.isLoadingUserFilters && store.searchedUserFilters.isEmpty {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 48)
                 } else if store.searchedUserFilters.isEmpty {
                     Text("등록한 필터가 없습니다")
                         .font(.pretendard(14, weight: .regular))
-                        .foregroundColor(.filterzGray60)
+                        .foregroundColor(.filterzGray30)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 48)
                 } else {
@@ -251,7 +252,7 @@ struct FeedView: View {
 
                     if store.hasMoreUserFilters {
                         ProgressView()
-                            .tint(.filterzGray45)
+                            .tint(.filterzGray30)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .onAppear { store.send(.loadMoreUserFilters) }
@@ -288,7 +289,7 @@ private struct FeedNavBarView: View {
             Button(action: onVideoTapped) {
                 Image(systemName: "video")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -296,7 +297,7 @@ private struct FeedNavBarView: View {
             Button(action: onSearchTapped) {
                 Image(systemName: isSearchPresented ? "xmark" : "magnifyingglass")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -304,7 +305,7 @@ private struct FeedNavBarView: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 }
 
@@ -317,7 +318,7 @@ private struct FeedSearchUserCell: View {
             HStack(spacing: 12) {
                 AuthenticatedImageView(path: user.profileImagePath)
                     .frame(width: 48, height: 48)
-                    .background(Color.filterzBlackAccent)
+                    .background(Color.filterzBackground)
                     .clipShape(Circle())
                     .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
@@ -330,7 +331,7 @@ private struct FeedSearchUserCell: View {
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -359,25 +360,17 @@ private struct SortButtonRowView: View {
 
     private func sortButton(for mode: FeedFeature.SortMode) -> some View {
         let isSelected = sortMode == mode
+
         return Button {
             onSelect(mode)
         } label: {
             Text(mode.title)
-                .font(.pretendard(14, weight: isSelected ? .bold : .medium))
-                .foregroundColor(isSelected ? .filterzBackground : .filterzGray30)
-                .padding(.horizontal, isSelected ? 17 : 12)
-                .padding(.vertical, isSelected ? 5 : 7)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
-                        .overlay(
-                            Capsule()
-                                .stroke(
-                                    Color.filterzDeepSprout,
-                                    lineWidth: 1
-                                )
-                        )
+                .filterzTornTapeStyle(
+                    font: .pretendard(14, weight: isSelected ? .bold : .medium),
+                    fillColor: isSelected ? .filterzClip : .filterzBackground,
+                    strokeColor: isSelected ? nil : .filterzDeepSprout
                 )
         }
+        .buttonStyle(.plain)
     }
 }

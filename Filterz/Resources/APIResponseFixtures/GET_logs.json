@@ -1,0 +1,14 @@
+{
+  "count": 1,
+  "logs": [
+    {
+      "date": "2026-05-14T00:00:00Z",
+      "name": "fixture-log",
+      "method": "GET",
+      "route_path": "/fixtures",
+      "body": null,
+      "contentType": "application/json",
+      "status_code": 200
+    }
+  ]
+}

@@ -38,15 +38,24 @@ struct CategoryBarView: View {
     let onCategoryTapped: (FilterCategory) -> Void
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(FilterCategory.allCases, id: \.title) { category in
-                CategoryItemView(category: category)
-                    .frame(maxWidth: .infinity)
-                    .onTapGesture { onCategoryTapped(category) }
+        VStack(spacing: 0) {
+            CategoryFilmPerforationStrip()
+
+            HStack(spacing: 0) {
+                ForEach(FilterCategory.allCases, id: \.title) { category in
+                    CategoryItemView(category: category)
+                        .frame(maxWidth: .infinity)
+                        .onTapGesture { onCategoryTapped(category) }
+                }
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+
+            CategoryFilmPerforationStrip()
         }
-        .padding(.horizontal, 20)
-        .padding(.top, -8)
+        .frame(maxWidth: .infinity)
+        .background(Color.filterzGray30.opacity(0.9))
+        .padding(.top, 8)
         .padding(.bottom, 15)
     }
 }
@@ -56,25 +65,39 @@ private struct CategoryItemView: View {
 
     var body: some View {
         ZStack {
-//            RoundedRectangle(cornerRadius: 10)
-//                .fill(Color.filterzBlackAccent)
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 10)
-//                        .stroke(Color.filterzAccent, lineWidth: 1)
-//                )
-//                .frame(width: 56, height: 56)
-
             VStack(spacing: 8) {
                 Image(systemName: category.icon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
-                    .foregroundColor(.filterzAccent)
+                    .foregroundColor(.filterzPolaroid)
 
                 Text(category.title)
                     .font(.pretendard(10, weight: .semibold))
-                    .foregroundColor(.filterzAccent)
+                    .foregroundColor(.filterzPolaroid)
+            }
+            .frame(height: 52)
+        }
+    }
+}
+
+private struct CategoryFilmPerforationStrip: View {
+    private let holeCount = 10
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<holeCount, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(Color.filterzBackground)
+                    .frame(width: 14, height: 14)
+
+                if index < holeCount - 1 {
+                    Spacer(minLength: 8)
+                }
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 4)
     }
 }

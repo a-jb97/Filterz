@@ -19,7 +19,7 @@ struct MyPageView: View {
                 }
             }
         }
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .onAppear { store.send(.onAppear) }
         .sheet(isPresented: $store.isEditPresented.sending(\.editPresentationChanged)) {
             ProfileEditSheet(store: store)
@@ -55,7 +55,7 @@ struct MyPageView: View {
             } label: {
                 Image(systemName: "heart.fill")
                     .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -65,7 +65,7 @@ struct MyPageView: View {
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(Color.filterzGray30)
+                    .foregroundStyle(Color.filterzAccent)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -73,14 +73,14 @@ struct MyPageView: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var loadingState: some View {
         VStack {
             Spacer()
             ProgressView()
-                .tint(.filterzGray45)
+                .tint(.filterzGray30)
             Spacer()
         }
     }
@@ -90,7 +90,7 @@ struct MyPageView: View {
             Spacer()
             Text("프로필을 불러오지 못했습니다")
                 .font(.pretendard(14, weight: .regular))
-                .foregroundColor(.filterzGray60)
+                .foregroundColor(.filterzGray30)
             Button("다시 시도") {
                 store.send(.onAppear)
             }
@@ -111,21 +111,19 @@ struct MyPageView: View {
                 } label: {
                     Text("프로필 수정")
                         .font(.pretendard(14, weight: .semibold))
-                        .foregroundColor(.filterzGray30)
+                        .foregroundColor(.filterzAccent)
                         .padding(.horizontal, 18)
                         .frame(height: 38)
                         .background(
-                            Capsule()
-                                .fill(Color.filterzSurface)
-                                .overlay(Capsule().stroke(Color.filterzBorder, lineWidth: 1))
+                            Capsule().fill(Color.filterzBackground)
                         )
                 }
                 .buttonStyle(.plain)
 
                 VStack(spacing: 14) {
-                    profileText(profile.email, fontSize: 14, color: .filterzGray60)
+                    profileText(profile.email, fontSize: 14, color: .filterzGray30)
                     profileText(profile.nick, fontSize: 24, color: .filterzGray30, weight: .semibold)
-                    profileText(profile.introduction ?? "소개가 없습니다", fontSize: 15, color: .filterzGray60)
+                    profileText(profile.introduction ?? "소개가 없습니다", fontSize: 15, color: .filterzGray30)
 
                     hashTagRow(profile.hashTags)
                         .padding(.top, 2)
@@ -136,6 +134,7 @@ struct MyPageView: View {
                     store.send(.logoutTapped)
                 } label: {
                     Text("로그아웃")
+                        .font(.filterzBody())
                 }
                 .buttonStyle(CapsulePrimaryButtonStyle(isLoading: store.isLoggingOut))
                 .disabled(store.isLoggingOut)
@@ -150,21 +149,16 @@ struct MyPageView: View {
     }
 
     private func profileImage(_ profile: MyProfile) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color.filterzBlackAccent)
-
+        ProfilePhotoFrame(size: CGSize(width: 104, height: 130)) {
             AuthenticatedImageView(path: profile.profileImagePath)
-                .clipShape(Circle())
-
+                .scaledToFill()
+        } placeholder: {
             if profile.profileImagePath == nil {
                 Image(systemName: "person.fill")
                     .font(.system(size: 46, weight: .light))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
             }
         }
-        .frame(width: 124, height: 124)
-        .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
     }
 
     private func profileText(
@@ -186,16 +180,16 @@ struct MyPageView: View {
             if hashTags.isEmpty {
                 Text("#해시태그 없음")
                     .font(.pretendard(13, weight: .regular))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
             } else {
                 ForEach(hashTags, id: \.self) { tag in
                     Text("#\(displayHashTag(tag))")
-                        .font(.pretendard(13, weight: .medium))
-                        .foregroundColor(.filterzGray30)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Capsule().fill(Color.filterzBlackAccent))
-                        .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
+                        .filterzTornTapeStyle(
+                            font: .pretendard(13, weight: .medium),
+                            foregroundColor: .filterzGray30,
+                            horizontalPadding: 12,
+                            verticalPadding: 7
+                        )
                 }
             }
         }
@@ -212,13 +206,13 @@ struct MyPageView: View {
 
             if store.isFiltersLoading && store.filters.isEmpty {
                 ProgressView()
-                    .tint(.filterzGray45)
+                    .tint(.filterzGray30)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 36)
             } else if store.filters.isEmpty {
                 Text("등록한 필터가 없습니다")
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 36)
             } else {
@@ -231,7 +225,7 @@ struct MyPageView: View {
 
                 if store.hasMoreFilters {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 4)
                         .onAppear { store.send(.loadMoreFilters) }
@@ -254,21 +248,52 @@ struct MyPageView: View {
                     }
                 }
             }
+            .padding(.vertical, 4)
         }
     }
 
     private func categoryButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(13, weight: .semibold))
-                .foregroundColor(isSelected ? .filterzBlackBase : .filterzGray60)
-                .padding(.horizontal, 13)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule().fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
+                .filterzTornTapeStyle(
+                    font: .pretendard(13, weight: .semibold),
+                    foregroundColor: isSelected ? .filterzGray30 : .filterzAccent,
+                    fillColor: isSelected ? .filterzClip : .filterzBackground,
+                    strokeColor: isSelected ? nil : .filterzDeepSprout,
+                    horizontalPadding: 13,
+                    verticalPadding: 10
                 )
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct ProfilePhotoFrame<Content: View, Placeholder: View>: View {
+    let size: CGSize
+    @ViewBuilder let content: () -> Content
+    @ViewBuilder let placeholder: () -> Placeholder
+
+    var body: some View {
+        ZStack {
+            Color(hex: "#E8EDF1")
+
+            content()
+
+            placeholder()
+        }
+        .frame(width: size.width, height: size.height)
+        .clipped()
+        .padding(.top, 10)
+        .padding(.horizontal, 10)
+        .padding(.bottom, 14)
+        .background(
+            Color.filterzPolaroid
+                .shadow(color: Color.black.opacity(0.18), radius: 7, x: 3, y: 4)
+        )
+        .overlay(
+            Rectangle()
+                .stroke(Color.filterzGray45.opacity(0.85), lineWidth: 1)
+        )
     }
 }
 
@@ -295,7 +320,7 @@ private struct ProfileEditSheet: View {
                 .padding(.bottom, 40)
             }
             .scrollDismissesKeyboard(.interactively)
-            .background(Color.filterzBlackBase.ignoresSafeArea())
+            .background(Color.filterzBackground.ignoresSafeArea())
             .navigationTitle("프로필 수정")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -303,7 +328,7 @@ private struct ProfileEditSheet: View {
                     Button("취소") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.filterzGray60)
+                    .foregroundStyle(Color.filterzGray30)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -346,27 +371,22 @@ private struct ProfileEditSheet: View {
 
     private var imageSection: some View {
         VStack(alignment: .center, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.filterzBlackAccent)
-
+            ProfilePhotoFrame(size: CGSize(width: 96, height: 120)) {
                 if let previewImage {
                     Image(uiImage: previewImage)
                         .resizable()
                         .scaledToFill()
-                        .clipShape(Circle())
                 } else {
                     AuthenticatedImageView(path: store.profile?.profileImagePath)
-                        .clipShape(Circle())
-                    if store.profile?.profileImagePath == nil {
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 42, weight: .light))
-                            .foregroundColor(.filterzGray75)
-                    }
+                        .scaledToFill()
+                }
+            } placeholder: {
+                if previewImage == nil, store.profile?.profileImagePath == nil {
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 42, weight: .light))
+                        .foregroundColor(.filterzGray30)
                 }
             }
-            .frame(width: 112, height: 112)
-            .overlay(Circle().stroke(Color.filterzTranslucent, lineWidth: 1))
 
             PhotosPicker(selection: $pickerItem, matching: .images) {
                 Label("사진 변경", systemImage: "photo")
@@ -395,7 +415,7 @@ private struct ProfileEditSheet: View {
                 .padding(12)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.filterzSurface)
+                        .fill(Color.filterzBackground)
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.filterzBorder, lineWidth: 1))
                 )
                 .focused($focusedField, equals: .introduction)
@@ -407,14 +427,14 @@ private struct ProfileEditSheet: View {
 
             Text("공백 또는 쉼표로 구분해 입력하세요.")
                 .font(.filterzCaption())
-                .foregroundColor(.filterzGray75)
+                .foregroundColor(.filterzGray30)
         }
     }
 
     private func editFieldLabel(_ text: String) -> some View {
         Text(text)
             .font(.pretendard(13, weight: .semibold))
-            .foregroundColor(.filterzGray60)
+            .foregroundColor(.filterzGray30)
     }
 }
 
@@ -430,7 +450,7 @@ private extension View {
             .frame(height: 48)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.filterzSurface)
+                    .fill(Color.filterzBackground)
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.filterzBorder, lineWidth: 1))
             )
     }

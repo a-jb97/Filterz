@@ -19,11 +19,11 @@ struct EXIFSection: View {
             .padding(12)
         }
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackAccent)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.filterzTranslucent, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.filterzGray30.opacity(0.9), lineWidth: 1)
                 )
         )
     }
@@ -32,15 +32,16 @@ struct EXIFSection: View {
         HStack {
             Text(exif.camera ?? "카메라 정보 없음")
                 .font(.pretendard(13, weight: .semibold))
-                .foregroundColor(.filterzGray45)
+                .foregroundColor(.filterzGray30)
             Spacer()
             Text(exif.format ?? "EXIF")
                 .font(.pretendard(11, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(Color.filterzBackground)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
-                    Capsule().fill(Color.filterzAccent)
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(Color.filterzAccent)
                 )
         }
         .padding(.horizontal, 12)
@@ -95,7 +96,7 @@ struct EXIFSection: View {
                let aperture = exif.aperture, let iso = exif.iso {
                 Text("\(lensInfo) - \(Int(focalLength))mm f/\(String(format: "%.1f", aperture)) ISO \(iso)")
                     .font(.pretendard(12, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
 
             let resolutionText = [exif.megapixels, exif.dimensionsFormatted, exif.fileSizeFormatted]
@@ -104,13 +105,13 @@ struct EXIFSection: View {
             if !resolutionText.isEmpty {
                 Text(resolutionText)
                     .font(.pretendard(12, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
 
             if let date = exif.dateTimeOriginalFormatted {
                 Text(date)
                     .font(.pretendard(12, weight: .medium))
-                    .foregroundColor(.filterzGray60)
+                    .foregroundColor(.filterzGray30)
             }
         }
     }

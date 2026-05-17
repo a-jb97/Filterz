@@ -1,0 +1,18 @@
+{
+  "imp_uid": "imp_fixture_uid",
+  "merchant_uid": "merchant_fixture_uid",
+  "pay_method": "card",
+  "pg_provider": "html5_inicis",
+  "pg_tid": "fixture_pg_tid",
+  "pg_id": "INIpayTest",
+  "name": "Offline Film",
+  "amount": 2000,
+  "currency": "KRW",
+  "buyer_name": "Fixture User",
+  "buyer_email": "buyer@example.com",
+  "buyer_tel": "010-0000-0000",
+  "status": "paid",
+  "paidAt": "2026-05-14T00:00:00Z",
+  "createdAt": "2026-05-14T00:00:00Z",
+  "updatedAt": "2026-05-14T00:00:00Z"
+}

@@ -14,8 +14,8 @@ struct HotTrendView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("핫 트렌드")
                 .font(.pretendard(16, weight: .bold))
-                .foregroundColor(.filterzGray60)
-                .padding(.horizontal, 20)
+                .foregroundColor(.filterzGray30)
+                .padding(.horizontal, 10)
 
             GeometryReader { geo in
                 let sidePad = max(0, (geo.size.width - cardWidth) / 2)
@@ -55,7 +55,7 @@ struct HotTrendView: View {
                     updateFocusedID(from: centers, viewportCenterX: geo.size.width / 2)
                 }
             }
-            .frame(height: 240)
+            .frame(height: 260)
         }
         .padding(.top, 20)
         .onAppear {

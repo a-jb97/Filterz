@@ -53,7 +53,7 @@ struct UploadFilterView: View {
             store.send(.backTapped)
         }
         .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
-        .background(Color.filterzBlackBase.ignoresSafeArea())
+        .background(Color.filterzBackground.ignoresSafeArea())
         .onAppear {
             store.send(.onAppear)
             if displayImage == nil, let data = store.displayThumbnail {
@@ -140,7 +140,7 @@ struct UploadFilterView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 10, height: 18)
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                         .padding(8)
                 }
                 .frame(width: 44, height: 44)
@@ -168,7 +168,7 @@ struct UploadFilterView: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     // MARK: - 필터명
@@ -177,8 +177,10 @@ struct UploadFilterView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionLabel("필터명")
             TextField(
-                "필터 이름을 입력해주세요.",
-                text: $store.filterName.sending(\.filterNameChanged)
+                "",
+                text: $store.filterName.sending(\.filterNameChanged),
+                prompt: Text("필터 이름을 입력해주세요.")
+                    .foregroundStyle(Color.filterzGray30.opacity(0.5))
             )
             .focused($focusedField, equals: .filterName)
             .inputFieldStyle()
@@ -204,20 +206,13 @@ struct UploadFilterView: View {
             store.send(.categorySelected(category))
         } label: {
             Text(category)
-                .font(.filterzCaption())
-                .foregroundStyle(isSelected ? Color.filterzBackground : Color.filterzGray30)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(
-                                    isSelected ? Color.filterzAccent : Color.filterzDeepSprout,
-                                    lineWidth: 1
-                                )
-                        )
+                .filterzTornTapeStyle(
+                    font: .filterzCaption(),
+                    foregroundColor: .filterzGray30,
+                    fillColor: isSelected ? .filterzClip : .filterzBackground,
+                    strokeColor: isSelected ? nil : .filterzClip,
+                    horizontalPadding: 14,
+                    verticalPadding: 7
                 )
         }
         .buttonStyle(.plain)
@@ -252,7 +247,7 @@ struct UploadFilterView: View {
                         .fill(Color.filterzSurface)
                         .frame(maxWidth: .infinity)
                         .frame(height: 300)
-                        .overlay(ProgressView().tint(Color.filterzGray60))
+                        .overlay(ProgressView().tint(Color.filterzGray30))
                 }
             } else {
                 emptyPhotoArea
@@ -285,8 +280,9 @@ struct UploadFilterView: View {
         .frame(maxWidth: .infinity)
         .frame(height: 160)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.filterzSurface)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color.filterzBackground)
+                .stroke(Color.filterzGray30, lineWidth: 1)
         )
     }
 
@@ -296,14 +292,6 @@ struct UploadFilterView: View {
                 .font(.system(size: 25, weight: .medium))
                 .foregroundStyle(Color.filterzAccent)
                 .frame(width: 54, height: 54)
-                .background(
-                    Circle()
-                        .fill(Color.filterzBlackAccent)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.filterzDeepSprout, lineWidth: 1)
-                        )
-                )
 
             Text(title)
                 .font(.filterzCaption())
@@ -312,11 +300,11 @@ struct UploadFilterView: View {
         .frame(maxWidth: .infinity)
         .frame(height: 132)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.filterzBlackAccent)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color.filterzBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.filterzBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.filterzGray30, lineWidth: 1)
                 )
         )
     }
@@ -341,7 +329,7 @@ struct UploadFilterView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 5))
     }
 
     private func filledRemotePhotoArea(path: String) -> some View {
@@ -407,7 +395,7 @@ struct UploadFilterView: View {
                 if let spec = meta.lensSpec {
                     Text(spec)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
 
                 let sizeLine = [meta.megapixels, meta.resolution, meta.fileSize]
@@ -416,25 +404,25 @@ struct UploadFilterView: View {
                 if !sizeLine.isEmpty {
                     Text(sizeLine)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
 
                 if let address = meta.address {
                     Text(address)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
 
                 if let dateStr = meta.dateTimeOriginal {
                     Text(dateStr)
                         .font(.filterzCaption())
-                        .foregroundStyle(Color.filterzGray60)
+                        .foregroundStyle(Color.filterzGray30)
                 }
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.filterzBlackAccent)
+        .background(Color.filterzBackground)
     }
 
     // MARK: - 필터 소개
@@ -443,8 +431,10 @@ struct UploadFilterView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionLabel("필터 소개")
             TextField(
-                "이 필터에 대해 간단하게 소개해주세요.",
-                text: $store.filterDescription.sending(\.filterDescriptionChanged)
+                "",
+                text: $store.filterDescription.sending(\.filterDescriptionChanged),
+                prompt: Text("이 필터에 대해 간단하게 소개해주세요.")
+                    .foregroundStyle(Color.filterzGray30.opacity(0.5))
             )
             .focused($focusedField, equals: .description)
             .inputFieldStyle()
@@ -458,8 +448,10 @@ struct UploadFilterView: View {
             sectionLabel("판매 가격")
             HStack(spacing: 0) {
                 TextField(
-                    "1,000",
-                    text: $store.price.sending(\.priceChanged)
+                    "",
+                    text: $store.price.sending(\.priceChanged),
+                    prompt: Text("1,000")
+                        .foregroundStyle(Color.filterzGray30.opacity(0.5))
                 )
                 .keyboardType(.numberPad)
                 .font(.filterzBody())
@@ -469,14 +461,11 @@ struct UploadFilterView: View {
 
                 Text("원")
                     .font(.filterzBody())
-                    .foregroundStyle(Color.filterzGray60)
+                    .foregroundStyle(Color.filterzGray30)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.filterzSurface)
-            )
+            .inputFieldBackground()
         }
     }
 
@@ -499,10 +488,18 @@ private extension View {
             .tint(Color.filterzGray30)
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.filterzSurface)
-            )
+            .inputFieldBackground()
             .frame(maxWidth: .infinity)
+    }
+
+    func inputFieldBackground() -> some View {
+        background(
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color.filterzBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.filterzGray30, lineWidth: 1)
+                )
+        )
     }
 }

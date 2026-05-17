@@ -6,20 +6,20 @@ struct VideoListView: View {
 
     var body: some View {
         ZStack {
-            Color.filterzBlackBase.ignoresSafeArea()
+            Color.filterzBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 navBar
 
                 if store.isLoading && store.items.isEmpty {
                     Spacer()
-                    ProgressView().tint(.filterzGray45)
+                    ProgressView().tint(.filterzGray30)
                     Spacer()
                 } else if store.items.isEmpty {
                     Spacer()
                     Text("등록된 비디오가 없습니다")
                         .font(.pretendard(14, weight: .regular))
-                        .foregroundColor(.filterzGray60)
+                        .foregroundColor(.filterzGray30)
                     Spacer()
                 } else {
                     listContent
@@ -65,7 +65,7 @@ struct VideoListView: View {
         }
         .padding(.horizontal, 8)
         .frame(height: 56)
-        .background(Color.filterzBlackBase)
+        .background(Color.filterzBackground)
     }
 
     private var listContent: some View {
@@ -86,7 +86,7 @@ struct VideoListView: View {
 
                 if store.hasMore {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .onAppear { store.send(.loadMore) }

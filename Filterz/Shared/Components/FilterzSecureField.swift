@@ -20,12 +20,23 @@ struct FilterzSecureField: View {
                 }
                 Group {
                     if isVisible {
-                        TextField(placeholder, text: $text)
+                        TextField(
+                            "",
+                            text: $text,
+                            prompt: Text(placeholder)
+                                .foregroundColor(Color.filterzGray30.opacity(0.5))
+                        )
                     } else {
-                        SecureField(placeholder, text: $text)
+                        SecureField(
+                            "",
+                            text: $text,
+                            prompt: Text(placeholder)
+                                .foregroundColor(Color.filterzGray30.opacity(0.5))
+                        )
                     }
                 }
-                .foregroundColor(.filterzTextPrimary)
+                .font(.filterzBody())
+                .foregroundColor(.filterzGray30)
                 .tint(.filterzAccent)
                 .autocorrectionDisabled()
                 .focused($isFocused)
@@ -41,7 +52,7 @@ struct FilterzSecureField: View {
             }
             .padding(.horizontal, 16)
             .frame(height: 54)
-            .background(Color.filterzSurface)
+            .background(Color.filterzBackground)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)

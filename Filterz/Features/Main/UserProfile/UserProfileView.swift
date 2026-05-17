@@ -17,7 +17,7 @@ struct UserProfileView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.filterzBlackBase.ignoresSafeArea())
+            .background(Color.filterzBackground.ignoresSafeArea())
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -27,7 +27,7 @@ struct UserProfileView: View {
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.filterzGray60)
+                            .foregroundStyle(Color.filterzGray30)
                     }
                 }
             }
@@ -48,7 +48,7 @@ struct UserProfileView: View {
         VStack {
             Spacer()
             ProgressView()
-                .tint(.filterzGray45)
+                .tint(.filterzGray30)
             Spacer()
         }
     }
@@ -58,7 +58,7 @@ struct UserProfileView: View {
             Spacer()
             Text("프로필을 불러오지 못했습니다")
                 .font(.pretendard(14, weight: .regular))
-                .foregroundColor(.filterzGray60)
+                .foregroundColor(.filterzGray30)
             Button("다시 시도") {
                 store.send(.retryTapped)
             }
@@ -76,10 +76,10 @@ struct UserProfileView: View {
 
                 VStack(spacing: 14) {
                     if let name = profile.name, !name.isEmpty {
-                        profileText(name, fontSize: 14, color: .filterzGray60)
+                        profileText(name, fontSize: 14, color: .filterzGray30)
                     }
                     profileText(profile.nick, fontSize: 24, color: .filterzGray30, weight: .semibold)
-                    profileText(profile.introduction ?? "소개가 없습니다", fontSize: 15, color: .filterzGray60)
+                    profileText(profile.introduction ?? "소개가 없습니다", fontSize: 15, color: .filterzGray30)
 
                     hashTagRow(profile.hashTags)
                         .padding(.top, 2)
@@ -96,7 +96,7 @@ struct UserProfileView: View {
     private func profileImage(_ profile: UserProfile) -> some View {
         ZStack {
             Circle()
-                .fill(Color.filterzBlackAccent)
+                .fill(Color.filterzBackground)
 
             AuthenticatedImageView(path: profile.profileImagePath)
                 .clipShape(Circle())
@@ -104,7 +104,7 @@ struct UserProfileView: View {
             if profile.profileImagePath == nil {
                 Image(systemName: "person.fill")
                     .font(.system(size: 46, weight: .light))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
             }
         }
         .frame(width: 124, height: 124)
@@ -130,16 +130,16 @@ struct UserProfileView: View {
             if hashTags.isEmpty {
                 Text("#해시태그 없음")
                     .font(.pretendard(13, weight: .regular))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
             } else {
                 ForEach(hashTags, id: \.self) { tag in
                     Text("#\(displayHashTag(tag))")
-                        .font(.pretendard(13, weight: .medium))
-                        .foregroundColor(.filterzGray30)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Capsule().fill(Color.filterzBlackAccent))
-                        .overlay(Capsule().stroke(Color.filterzDeepSprout, lineWidth: 1))
+                        .filterzTornTapeStyle(
+                            font: .pretendard(13, weight: .medium),
+                            foregroundColor: .filterzGray30,
+                            horizontalPadding: 12,
+                            verticalPadding: 7
+                        )
                 }
             }
         }
@@ -156,13 +156,13 @@ struct UserProfileView: View {
 
             if store.isFiltersLoading && store.filters.isEmpty {
                 ProgressView()
-                    .tint(.filterzGray45)
+                    .tint(.filterzGray30)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 36)
             } else if store.filters.isEmpty {
                 Text("등록한 필터가 없습니다")
                     .font(.pretendard(14, weight: .regular))
-                    .foregroundColor(.filterzGray75)
+                    .foregroundColor(.filterzGray30)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 36)
             } else {
@@ -175,7 +175,7 @@ struct UserProfileView: View {
 
                 if store.hasMoreFilters {
                     ProgressView()
-                        .tint(.filterzGray45)
+                        .tint(.filterzGray30)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 4)
                         .onAppear { store.send(.loadMoreFilters) }
@@ -198,18 +198,20 @@ struct UserProfileView: View {
                     }
                 }
             }
+            .padding(.vertical, 4)
         }
     }
 
     private func categoryButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(13, weight: .semibold))
-                .foregroundColor(isSelected ? .filterzBlackBase : .filterzGray60)
-                .padding(.horizontal, 13)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule().fill(isSelected ? Color.filterzAccent : Color.filterzBlackAccent)
+                .filterzTornTapeStyle(
+                    font: .pretendard(13, weight: .semibold),
+                    foregroundColor: isSelected ? .filterzGray30 : .filterzAccent,
+                    fillColor: isSelected ? .filterzClip : .filterzBackground,
+                    strokeColor: isSelected ? nil : .filterzDeepSprout,
+                    horizontalPadding: 13,
+                    verticalPadding: 10
                 )
         }
         .buttonStyle(.plain)
